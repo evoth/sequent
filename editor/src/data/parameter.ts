@@ -10,8 +10,9 @@ export class Parameter<T> {
     this.description = description;
   }
 
-  // Sub-classes can have optional restrictions on what constitutes a valid value
-  // Base class has no validation
+  // Sub-classes can have optional restrictions on what constitutes a valid value.
+  // The `fixed` return value optionally returns a "fixed" version of the value
+  // that will pass validation.
   validate(value: T): [error: ParameterError, fixed?: T] {
     return [ParameterError.None];
   }
@@ -34,7 +35,6 @@ export enum ParameterError {
   UnderMin,
   OverMax,
   // Parameter does not conform to the correct step size
-  // TODO: potential precision issues?
   WrongStep,
   UnderMinLength,
   OverMaxLength,
@@ -65,7 +65,8 @@ export class NumberParameter<T extends number> extends Parameter<T> {
     this.unit = unit;
   }
 
-  validate(value: T): [error: ParameterError, fixed: T] {
+  validate(value: T): [error: ParameterError, fixed?: T] {
+    const epsilon = 10e-10;
     if (this.min !== undefined && value < this.min) {
       return [ParameterError.UnderMin, this.min];
     }
@@ -74,12 +75,12 @@ export class NumberParameter<T extends number> extends Parameter<T> {
     }
     if (
       this.step !== undefined &&
-      Math.round(value / this.step) == value / this.step
+      Math.abs(Math.round(value / this.step) - value / this.step) > epsilon
     ) {
       let fixed = (Math.round(value / this.step) * this.step) as T;
-      return [ParameterError.WrongStep, this.validate(fixed)[1]];
+      return [ParameterError.WrongStep, this.validate(fixed)[1] ?? fixed];
     }
-    return [ParameterError.None, value];
+    return [ParameterError.None];
   }
 }
 
@@ -110,7 +111,7 @@ export class StringParameter<T extends string> extends Parameter<T> {
         value.slice(0, this.maxLength) as T,
       ];
     }
-    return [ParameterError.None, value];
+    return [ParameterError.None];
   }
 }
 
