@@ -1,29 +1,31 @@
-// For right now, a new instance will be created for each parameter of each action
-// instance. I may want to separate the Parameter class from the state itself in
-// case the Parameter properties are changed during runtime. (TODO)
-export abstract class Parameter {
+// Represents the general description of a given parameter
+export class Parameter<T> {
   id: number;
   name: string;
-  abstract value?: number | string | boolean;
+  description: string;
 
-  constructor(id: number, name: string) {
+  constructor(id: number, name: string, description: string) {
     this.id = id;
     this.name = name;
+    this.description = description;
   }
 
   // Sub-classes can have optional restrictions on what constitutes a valid value
-  abstract validate(
-    value: number | string | boolean
-  ): [error: ParameterError, fixed?: number | string | boolean];
+  // Base class has no validation
+  validate(value: T): [error: ParameterError, fixed?: T] {
+    return [ParameterError.None];
+  }
 }
 
-// May seem redundant but I think it will be useful for serialization purposes
-export enum ParameterType {
-  Number,
-  String,
-  Boolean,
-  NumberEnum,
-  StringEnum,
+// Represents the actual parameter value in an action instance
+// (I don't think generics are supposed to be used like this...)
+export class ParameterState<T extends Parameter<U>, U> {
+  parameter: T;
+  value?: U;
+
+  constructor(parameter: T) {
+    this.parameter = parameter;
+  }
 }
 
 export enum ParameterError {
@@ -36,29 +38,34 @@ export enum ParameterError {
   WrongStep,
   UnderMinLength,
   OverMaxLength,
+  // Value isn't an enum option
+  BadEnumOption,
 }
 
-export class NumberParameter extends Parameter {
-  type: ParameterType = ParameterType.Number;
-  min?: number;
-  max?: number;
-  step?: number;
-  value?: number;
+// Provides number-specific validation
+export class NumberParameter<T extends number> extends Parameter<T> {
+  min?: T;
+  max?: T;
+  step?: T;
+  unit?: string;
 
   constructor(
     id: number,
     name: string,
-    min?: number,
-    max?: number,
-    step?: number
+    description: string,
+    min?: T,
+    max?: T,
+    step?: T,
+    unit?: string
   ) {
-    super(id, name);
+    super(id, name, description);
     this.min = min;
     this.max = max;
     this.step = step;
+    this.unit = unit;
   }
 
-  validate(value: number): [error: ParameterError, fixed: number] {
+  validate(value: T): [error: ParameterError, fixed: T] {
     if (this.min !== undefined && value < this.min) {
       return [ParameterError.UnderMin, this.min];
     }
@@ -69,50 +76,57 @@ export class NumberParameter extends Parameter {
       this.step !== undefined &&
       Math.round(value / this.step) == value / this.step
     ) {
-      let fixed = Math.round(value / this.step) * this.step;
+      let fixed = (Math.round(value / this.step) * this.step) as T;
       return [ParameterError.WrongStep, this.validate(fixed)[1]];
     }
     return [ParameterError.None, value];
   }
 }
 
-export class StringParameter extends Parameter {
-  type: ParameterType = ParameterType.String;
+// Provides string-specific validation
+export class StringParameter<T extends string> extends Parameter<T> {
   minLength?: number;
   maxLength?: number;
-  value?: number;
 
   constructor(
     id: number,
     name: string,
+    description: string,
     minLength?: number,
     maxLength?: number
   ) {
-    super(id, name);
+    super(id, name, description);
     this.minLength = minLength;
     this.maxLength = maxLength;
   }
 
-  validate(value: string): [error: ParameterError, fixed?: string] {
+  validate(value: T): [error: ParameterError, fixed?: T] {
     if (this.minLength !== undefined && value.length < this.minLength) {
       return [ParameterError.UnderMinLength];
     }
     if (this.maxLength !== undefined && value.length > this.maxLength) {
-      return [ParameterError.OverMaxLength, value.slice(0, this.maxLength)];
+      return [
+        ParameterError.OverMaxLength,
+        value.slice(0, this.maxLength) as T,
+      ];
     }
     return [ParameterError.None, value];
   }
 }
 
-export class BooleanParameter extends Parameter {
-  type: ParameterType = ParameterType.Boolean;
-  value?: number;
+// Provides validation for enumerations (sets of allowed values)
+export class EnumParameter<T> extends Parameter<T> {
+  options: Set<T>;
 
-  constructor(id: number, name: string) {
-    super(id, name);
+  constructor(id: number, name: string, description: string, options: T[]) {
+    super(id, name, description);
+    this.options = new Set<T>(options);
   }
 
-  validate(value: string): [error: ParameterError] {
+  validate(value: T): [error: ParameterError] {
+    if (!this.options.has(value)) {
+      return [ParameterError.BadEnumOption];
+    }
     return [ParameterError.None];
   }
 }
