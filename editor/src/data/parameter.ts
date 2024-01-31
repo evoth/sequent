@@ -16,6 +16,10 @@ export class Parameter<T> {
   validate(value: T): [error: ParameterError, fixed?: T] {
     return [ParameterError.None];
   }
+
+  newState(value?: T): ParameterState<Parameter<T>, T> {
+    return new ParameterState<Parameter<T>, T>(this, value);
+  }
 }
 
 // Represents the actual parameter value in an action instance
@@ -24,8 +28,9 @@ export class ParameterState<T extends Parameter<U>, U> {
   parameter: T;
   value?: U;
 
-  constructor(parameter: T) {
+  constructor(parameter: T, value?: U) {
     this.parameter = parameter;
+    this.value = value;
   }
 }
 

@@ -121,19 +121,24 @@ describe("enum parameter correctly validates", () => {
   });
 });
 
-test("parameter state works as expected", () => {
-  let param = new NumberParameter<number>(
-    0,
-    "Test",
-    "Test parameter",
-    2,
-    10,
-    10
-  );
-  let paramState = new ParameterState<NumberParameter<number>, number>(param);
-  expect(paramState.value).toBeUndefined();
-  expect(param.validate(5)).toEqual([ParameterError.WrongStep, 10]);
-  expect(param.validate(4.9)).toEqual([ParameterError.WrongStep, 2]);
-  paramState.value = 2;
-  expect(paramState.value).toBe(2);
+describe("parameter state", () => {
+  test("stores value and validates correctly", () => {
+    let param = new NumberParameter<number>(
+      0,
+      "Test",
+      "Test parameter",
+      2,
+      10,
+      10
+    );
+    let paramState = new ParameterState<NumberParameter<number>, number>(param);
+    expect(paramState.value).toBeUndefined();
+    expect(param.validate(5)).toEqual([ParameterError.WrongStep, 10]);
+    expect(param.validate(4.9)).toEqual([ParameterError.WrongStep, 2]);
+    paramState.value = 2;
+    expect(paramState.value).toBe(2);
+    paramState = param.newState(5);
+    expect(paramState.value).toBe(5);
+    expect(param.validate(5)).toEqual([ParameterError.WrongStep, 10]);
+  });
 });
