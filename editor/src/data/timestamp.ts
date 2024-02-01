@@ -11,11 +11,11 @@ export class Timestamp {
     this.relativeTo = relativeTo;
   }
 
-  getOffset(): [offset: number, absolute: Timestamp] {
+  getOffset(): [offset: number, root: Timestamp] {
     if (this.relativeTo === undefined) {
       return [0, this];
     }
-    const [offset, absolute] = this.relativeTo.getOffset();
-    return [offset + this.value, absolute];
+    const [offset, root] = this.relativeTo.getOffset();
+    return [offset + this.value, root];
   }
 }
