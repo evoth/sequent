@@ -71,7 +71,7 @@ export class NumberParameter<T extends number> extends Parameter<T> {
   }
 
   validate(value: T): [error: ParameterError, fixed?: T] {
-    const epsilon = 10e-10;
+    const epsilon = 1e-10;
     if (this.min !== undefined && value < this.min) {
       return [ParameterError.UnderMin, this.min];
     }

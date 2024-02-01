@@ -1,7 +1,9 @@
 import { Parameter, ParameterState } from "./parameter";
 
+import type { Repeatable } from "./repeat";
+
 // Represents the general description of an action/command
-export class Action {
+export class Action implements Repeatable {
   id: number;
   name: string;
   description: string;
@@ -31,6 +33,11 @@ export class Action {
       parameter.newState()
     );
     return new ActionState(this, states);
+  }
+
+  // TODO: Add a way to represent length of time taken by action
+  getDuration(): number | undefined {
+    return undefined;
   }
 }
 
