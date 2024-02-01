@@ -3,10 +3,10 @@ export class Timestamp {
   value: number;
   relativeTo?: Timestamp;
 
-  static readonly StartId = -1;
+  private static idCounter = 0;
 
-  constructor(id: number, value: number, relativeTo?: Timestamp) {
-    this.id = id;
+  constructor(value: number, relativeTo?: Timestamp) {
+    this.id = Timestamp.generateId();
     this.value = value;
     this.relativeTo = relativeTo;
   }
@@ -17,5 +17,9 @@ export class Timestamp {
     }
     const [offset, root] = this.relativeTo.getOffset();
     return [offset + this.value, root];
+  }
+
+  static generateId(): number {
+    return this.idCounter++;
   }
 }

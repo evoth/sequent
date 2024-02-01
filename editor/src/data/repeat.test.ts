@@ -40,12 +40,6 @@ test("RepeatProps correctly validates all constraint combinations", () => {
       j = Math.floor(j / options.length);
     }
     const props = new RepeatProps({}, testConstraints);
-    if (
-      props.validateConstraints() !==
-      (isValid ? RepeatPropsError.None : RepeatPropsError.InvalidConstraints)
-    ) {
-      console.log(validOrdinals, testConstraints, i);
-    }
     expect(props.validateConstraints()).toBe(
       isValid ? RepeatPropsError.None : RepeatPropsError.InvalidConstraints
     );
