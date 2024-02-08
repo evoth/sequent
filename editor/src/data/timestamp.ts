@@ -1,14 +1,21 @@
-export class Timestamp {
-  id: number;
+import { Manageable, Manager } from "./manager";
+
+export class Timestamp extends Manageable<Timestamp> {
   value: number;
   relativeTo?: Timestamp;
 
-  private static idCounter = 0;
-
-  constructor(value: number, relativeTo?: Timestamp) {
-    this.id = Timestamp.generateId();
+  constructor(
+    manager: Manager<Timestamp>,
+    value: number,
+    relativeTo?: Timestamp
+  ) {
+    super(manager);
     this.value = value;
     this.relativeTo = relativeTo;
+  }
+
+  add() {
+    this.manager.add(this);
   }
 
   getOffset(): [offset: number, root: Timestamp] {
@@ -17,9 +24,5 @@ export class Timestamp {
     }
     const [offset, root] = this.relativeTo.getOffset();
     return [offset + this.value, root];
-  }
-
-  static generateId(): number {
-    return this.idCounter++;
   }
 }

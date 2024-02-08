@@ -1,22 +1,38 @@
 import { NumberParameter, Parameter, ParameterError } from "./parameter";
 
 import { Action } from "./action";
+import { Manager } from "./manager";
 
 describe("action", () => {
   test("correctly validates parameter", () => {
-    let param = new NumberParameter<number>(0, "Test", "Test parameter", 0.5);
-    let action = new Action(0, "Test", "Test action", [param]);
+    let paramManager = new Manager<Parameter<any>>();
+    let actionManager = new Manager<Action>();
+    let param = new NumberParameter<number>(
+      paramManager,
+      "Test",
+      "Test parameter",
+      0.5
+    );
+    let action = new Action(actionManager, "Test", "Test action", [param]);
     expect(action.parameters[0].validate(0)).toEqual([
       ParameterError.UnderMin,
       0.5,
     ]);
   });
   test("correctly handles required parameters", () => {
-    let param = new Parameter<number>(0, "Test", "Test parameter");
-    let action = new Action(0, "Test", "Test action", [param]);
+    let paramManager = new Manager<Parameter<any>>();
+    let actionManager = new Manager<Action>();
+    let param = new Parameter<number>(paramManager, "Test", "Test parameter");
+    let action = new Action(actionManager, "Test", "Test action", [param]);
     expect(action.isParameterRequired(param)).toBe(false);
-    let param2 = new Parameter<number>(1, "Test2", "Test parameter");
-    action = new Action(0, "Test", "Test action", [param, param2], [1]);
+    let param2 = new Parameter<number>(paramManager, "Test2", "Test parameter");
+    action = new Action(
+      actionManager,
+      "Test",
+      "Test action",
+      [param, param2],
+      [1]
+    );
     expect(action.isParameterRequired(param)).toBe(false);
     expect(action.isParameterRequired(param2)).toBe(true);
   });
@@ -24,15 +40,23 @@ describe("action", () => {
 
 describe("action state", () => {
   test("correctly stores and validates parameter values", () => {
-    let param = new Parameter<number>(0, "Test", "Test parameter");
+    let paramManager = new Manager<Parameter<any>>();
+    let actionManager = new Manager<Action>();
+    let param = new Parameter<number>(paramManager, "Test", "Test parameter");
     let param2 = new NumberParameter<number>(
-      1,
+      paramManager,
       "Test2",
       "Test parameter",
       undefined,
       10
     );
-    let action = new Action(0, "Test", "Test action", [param, param2], [1]);
+    let action = new Action(
+      actionManager,
+      "Test",
+      "Test action",
+      [param, param2],
+      [1]
+    );
     let actionState = action.newState();
     expect(actionState.parameterStates[0].value).toBe(undefined);
     actionState.parameterStates[0].value = 5;

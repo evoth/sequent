@@ -7,18 +7,23 @@ import {
   StringParameter,
 } from "./parameter";
 
+import { Manager } from "./manager";
+
 describe("generic parameter allows creation and validation for", () => {
   test("numbers", () => {
-    let param = new Parameter<number>(0, "Test", "Test parameter");
+    let manager = new Manager<Parameter<any>>();
+    let param = new Parameter<number>(manager, "Test", "Test parameter");
     expect(param.validate(0)).toEqual([ParameterError.None]);
   });
   test("strings", () => {
-    let param = new Parameter<string>(0, "Test", "Test parameter");
+    let manager = new Manager<Parameter<any>>();
+    let param = new Parameter<string>(manager, "Test", "Test parameter");
     expect(param.validate("")).toEqual([ParameterError.None]);
     expect(param.validate("abc")).toEqual([ParameterError.None]);
   });
   test("booleans", () => {
-    let param = new Parameter<boolean>(0, "Test", "Test parameter");
+    let manager = new Manager<Parameter<any>>();
+    let param = new Parameter<boolean>(manager, "Test", "Test parameter");
     expect(param.validate(false)).toEqual([ParameterError.None]);
     expect(param.validate(true)).toEqual([ParameterError.None]);
   });
@@ -26,13 +31,15 @@ describe("generic parameter allows creation and validation for", () => {
 
 describe("number parameter correctly validates", () => {
   test("with no bounds", () => {
-    let param = new NumberParameter<number>(0, "Test", "Test parameter");
+    let manager = new Manager<Parameter<any>>();
+    let param = new NumberParameter<number>(manager, "Test", "Test parameter");
     expect(param.validate(10)).toEqual([ParameterError.None]);
     expect(param.validate(-500.1)).toEqual([ParameterError.None]);
   });
   test("with lower and upper bounds", () => {
+    let manager = new Manager<Parameter<any>>();
     let param = new NumberParameter<number>(
-      0,
+      manager,
       "Test",
       "Test parameter",
       -0.5,
@@ -44,8 +51,9 @@ describe("number parameter correctly validates", () => {
     expect(param.validate(5.1)).toEqual([ParameterError.OverMax, 5]);
   });
   test("with bounds and step constraint", () => {
+    let manager = new Manager<Parameter<any>>();
     let param = new NumberParameter<number>(
-      0,
+      manager,
       "Test",
       "Test parameter",
       -0.5,
@@ -62,7 +70,7 @@ describe("number parameter correctly validates", () => {
     expect(fixed).toBeCloseTo(5, 9);
     // Fixed value conforms to min/max when rounding exceeds them
     param = new NumberParameter<number>(
-      0,
+      manager,
       "Test",
       "Test parameter",
       1.2,
@@ -76,19 +84,33 @@ describe("number parameter correctly validates", () => {
 
 describe("string parameter correctly validates", () => {
   test("with no bounds", () => {
-    let param = new StringParameter<string>(0, "Test", "Test parameter");
+    let manager = new Manager<Parameter<any>>();
+    let param = new StringParameter<string>(manager, "Test", "Test parameter");
     expect(param.validate("")).toEqual([ParameterError.None]);
     expect(param.validate("abcdefghijklmnopqrstuvwxyz")).toEqual([
       ParameterError.None,
     ]);
   });
   test("with lower bound", () => {
-    let param = new StringParameter<string>(0, "Test", "Test parameter", 1);
+    let manager = new Manager<Parameter<any>>();
+    let param = new StringParameter<string>(
+      manager,
+      "Test",
+      "Test parameter",
+      1
+    );
     expect(param.validate("")).toEqual([ParameterError.UnderMinLength]);
     expect(param.validate("a")).toEqual([ParameterError.None]);
   });
   test("with lower and upper bounds", () => {
-    let param = new StringParameter<string>(0, "Test", "Test parameter", 2, 5);
+    let manager = new Manager<Parameter<any>>();
+    let param = new StringParameter<string>(
+      manager,
+      "Test",
+      "Test parameter",
+      2,
+      5
+    );
     expect(param.validate("a")).toEqual([ParameterError.UnderMinLength]);
     expect(param.validate("ab")).toEqual([ParameterError.None]);
     expect(param.validate("abcde")).toEqual([ParameterError.None]);
@@ -101,18 +123,38 @@ describe("string parameter correctly validates", () => {
 
 describe("enum parameter correctly validates", () => {
   test("number enums", () => {
-    let param = new EnumParameter<number>(0, "Test", "Test parameter", []);
+    let manager = new Manager<Parameter<any>>();
+    let param = new EnumParameter<number>(
+      manager,
+      "Test",
+      "Test parameter",
+      []
+    );
     expect(param.validate(0)).toEqual([ParameterError.BadEnumOption]);
-    param = new EnumParameter<number>(0, "Test", "Test parameter", [-1, 3]);
+    param = new EnumParameter<number>(
+      manager,
+      "Test",
+      "Test parameter",
+      [-1, 3]
+    );
     expect(param.validate(0)).toEqual([ParameterError.BadEnumOption]);
     expect(param.validate(-3)).toEqual([ParameterError.BadEnumOption]);
     expect(param.validate(-1)).toEqual([ParameterError.None]);
     expect(param.validate(3)).toEqual([ParameterError.None]);
   });
   test("string enums", () => {
-    let param = new EnumParameter<string>(0, "Test", "Test parameter", []);
+    let manager = new Manager<Parameter<any>>();
+    let param = new EnumParameter<string>(
+      manager,
+      "Test",
+      "Test parameter",
+      []
+    );
     expect(param.validate("")).toEqual([ParameterError.BadEnumOption]);
-    param = new EnumParameter<string>(0, "Test", "Test parameter", ["", "abc"]);
+    param = new EnumParameter<string>(manager, "Test", "Test parameter", [
+      "",
+      "abc",
+    ]);
     expect(param.validate("ab")).toEqual([ParameterError.BadEnumOption]);
     expect(param.validate("abc ")).toEqual([ParameterError.BadEnumOption]);
     expect(param.validate(" ")).toEqual([ParameterError.BadEnumOption]);
@@ -123,8 +165,9 @@ describe("enum parameter correctly validates", () => {
 
 describe("parameter state", () => {
   test("stores value and validates correctly", () => {
+    let manager = new Manager<Parameter<any>>();
     let param = new NumberParameter<number>(
-      0,
+      manager,
       "Test",
       "Test parameter",
       2,

@@ -7,11 +7,18 @@ export interface Repeatable {
 export class Repeat {
   id: number;
   child: Repeatable;
+  props: RepeatProps;
   isRepeating: boolean;
 
-  constructor(id: number, child: Repeatable, isRepeating: boolean) {
+  constructor(
+    id: number,
+    child: Repeatable,
+    props: RepeatProps,
+    isRepeating: boolean
+  ) {
     this.id = id;
     this.child = child;
+    this.props = props;
     this.isRepeating = isRepeating;
   }
 }
@@ -192,7 +199,11 @@ export class RepeatProps {
         start = null;
       } else {
         const end = this.constraints.end!;
-        start = new Timestamp(end.value - duration, end.relativeTo);
+        start = new Timestamp(
+          end.manager,
+          end.value - duration,
+          end.relativeTo
+        );
       }
     }
 
@@ -205,7 +216,11 @@ export class RepeatProps {
         end = null;
       } else {
         const start = this.constraints.start!;
-        end = new Timestamp(start.value + duration, start.relativeTo);
+        end = new Timestamp(
+          start.manager,
+          start.value + duration,
+          start.relativeTo
+        );
       }
     }
 

@@ -1,4 +1,5 @@
-<script>
+<script lang="ts">
+  import SequenceTest from "./ui/SequenceTest.svelte";
   import ThemeToggle from "./ui/ThemeToggle.svelte";
 </script>
 
@@ -7,6 +8,7 @@
     <h1>Sequent Editor</h1>
     <ThemeToggle />
   </div>
+  <SequenceTest />
 </main>
 
 <style>
@@ -18,8 +20,6 @@
   }
 
   main {
-    display: flex;
-    flex-direction: column;
-    row-gap: 32px;
+    height: 100%;
   }
 </style>

@@ -1,13 +1,22 @@
+import { Manageable, Manager } from "./manager";
+
 // Represents the general description of a given parameter
-export class Parameter<T> {
-  id: number;
+export class Parameter<T> extends Manageable<Parameter<any>> {
   name: string;
   description: string;
 
-  constructor(id: number, name: string, description: string) {
-    this.id = id;
+  constructor(
+    manager: Manager<Parameter<any>>,
+    name: string,
+    description: string
+  ) {
+    super(manager);
     this.name = name;
     this.description = description;
+  }
+
+  add() {
+    this.manager.add(this);
   }
 
   // Sub-classes can have optional restrictions on what constitutes a valid value.
@@ -55,7 +64,7 @@ export class NumberParameter<T extends number> extends Parameter<T> {
   unit?: string;
 
   constructor(
-    id: number,
+    manager: Manager<Parameter<any>>,
     name: string,
     description: string,
     min?: T,
@@ -63,7 +72,7 @@ export class NumberParameter<T extends number> extends Parameter<T> {
     step?: T,
     unit?: string
   ) {
-    super(id, name, description);
+    super(manager, name, description);
     this.min = min;
     this.max = max;
     this.step = step;
@@ -95,13 +104,13 @@ export class StringParameter<T extends string> extends Parameter<T> {
   maxLength?: number;
 
   constructor(
-    id: number,
+    manager: Manager<Parameter<any>>,
     name: string,
     description: string,
     minLength?: number,
     maxLength?: number
   ) {
-    super(id, name, description);
+    super(manager, name, description);
     this.minLength = minLength;
     this.maxLength = maxLength;
   }
@@ -124,8 +133,13 @@ export class StringParameter<T extends string> extends Parameter<T> {
 export class EnumParameter<T> extends Parameter<T> {
   options: Set<T>;
 
-  constructor(id: number, name: string, description: string, options: T[]) {
-    super(id, name, description);
+  constructor(
+    manager: Manager<Parameter<any>>,
+    name: string,
+    description: string,
+    options: T[]
+  ) {
+    super(manager, name, description);
     this.options = new Set<T>(options);
   }
 
