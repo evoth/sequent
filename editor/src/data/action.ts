@@ -5,9 +5,10 @@ import type { Repeatable } from "./repeat";
 
 // Represents the general description of an action/command
 export class Action extends Manageable<Action> {
-  name: string;
-  description: string;
-  parameters: Parameter<any>[];
+  readonly name: string;
+  readonly description: string;
+  readonly parameters: Parameter<any>[];
+  readonly descendants: Set<Parameter<any>>;
 
   constructor(
     manager: Manager<Action>,
@@ -19,27 +20,28 @@ export class Action extends Manageable<Action> {
     this.name = name;
     this.description = description;
     this.parameters = parameters;
+    this.descendants = this.getDescendants();
   }
 
   add() {
     this.manager.add(this);
   }
 
-  getAllParameters(): Set<Parameter<any>> {
-    const children = new Set<Parameter<any>>();
+  private getDescendants(): Set<Parameter<any>> {
+    const descendants = new Set<Parameter<any>>();
     for (const child of this.parameters) {
-      children.add(child);
+      descendants.add(child);
       if (child instanceof NestedParameter) {
-        for (const nestedChild of child.getChildren([])) {
-          children.add(nestedChild);
+        for (const nestedChild of child.descendants) {
+          descendants.add(nestedChild);
         }
       }
     }
-    return children;
+    return descendants;
   }
 
   newState(): ActionState {
-    const allParameters = Array.from(this.getAllParameters());
+    const allParameters = Array.from(this.descendants);
     const states = allParameters.map((parameter: Parameter<any>) =>
       parameter.newState()
     );
@@ -49,8 +51,8 @@ export class Action extends Manageable<Action> {
 
 // Represents an actual action instance with its parameter values
 export class ActionState implements Repeatable {
-  action: Action;
-  parameterStates: ParameterState<Parameter<any>, any>[];
+  readonly action: Action;
+  readonly parameterStates: ParameterState<Parameter<any>, any>[];
 
   constructor(
     action: Action,

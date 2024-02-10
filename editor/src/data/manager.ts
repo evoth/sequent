@@ -23,8 +23,8 @@ export class Manager<T extends Manageable<any>> {
 
 // A hacky way to define "manageable" objects
 export abstract class Manageable<T extends Manageable<T>> {
-  id: string;
-  manager: Manager<T>;
+  readonly id: string;
+  readonly manager: Manager<T>;
 
   constructor(manager: Manager<T>, id?: string) {
     this.manager = manager;

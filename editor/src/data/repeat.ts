@@ -132,7 +132,7 @@ export class RepeatProps {
       const [startOffset, startRoot] = this.constraints.start!.getOffset();
       const [endOffset, endRoot] = this.constraints.end!.getOffset();
       // If both start and end are used, they have to be descended from the same root timestamp
-      if (startRoot.id != endRoot.id) {
+      if (startRoot != endRoot) {
         return [RepeatPropsError.TimestampRootMismatch];
       }
       // Must end after start!

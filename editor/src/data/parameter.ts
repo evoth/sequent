@@ -2,8 +2,8 @@ import { Manageable, Manager } from "./manager";
 
 // Represents the general description of a given parameter
 export class Parameter<T> extends Manageable<Parameter<any>> {
-  name: string;
-  description: string;
+  readonly name: string;
+  readonly description: string;
 
   constructor(
     manager: Manager<Parameter<any>>,
@@ -34,7 +34,7 @@ export class Parameter<T> extends Manageable<Parameter<any>> {
 // Represents the actual parameter value in an action instance
 // (I don't think generics are supposed to be used like this...)
 export class ParameterState<T extends Parameter<U>, U> {
-  parameter: T;
+  readonly parameter: T;
   value?: U;
 
   constructor(parameter: T, value?: U) {
@@ -59,10 +59,10 @@ export enum ParameterError {
 
 // Provides number-specific validation
 export class NumberParameter<T extends number> extends Parameter<T> {
-  min?: T;
-  max?: T;
-  step?: T;
-  unit?: string;
+  readonly min?: T;
+  readonly max?: T;
+  readonly step?: T;
+  readonly unit?: string;
 
   constructor(
     manager: Manager<Parameter<any>>,
@@ -101,8 +101,8 @@ export class NumberParameter<T extends number> extends Parameter<T> {
 
 // Provides string-specific validation
 export class StringParameter<T extends string> extends Parameter<T> {
-  minLength?: number;
-  maxLength?: number;
+  readonly minLength?: number;
+  readonly maxLength?: number;
 
   constructor(
     manager: Manager<Parameter<any>>,
@@ -132,7 +132,7 @@ export class StringParameter<T extends string> extends Parameter<T> {
 
 // Provides validation for enumerations (sets of allowed values)
 export class EnumParameter<T> extends Parameter<T> {
-  options: T[];
+  readonly options: T[];
 
   constructor(
     manager: Manager<Parameter<any>>,
@@ -154,7 +154,8 @@ export class EnumParameter<T> extends Parameter<T> {
 
 // Provides validation for nested parameters (values that map to sets of sub-parameters)
 export class NestedParameter<T> extends Parameter<T> {
-  nested: Map<T, Parameter<any>[]>;
+  readonly nested: Map<T, Parameter<any>[]>;
+  readonly descendants: Set<Parameter<any>>;
 
   constructor(
     manager: Manager<Parameter<any>>,
@@ -164,26 +165,32 @@ export class NestedParameter<T> extends Parameter<T> {
   ) {
     super(manager, name, description);
     this.nested = nested;
+    this.descendants = this.getDescendants([]);
   }
 
   // Gets a set of all nested parameters, checking for self-containing parameters
-  getChildren(ancestors: NestedParameter<any>[]): Set<Parameter<any>> {
+  private getDescendants(
+    ancestors: NestedParameter<any>[]
+  ): Set<Parameter<any>> {
     if (ancestors.includes(this)) {
       throw new Error(`NestedParameter with ID ${this.id} contains itself.`);
     }
-    const children = new Set<Parameter<any>>();
-    children.add(this);
+    const descendants = new Set<Parameter<any>>();
+    descendants.add(this);
     for (const option of this.nested.values()) {
       for (const child of option) {
-        children.add(child);
+        descendants.add(child);
         if (child instanceof NestedParameter) {
-          for (const nestedChild of child.getChildren([...ancestors, this])) {
-            children.add(nestedChild);
+          for (const nestedChild of child.getDescendants([
+            ...ancestors,
+            this,
+          ])) {
+            descendants.add(nestedChild);
           }
         }
       }
     }
-    return children;
+    return descendants;
   }
 
   validate(value: T): [error: ParameterError] {
