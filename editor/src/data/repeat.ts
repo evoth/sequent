@@ -1,18 +1,43 @@
 import { Timestamp } from "./timestamp";
 
 export interface Repeatable {
-  getDuration(): number | undefined;
+  getDuration(): number;
 }
 
 export class Repeat {
   child: Repeatable;
   props: RepeatProps;
   isRepeating: boolean;
+  // If sequence passes in root timestamp, all timestamps must descend from it.
+  // Otherwise (as in the case of the root sequence), any timestamp ancestor
+  // is fine as long as start/end timestamps are consistent with each other.
+  rootTimestamp?: Timestamp;
 
-  constructor(child: Repeatable, props: RepeatProps, isRepeating: boolean) {
+  constructor(
+    child: Repeatable,
+    props: RepeatProps,
+    isRepeating: boolean,
+    rootTimestamp?: Timestamp
+  ) {
     this.child = child;
     this.props = props;
     this.isRepeating = isRepeating;
+    this.rootTimestamp = rootTimestamp;
+  }
+
+  validate(): [error: RepeatPropsError, solved?: SolvedRepeatConstraints] {
+    if (!this.isRepeating) return [RepeatPropsError.None];
+    return this.props.validate(this.child.getDuration());
+  }
+
+  getDuration(): [error: RepeatPropsError, duration?: number] {
+    if (!this.isRepeating)
+      return [RepeatPropsError.None, this.child.getDuration()];
+    const [error, solved] = this.props.validate(
+      this.child.getDuration(),
+      this.rootTimestamp
+    );
+    return [error, solved?.duration];
   }
 }
 
@@ -22,6 +47,7 @@ export enum RepeatPropsError {
   InvalidConstraints,
   EmptyConstraints,
   TimestampRootMismatch,
+  WrongRootTimestamp,
   EndBeforeStart,
   NegativeDuration,
   TooFewRepetitions,
@@ -36,6 +62,14 @@ export type RepeatConstraints = {
   duration?: number;
   repetitions?: number;
   interval?: number;
+};
+
+export type SolvedRepeatConstraints = {
+  start?: Timestamp;
+  end?: Timestamp;
+  duration?: number;
+  repetitions: number;
+  interval: number;
 };
 
 // Represents a tree of valid constraints. For each step, the keys are the
@@ -113,8 +147,9 @@ export class RepeatProps {
   }
 
   validate(
-    childDuration: number
-  ): [error: RepeatPropsError, solved?: RepeatConstraints] {
+    childDuration: number,
+    rootTimestamp?: Timestamp
+  ): [error: RepeatPropsError, solved?: SolvedRepeatConstraints] {
     const constraintError = this.validateConstraints();
     if (constraintError !== RepeatPropsError.None) {
       return [constraintError];
@@ -138,6 +173,22 @@ export class RepeatProps {
       // Must end after start!
       if (endOffset < startOffset) {
         return [RepeatPropsError.EndBeforeStart];
+      }
+    }
+
+    // If rootTimestamp is supplied, both timestamps must be descended from it
+    if (rootTimestamp !== undefined) {
+      if (
+        this.isSelected("start") &&
+        this.constraints.start!.getOffset()[1] != rootTimestamp
+      ) {
+        return [RepeatPropsError.WrongRootTimestamp];
+      }
+      if (
+        this.isSelected("end") &&
+        this.constraints.end!.getOffset()[1] != rootTimestamp
+      ) {
+        return [RepeatPropsError.WrongRootTimestamp];
       }
     }
 

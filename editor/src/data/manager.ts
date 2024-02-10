@@ -38,3 +38,5 @@ export abstract class Manageable<T extends Manageable<T>> {
 
   abstract add(): void;
 }
+
+export type idType = Manageable<any>["id"];
