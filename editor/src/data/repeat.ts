@@ -5,18 +5,11 @@ export interface Repeatable {
 }
 
 export class Repeat {
-  id: number;
   child: Repeatable;
   props: RepeatProps;
   isRepeating: boolean;
 
-  constructor(
-    id: number,
-    child: Repeatable,
-    props: RepeatProps,
-    isRepeating: boolean
-  ) {
-    this.id = id;
+  constructor(child: Repeatable, props: RepeatProps, isRepeating: boolean) {
     this.child = child;
     this.props = props;
     this.isRepeating = isRepeating;

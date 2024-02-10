@@ -52,8 +52,9 @@ export enum ParameterError {
   WrongStep,
   UnderMinLength,
   OverMaxLength,
-  // Value isn't an enum option
+  // Value isn't an option that exists
   BadEnumOption,
+  BadNestedOption,
 }
 
 // Provides number-specific validation
@@ -131,7 +132,7 @@ export class StringParameter<T extends string> extends Parameter<T> {
 
 // Provides validation for enumerations (sets of allowed values)
 export class EnumParameter<T> extends Parameter<T> {
-  options: Set<T>;
+  options: T[];
 
   constructor(
     manager: Manager<Parameter<any>>,
@@ -140,12 +141,54 @@ export class EnumParameter<T> extends Parameter<T> {
     options: T[]
   ) {
     super(manager, name, description);
-    this.options = new Set<T>(options);
+    this.options = options;
   }
 
   validate(value: T): [error: ParameterError] {
-    if (!this.options.has(value)) {
+    if (!this.options.includes(value)) {
       return [ParameterError.BadEnumOption];
+    }
+    return [ParameterError.None];
+  }
+}
+
+// Provides validation for nested parameters (values that map to sets of sub-parameters)
+export class NestedParameter<T> extends Parameter<T> {
+  nested: Map<T, Parameter<any>[]>;
+
+  constructor(
+    manager: Manager<Parameter<any>>,
+    name: string,
+    description: string,
+    nested: Map<T, Parameter<any>[]>
+  ) {
+    super(manager, name, description);
+    this.nested = nested;
+  }
+
+  // Gets a set of all nested parameters, checking for self-containing parameters
+  getChildren(ancestors: NestedParameter<any>[]): Set<Parameter<any>> {
+    if (ancestors.includes(this)) {
+      throw new Error(`NestedParameter with ID ${this.id} contains itself.`);
+    }
+    const children = new Set<Parameter<any>>();
+    children.add(this);
+    for (const option of this.nested.values()) {
+      for (const child of option) {
+        children.add(child);
+        if (child instanceof NestedParameter) {
+          for (const nestedChild of child.getChildren([...ancestors, this])) {
+            children.add(nestedChild);
+          }
+        }
+      }
+    }
+    return children;
+  }
+
+  validate(value: T): [error: ParameterError] {
+    if (!this.nested.has(value)) {
+      return [ParameterError.BadNestedOption];
     }
     return [ParameterError.None];
   }

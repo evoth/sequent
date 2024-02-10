@@ -1,5 +1,5 @@
 import { Manageable, Manager } from "./manager";
-import { Parameter, ParameterState } from "./parameter";
+import { NestedParameter, Parameter, ParameterState } from "./parameter";
 
 import type { Repeatable } from "./repeat";
 
@@ -8,32 +8,39 @@ export class Action extends Manageable<Action> {
   name: string;
   description: string;
   parameters: Parameter<any>[];
-  requiredParamIds: Set<number>;
 
   constructor(
     manager: Manager<Action>,
     name: string,
     description: string,
-    parameters: Parameter<any>[] = [],
-    requiredParamIds: number[] = []
+    parameters: Parameter<any>[] = []
   ) {
     super(manager);
     this.name = name;
     this.description = description;
     this.parameters = parameters;
-    this.requiredParamIds = new Set<number>(requiredParamIds);
   }
 
   add() {
     this.manager.add(this);
   }
 
-  isParameterRequired(parameter: Parameter<any>): boolean {
-    return this.requiredParamIds.has(parameter.id);
+  getAllParameters(): Set<Parameter<any>> {
+    const children = new Set<Parameter<any>>();
+    for (const child of this.parameters) {
+      children.add(child);
+      if (child instanceof NestedParameter) {
+        for (const nestedChild of child.getChildren([])) {
+          children.add(nestedChild);
+        }
+      }
+    }
+    return children;
   }
 
   newState(): ActionState {
-    const states = this.parameters.map((parameter: Parameter<any>) =>
+    const allParameters = Array.from(this.getAllParameters());
+    const states = allParameters.map((parameter: Parameter<any>) =>
       parameter.newState()
     );
     return new ActionState(this, states);

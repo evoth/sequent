@@ -19,23 +19,6 @@ describe("action", () => {
       0.5,
     ]);
   });
-  test("correctly handles required parameters", () => {
-    let paramManager = new Manager<Parameter<any>>();
-    let actionManager = new Manager<Action>();
-    let param = new Parameter<number>(paramManager, "Test", "Test parameter");
-    let action = new Action(actionManager, "Test", "Test action", [param]);
-    expect(action.isParameterRequired(param)).toBe(false);
-    let param2 = new Parameter<number>(paramManager, "Test2", "Test parameter");
-    action = new Action(
-      actionManager,
-      "Test",
-      "Test action",
-      [param, param2],
-      [1]
-    );
-    expect(action.isParameterRequired(param)).toBe(false);
-    expect(action.isParameterRequired(param2)).toBe(true);
-  });
 });
 
 describe("action state", () => {
@@ -50,13 +33,10 @@ describe("action state", () => {
       undefined,
       10
     );
-    let action = new Action(
-      actionManager,
-      "Test",
-      "Test action",
-      [param, param2],
-      [1]
-    );
+    let action = new Action(actionManager, "Test", "Test action", [
+      param,
+      param2,
+    ]);
     let actionState = action.newState();
     expect(actionState.parameterStates[0].value).toBe(undefined);
     actionState.parameterStates[0].value = 5;
