@@ -1,7 +1,8 @@
 import { Timestamp } from "./timestamp";
 
 export interface Repeatable {
-  getDuration(): number;
+  // An undefined duration means infinite
+  getDuration(): number | undefined;
 }
 
 export class Repeat {
@@ -25,23 +26,29 @@ export class Repeat {
     this.rootTimestamp = rootTimestamp;
   }
 
-  validate(): [error: RepeatPropsError, solved?: SolvedRepeatConstraints] {
-    if (!this.isRepeating) return [RepeatPropsError.None];
-    return this.props.validate(this.child.getDuration());
+  validate(): [error: RepeatError, solved?: SolvedRepeatConstraints] {
+    if (!this.isRepeating) return [RepeatError.None];
+
+    const childDuration = this.child.getDuration();
+    if (childDuration === undefined) return [RepeatError.ChildDurationInfinite];
+    return this.props.validate(childDuration);
   }
 
-  getDuration(): [error: RepeatPropsError, duration?: number] {
-    if (!this.isRepeating)
-      return [RepeatPropsError.None, this.child.getDuration()];
+  getDuration(): [error: RepeatError, duration?: number] {
+    if (!this.isRepeating) return [RepeatError.None, this.child.getDuration()];
+
+    const childDuration = this.child.getDuration();
+    if (childDuration === undefined) return [RepeatError.ChildDurationInfinite];
+
     const [error, solved] = this.props.validate(
-      this.child.getDuration(),
+      childDuration,
       this.rootTimestamp
     );
     return [error, solved?.duration];
   }
 }
 
-export enum RepeatPropsError {
+export enum RepeatError {
   None,
   WrongNumConstraints,
   InvalidConstraints,
@@ -54,6 +61,7 @@ export enum RepeatPropsError {
   FractionalRepetitions,
   IntervalTooShort,
   DurationTooShort,
+  ChildDurationInfinite,
 }
 
 export type RepeatConstraints = {
@@ -109,20 +117,20 @@ export class RepeatProps {
     this.trailingInterval = trailingInterval;
   }
 
-  validateConstraints(): RepeatPropsError {
+  validateConstraints(): RepeatError {
     if (this.selectedConstraints.length !== validConstraints.length + 1) {
-      return RepeatPropsError.WrongNumConstraints;
+      return RepeatError.WrongNumConstraints;
     }
     // Checking validity against the "tree" of valid combinations
     for (let i = 0; i < validConstraints.length; i++) {
       const constraint = this.selectedConstraints[i];
       if (constraint === undefined || !(constraint in validConstraints[i])) {
-        return RepeatPropsError.InvalidConstraints;
+        return RepeatError.InvalidConstraints;
       }
       // Gets the options that are allowed to follow this one
       const nextConstraintOptions = validConstraints[i][constraint];
       if (nextConstraintOptions === undefined) {
-        return RepeatPropsError.InvalidConstraints;
+        return RepeatError.InvalidConstraints;
       }
       // Get the following option in the input
       const nextConstraint = this.selectedConstraints[i + 1];
@@ -131,15 +139,15 @@ export class RepeatProps {
         if (nextConstraintOptions.length === 0) {
           break;
         } else {
-          return RepeatPropsError.InvalidConstraints;
+          return RepeatError.InvalidConstraints;
         }
       }
       // If the options list isn't empty, the following option must be in it
       if (!nextConstraintOptions.includes(nextConstraint)) {
-        return RepeatPropsError.InvalidConstraints;
+        return RepeatError.InvalidConstraints;
       }
     }
-    return RepeatPropsError.None;
+    return RepeatError.None;
   }
 
   isSelected(constraintName: keyof RepeatConstraints | undefined) {
@@ -149,9 +157,9 @@ export class RepeatProps {
   validate(
     childDuration: number,
     rootTimestamp?: Timestamp
-  ): [error: RepeatPropsError, solved?: SolvedRepeatConstraints] {
+  ): [error: RepeatError, solved?: SolvedRepeatConstraints] {
     const constraintError = this.validateConstraints();
-    if (constraintError !== RepeatPropsError.None) {
+    if (constraintError !== RepeatError.None) {
       return [constraintError];
     }
 
@@ -159,7 +167,7 @@ export class RepeatProps {
     for (let i = 0; i < this.selectedConstraints.length; i++) {
       const selected = this.selectedConstraints[i];
       if (selected !== undefined && this.constraints[selected] === undefined) {
-        return [RepeatPropsError.EmptyConstraints];
+        return [RepeatError.EmptyConstraints];
       }
     }
 
@@ -167,12 +175,12 @@ export class RepeatProps {
       const [startOffset, startRoot] = this.constraints.start!.getOffset();
       const [endOffset, endRoot] = this.constraints.end!.getOffset();
       // If both start and end are used, they have to be descended from the same root timestamp
-      if (startRoot != endRoot) {
-        return [RepeatPropsError.TimestampRootMismatch];
+      if (startRoot !== endRoot) {
+        return [RepeatError.TimestampRootMismatch];
       }
       // Must end after start!
       if (endOffset < startOffset) {
-        return [RepeatPropsError.EndBeforeStart];
+        return [RepeatError.EndBeforeStart];
       }
     }
 
@@ -180,29 +188,29 @@ export class RepeatProps {
     if (rootTimestamp !== undefined) {
       if (
         this.isSelected("start") &&
-        this.constraints.start!.getOffset()[1] != rootTimestamp
+        this.constraints.start!.getOffset()[1] !== rootTimestamp
       ) {
-        return [RepeatPropsError.WrongRootTimestamp];
+        return [RepeatError.WrongRootTimestamp];
       }
       if (
         this.isSelected("end") &&
-        this.constraints.end!.getOffset()[1] != rootTimestamp
+        this.constraints.end!.getOffset()[1] !== rootTimestamp
       ) {
-        return [RepeatPropsError.WrongRootTimestamp];
+        return [RepeatError.WrongRootTimestamp];
       }
     }
 
     if (this.isSelected("duration") && this.constraints.duration! < 0) {
-      return [RepeatPropsError.NegativeDuration];
+      return [RepeatError.NegativeDuration];
     }
 
     // Must have at least 2 whole number repetitions
     if (this.isSelected("repetitions")) {
       if (this.constraints.repetitions! < 2) {
-        return [RepeatPropsError.TooFewRepetitions];
+        return [RepeatError.TooFewRepetitions];
       }
       if (this.constraints.repetitions! % 1 !== 0) {
-        return [RepeatPropsError.FractionalRepetitions];
+        return [RepeatError.FractionalRepetitions];
       }
     }
 
@@ -219,7 +227,7 @@ export class RepeatProps {
       if (!this.includeChildDuration) {
         interval += childDuration;
       } else if (interval < childDuration) {
-        return [RepeatPropsError.IntervalTooShort];
+        return [RepeatError.IntervalTooShort];
       }
       if (this.isSelected("repetitions")) {
         duration = interval * this.constraints.repetitions!;
@@ -231,7 +239,7 @@ export class RepeatProps {
         duration = null;
       }
     } else {
-      return [RepeatPropsError.InvalidConstraints];
+      return [RepeatError.InvalidConstraints];
     }
 
     // Solve for start
@@ -275,12 +283,12 @@ export class RepeatProps {
       if (!this.includeChildDuration) {
         interval += childDuration;
       } else if (interval < childDuration) {
-        return [RepeatPropsError.IntervalTooShort];
+        return [RepeatError.IntervalTooShort];
       }
     } else if (duration !== null) {
       const totalGap = duration - childDuration * this.constraints.repetitions!;
       if (totalGap < 0) {
-        return [RepeatPropsError.DurationTooShort];
+        return [RepeatError.DurationTooShort];
       }
       let numGaps = this.constraints.repetitions!;
       if (!this.trailingInterval) {
@@ -289,7 +297,7 @@ export class RepeatProps {
       const gap = totalGap / numGaps;
       interval = childDuration + gap;
     } else {
-      return [RepeatPropsError.InvalidConstraints];
+      return [RepeatError.InvalidConstraints];
     }
 
     // Solve for repetitions
@@ -303,10 +311,10 @@ export class RepeatProps {
       }
       repetitions = Math.floor(fullDuration / interval);
       if (repetitions < 2) {
-        return [RepeatPropsError.DurationTooShort];
+        return [RepeatError.DurationTooShort];
       }
     } else {
-      return [RepeatPropsError.InvalidConstraints];
+      return [RepeatError.InvalidConstraints];
     }
 
     // Adjust interval to final value
@@ -315,7 +323,7 @@ export class RepeatProps {
     }
 
     return [
-      RepeatPropsError.None,
+      RepeatError.None,
       {
         start: start ?? undefined,
         end: end ?? undefined,

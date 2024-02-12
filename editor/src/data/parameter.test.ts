@@ -12,18 +12,23 @@ import { Manager } from "./manager";
 describe("generic parameter allows creation and validation for", () => {
   test("numbers", () => {
     let manager = new Manager<Parameter<any>>();
-    let param = new Parameter<number>(manager, "Test", "Test parameter");
+    let param = new Parameter<number>(manager, "Test", "Test parameter", 0);
     expect(param.validate(0)).toEqual([ParameterError.None]);
   });
   test("strings", () => {
     let manager = new Manager<Parameter<any>>();
-    let param = new Parameter<string>(manager, "Test", "Test parameter");
+    let param = new Parameter<string>(manager, "Test", "Test parameter", "");
     expect(param.validate("")).toEqual([ParameterError.None]);
     expect(param.validate("abc")).toEqual([ParameterError.None]);
   });
   test("booleans", () => {
     let manager = new Manager<Parameter<any>>();
-    let param = new Parameter<boolean>(manager, "Test", "Test parameter");
+    let param = new Parameter<boolean>(
+      manager,
+      "Test",
+      "Test parameter",
+      false
+    );
     expect(param.validate(false)).toEqual([ParameterError.None]);
     expect(param.validate(true)).toEqual([ParameterError.None]);
   });
@@ -32,7 +37,12 @@ describe("generic parameter allows creation and validation for", () => {
 describe("number parameter correctly validates", () => {
   test("with no bounds", () => {
     let manager = new Manager<Parameter<any>>();
-    let param = new NumberParameter<number>(manager, "Test", "Test parameter");
+    let param = new NumberParameter<number>(
+      manager,
+      "Test",
+      "Test parameter",
+      0
+    );
     expect(param.validate(10)).toEqual([ParameterError.None]);
     expect(param.validate(-500.1)).toEqual([ParameterError.None]);
   });
@@ -42,6 +52,7 @@ describe("number parameter correctly validates", () => {
       manager,
       "Test",
       "Test parameter",
+      0,
       -0.5,
       5
     );
@@ -56,6 +67,7 @@ describe("number parameter correctly validates", () => {
       manager,
       "Test",
       "Test parameter",
+      0,
       -0.5,
       5,
       0.1
@@ -73,6 +85,7 @@ describe("number parameter correctly validates", () => {
       manager,
       "Test",
       "Test parameter",
+      7,
       1.2,
       7,
       10
@@ -85,7 +98,12 @@ describe("number parameter correctly validates", () => {
 describe("string parameter correctly validates", () => {
   test("with no bounds", () => {
     let manager = new Manager<Parameter<any>>();
-    let param = new StringParameter<string>(manager, "Test", "Test parameter");
+    let param = new StringParameter<string>(
+      manager,
+      "Test",
+      "Test parameter",
+      ""
+    );
     expect(param.validate("")).toEqual([ParameterError.None]);
     expect(param.validate("abcdefghijklmnopqrstuvwxyz")).toEqual([
       ParameterError.None,
@@ -97,6 +115,7 @@ describe("string parameter correctly validates", () => {
       manager,
       "Test",
       "Test parameter",
+      "abc",
       1
     );
     expect(param.validate("")).toEqual([ParameterError.UnderMinLength]);
@@ -108,6 +127,7 @@ describe("string parameter correctly validates", () => {
       manager,
       "Test",
       "Test parameter",
+      "abc",
       2,
       5
     );
@@ -128,13 +148,7 @@ describe("enum parameter correctly validates", () => {
       manager,
       "Test",
       "Test parameter",
-      []
-    );
-    expect(param.validate(0)).toEqual([ParameterError.BadEnumOption]);
-    param = new EnumParameter<number>(
-      manager,
-      "Test",
-      "Test parameter",
+      -1,
       [-1, 3]
     );
     expect(param.validate(0)).toEqual([ParameterError.BadEnumOption]);
@@ -148,13 +162,9 @@ describe("enum parameter correctly validates", () => {
       manager,
       "Test",
       "Test parameter",
-      []
-    );
-    expect(param.validate("")).toEqual([ParameterError.BadEnumOption]);
-    param = new EnumParameter<string>(manager, "Test", "Test parameter", [
       "",
-      "abc",
-    ]);
+      ["", "abc"]
+    );
     expect(param.validate("ab")).toEqual([ParameterError.BadEnumOption]);
     expect(param.validate("abc ")).toEqual([ParameterError.BadEnumOption]);
     expect(param.validate(" ")).toEqual([ParameterError.BadEnumOption]);
@@ -171,13 +181,15 @@ describe("parameter state", () => {
       "Test",
       "Test parameter",
       2,
+      2,
       10,
       10
     );
     let paramState = new ParameterState<NumberParameter<number>, number>(param);
-    expect(paramState.value).toBeUndefined();
+    expect(paramState.value).toBe(2);
     expect(param.validate(5)).toEqual([ParameterError.WrongStep, 10]);
     expect(param.validate(4.9)).toEqual([ParameterError.WrongStep, 2]);
+    expect(param.validate(10)).toEqual([ParameterError.None]);
     paramState.value = 2;
     expect(paramState.value).toBe(2);
     paramState = param.newState(5);

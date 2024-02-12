@@ -17,8 +17,6 @@ export type ActionDurationProps = {
 
 // Represents the general description of an action/command
 export class Action extends Manageable<Action> {
-  readonly name: string;
-  readonly description: string;
   readonly parameters: Parameter<any>[];
   readonly descendants: Set<Parameter<any>>;
   readonly durationProps: ActionDurationProps;
@@ -30,9 +28,7 @@ export class Action extends Manageable<Action> {
     parameters: Parameter<any>[] = [],
     durationProps: ActionDurationProps
   ) {
-    super(manager);
-    this.name = name;
-    this.description = description;
+    super(manager, name, description);
     this.parameters = parameters;
     this.descendants = this.getDescendants();
     if (

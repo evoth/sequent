@@ -7,9 +7,11 @@ export class Timestamp extends Manageable<Timestamp> {
   constructor(
     manager: Manager<Timestamp>,
     value: number,
-    relativeTo?: Timestamp
+    relativeTo?: Timestamp,
+    name?: string,
+    description?: string
   ) {
-    super(manager);
+    super(manager, name, description);
     this.value = value;
     this.relativeTo = relativeTo;
   }

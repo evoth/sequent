@@ -1,4 +1,4 @@
-import { RepeatProps, RepeatPropsError } from "./repeat";
+import { RepeatError, RepeatProps } from "./repeat";
 
 import type { RepeatConstraints } from "./repeat";
 
@@ -41,7 +41,7 @@ test("RepeatProps correctly validates all constraint combinations", () => {
     }
     const props = new RepeatProps({}, testConstraints);
     expect(props.validateConstraints()).toBe(
-      isValid ? RepeatPropsError.None : RepeatPropsError.InvalidConstraints
+      isValid ? RepeatError.None : RepeatError.InvalidConstraints
     );
   }
 });
