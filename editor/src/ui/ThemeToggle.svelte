@@ -61,5 +61,6 @@
     min-width: 48px;
     display: flex;
     align-items: center;
+    background-color: transparent;
   }
 </style>
