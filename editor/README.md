@@ -10,3 +10,4 @@ This will be a web-based editor for composing sequences using actions and parame
   - So unless we want a bad user experience, the program will have to deal with invalid states, mainly arising from invalid Repeat configurations (deep nested Repeat child going from finite to infinite duration, for instance)
 - Change methods to getters/setters as appropriate
   - Setters should throw an error if validation fails
+- Give errors IDs for easier error tracking?

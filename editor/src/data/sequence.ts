@@ -1,0 +1,174 @@
+import { Repeat, RepeatError, RepeatProps } from "./repeat";
+
+import type { Repeatable } from "./repeat";
+import { Timestamp } from "./timestamp";
+
+export type SequenceValidation = {
+  error: SequenceError,
+  childError?: LayerError,
+  start?: Timestamp,
+  end?: Timestamp,
+}
+
+export enum SequenceError {
+  None,
+  ChildError,
+  TimestampRootMismatch,
+  WrongRootTimestamp,
+}
+
+export class Sequence {
+  layers: Layer[];
+  // Undefined if root sequence
+  rootTimestamp?: Timestamp;
+
+  constructor(layers: Layer[] = [], rootTimestamp?: Timestamp) {
+    this.layers = layers;
+    this.rootTimestamp = rootTimestamp;
+  }
+
+  validate(): SequenceValidation {
+    // https://sungazermusic.bandcamp.com/track/sequence-start
+    let sequenceStart: Timestamp | undefined = undefined;
+    let sequenceEnd: Timestamp | undefined = undefined;
+    for (const layer of this.layers) {
+      const {error, childError, start, end} = layer.validate();
+      if (error != LayerError.None) {
+        return {error: SequenceError.ChildError, childError: error};
+      }
+
+      if (this.rootTimestamp !== undefined) {
+        if (start !== undefined && sequenceStart !== undefined && start.getOffset()[0] < sequenceStart.getOffset()[0]) {
+          sequenceStart = start;
+        }
+        if (end !== undefined && sequenceEnd !== undefined && end.getOffset()[0] > sequenceEnd.getOffset()[0]) {
+          sequenceEnd = end;
+        }
+      }
+
+      if (layer.rootTimestamp !== this.rootTimestamp) {
+        return {error: SequenceError.WrongRootTimestamp};
+      }
+    }
+
+    return {error: SequenceError.None, start: sequenceStart, end: sequenceEnd};
+  }
+
+  getDuration(): [error: SequenceError, duration?: number] {
+    const validation = this.validate();
+    let duration;
+    if (validation.start === undefined || validation.end === undefined) {
+      duration = undefined;
+    } else {
+      duration = validation.end.getOffset()[0] - validation.start.getOffset()[0];
+    }
+    return [validation.error, duration];
+  }
+}
+
+export enum LayerMode {
+  Coincide,
+  Override,
+}
+
+export type LayerValidation = {
+  error: LayerError,
+  childError?: RepeatError,
+  start?: Timestamp,
+  end?: Timestamp,
+}
+
+export enum LayerError {
+  None,
+  Empty,
+  ChildError,
+  TimestampRootMismatch,
+  WrongRootTimestamp,
+  ChildOverlap,
+}
+
+export class LayerRepeat extends Repeat {
+  layerMode: LayerMode;
+
+  constructor(
+    child: Repeatable,
+    props: RepeatProps,
+    isRepeating: boolean,
+    layerMode: LayerMode,
+    rootTimestamp?: Timestamp,
+  ) {
+    super(child, props, isRepeating, rootTimestamp);
+    this.layerMode = layerMode;
+  }
+}
+
+export class Layer {
+  children: Set<LayerRepeat>;
+  // If sequence passes in root timestamp, all timestamps must descend from it.
+  // Otherwise (as in the case of the root sequence), any timestamp ancestor
+  // is fine as long as child timestamps are consistent with each other.
+  rootTimestamp?: Timestamp;
+
+  constructor(children: LayerRepeat[] = [], rootTimestamp?: Timestamp) {
+    this.children = new Set<LayerRepeat>(children);
+    this.rootTimestamp = rootTimestamp;
+  }
+
+  validate(): LayerValidation {
+    if (this.children.size == 0) {
+      return {error: LayerError.Empty};
+    }
+
+    const childBounds: [start?: Timestamp, end?: Timestamp][] = [];
+    const rootTimestamps = new Set<Timestamp>();
+    for (const child of this.children) {
+      const {error, solved} = child.validate();
+      if (error !== RepeatError.None || solved === undefined) {
+        return {error: LayerError.ChildError, childError: error};
+      }
+      childBounds.push([solved.start, solved.end]);
+      const [offset, root] = (solved.start ?? solved.end)!.getOffset();
+      rootTimestamps.add(root);
+    }
+
+    if (this.rootTimestamp !== undefined && rootTimestamps.values().next().value !== this.rootTimestamp) {
+      return {error: LayerError.WrongRootTimestamp};
+    }
+    if (rootTimestamps.size > 1) {
+      return {error: LayerError.TimestampRootMismatch};
+    }
+
+    childBounds.sort((a, b) => {
+      if (a[0] === undefined) return -1;
+      if (b[0] === undefined) return 1;
+      return a[0].getOffset()[0] - b[0].getOffset()[0];
+    });
+
+    let prevEnd: Timestamp | undefined = undefined;
+    for (const [i, [start, end]] of childBounds.entries()) {
+      if (start === undefined) {
+        if (i != 0) {
+          return {error: LayerError.ChildOverlap};
+        }
+      } else {
+        if (prevEnd === undefined || start.getOffset()[0] < prevEnd.getOffset()[0]) {
+          return {error: LayerError.ChildOverlap};
+        }
+      }
+      prevEnd = end;
+    }
+
+    return {error: LayerError.None, start: childBounds[0][0], end: prevEnd};
+  }
+
+  getDuration(): [error: LayerError, duration?: number] {
+    const validation = this.validate();
+    let duration;
+    if (validation.start === undefined || validation.end === undefined) {
+      duration = undefined;
+    } else {
+      duration = validation.end.getOffset()[0] - validation.start.getOffset()[0];
+    }
+    return [validation.error, duration];
+  }
+}
