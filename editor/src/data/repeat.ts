@@ -26,11 +26,11 @@ export class Repeat {
     this.rootTimestamp = rootTimestamp;
   }
 
-  validate(): [error: RepeatError, solved?: SolvedRepeatConstraints] {
-    if (!this.isRepeating) return [RepeatError.None];
+  validate(): RepeatValidation {
+    if (!this.isRepeating) return {error: RepeatError.None};
 
     const childDuration = this.child.getDuration();
-    if (childDuration === undefined) return [RepeatError.ChildDurationInfinite];
+    if (childDuration === undefined) return {error: RepeatError.ChildDurationInfinite};
     return this.props.validate(childDuration);
   }
 
@@ -40,12 +40,17 @@ export class Repeat {
     const childDuration = this.child.getDuration();
     if (childDuration === undefined) return [RepeatError.ChildDurationInfinite];
 
-    const [error, solved] = this.props.validate(
+    const {error, solved} = this.props.validate(
       childDuration,
       this.rootTimestamp
     );
     return [error, solved?.duration];
   }
+}
+
+export type RepeatValidation = {
+  error: RepeatError;
+  solved?: SolvedRepeatConstraints,
 }
 
 export enum RepeatError {
@@ -157,17 +162,17 @@ export class RepeatProps {
   validate(
     childDuration: number,
     rootTimestamp?: Timestamp
-  ): [error: RepeatError, solved?: SolvedRepeatConstraints] {
+  ): RepeatValidation {
     const constraintError = this.validateConstraints();
     if (constraintError !== RepeatError.None) {
-      return [constraintError];
+      return {error: constraintError};
     }
 
     // Selected constraints must have values
     for (let i = 0; i < this.selectedConstraints.length; i++) {
       const selected = this.selectedConstraints[i];
       if (selected !== undefined && this.constraints[selected] === undefined) {
-        return [RepeatError.EmptyConstraints];
+        return {error: RepeatError.EmptyConstraints};
       }
     }
 
@@ -176,11 +181,11 @@ export class RepeatProps {
       const [endOffset, endRoot] = this.constraints.end!.getOffset();
       // If both start and end are used, they have to be descended from the same root timestamp
       if (startRoot !== endRoot) {
-        return [RepeatError.TimestampRootMismatch];
+        return {error: RepeatError.TimestampRootMismatch};
       }
       // Must end after start!
       if (endOffset < startOffset) {
-        return [RepeatError.EndBeforeStart];
+        return {error: RepeatError.EndBeforeStart};
       }
     }
 
@@ -190,27 +195,27 @@ export class RepeatProps {
         this.isSelected("start") &&
         this.constraints.start!.getOffset()[1] !== rootTimestamp
       ) {
-        return [RepeatError.WrongRootTimestamp];
+        return {error: RepeatError.WrongRootTimestamp};
       }
       if (
         this.isSelected("end") &&
         this.constraints.end!.getOffset()[1] !== rootTimestamp
       ) {
-        return [RepeatError.WrongRootTimestamp];
+        return {error: RepeatError.WrongRootTimestamp};
       }
     }
 
     if (this.isSelected("duration") && this.constraints.duration! < 0) {
-      return [RepeatError.NegativeDuration];
+      return {error: RepeatError.NegativeDuration};
     }
 
     // Must have at least 2 whole number repetitions
     if (this.isSelected("repetitions")) {
       if (this.constraints.repetitions! < 2) {
-        return [RepeatError.TooFewRepetitions];
+        return {error: RepeatError.TooFewRepetitions};
       }
       if (this.constraints.repetitions! % 1 !== 0) {
-        return [RepeatError.FractionalRepetitions];
+        return {error: RepeatError.FractionalRepetitions};
       }
     }
 
@@ -227,7 +232,7 @@ export class RepeatProps {
       if (!this.includeChildDuration) {
         interval += childDuration;
       } else if (interval < childDuration) {
-        return [RepeatError.IntervalTooShort];
+        return {error: RepeatError.IntervalTooShort};
       }
       if (this.isSelected("repetitions")) {
         duration = interval * this.constraints.repetitions!;
@@ -239,7 +244,7 @@ export class RepeatProps {
         duration = null;
       }
     } else {
-      return [RepeatError.InvalidConstraints];
+      return {error: RepeatError.InvalidConstraints};
     }
 
     // Solve for start
@@ -283,12 +288,12 @@ export class RepeatProps {
       if (!this.includeChildDuration) {
         interval += childDuration;
       } else if (interval < childDuration) {
-        return [RepeatError.IntervalTooShort];
+        return {error: RepeatError.IntervalTooShort};
       }
     } else if (duration !== null) {
       const totalGap = duration - childDuration * this.constraints.repetitions!;
       if (totalGap < 0) {
-        return [RepeatError.DurationTooShort];
+        return {error: RepeatError.DurationTooShort};
       }
       let numGaps = this.constraints.repetitions!;
       if (!this.trailingInterval) {
@@ -297,7 +302,7 @@ export class RepeatProps {
       const gap = totalGap / numGaps;
       interval = childDuration + gap;
     } else {
-      return [RepeatError.InvalidConstraints];
+      return {error: RepeatError.InvalidConstraints};
     }
 
     // Solve for repetitions
@@ -311,10 +316,10 @@ export class RepeatProps {
       }
       repetitions = Math.floor(fullDuration / interval);
       if (repetitions < 2) {
-        return [RepeatError.DurationTooShort];
+        return {error: RepeatError.DurationTooShort};
       }
     } else {
-      return [RepeatError.InvalidConstraints];
+      return {error: RepeatError.InvalidConstraints};
     }
 
     // Adjust interval to final value
@@ -322,15 +327,15 @@ export class RepeatProps {
       interval -= childDuration;
     }
 
-    return [
-      RepeatError.None,
-      {
+    return {
+      error: RepeatError.None,
+      solved: {
         start: start ?? undefined,
         end: end ?? undefined,
         duration: duration ?? undefined,
         repetitions,
         interval,
       },
-    ];
+    };
   }
 }

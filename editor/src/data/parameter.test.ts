@@ -74,12 +74,12 @@ describe("number parameter correctly validates", () => {
     );
     expect(param.validate(-1.05)).toEqual([ParameterError.UnderMin, -0.5]);
     // Floating point precision
-    let [error, fixed] = param.validate(-0.35);
-    expect(error).toBe(ParameterError.WrongStep);
-    expect(fixed).toBeCloseTo(-0.3, 9);
-    [error, fixed] = param.validate(4.95);
-    expect(error).toBe(ParameterError.WrongStep);
-    expect(fixed).toBeCloseTo(5, 9);
+    let validation = param.validate(-0.35);
+    expect(validation.error).toBe(ParameterError.WrongStep);
+    expect(validation.fixed).toBeCloseTo(-0.3, 9);
+    validation = param.validate(4.95);
+    expect(validation.error).toBe(ParameterError.WrongStep);
+    expect(validation.fixed).toBeCloseTo(5, 9);
     // Fixed value conforms to min/max when rounding exceeds them
     param = new NumberParameter<number>(
       manager,

@@ -21,12 +21,12 @@ export class Parameter<T extends {}> extends Manageable<Parameter<any>> {
   // Sub-classes can have optional restrictions on what constitutes a valid value.
   // The `fixed` return value optionally returns a "fixed" version of the value
   // that will pass validation.
-  validate(value: T): [error: ParameterError, fixed?: T] {
-    return [ParameterError.None];
+  validate(value: T): ParameterValidation<T> {
+    return {error: ParameterError.None};
   }
 
   checkDefault(): void {
-    if (this.validate(this.defaultValue)[0] != ParameterError.None) {
+    if (this.validate(this.defaultValue).error != ParameterError.None) {
       throw new Error(
         `Default value of ${this.defaultValue} is not valid for parameter with ID ${this.id}.`
       );
@@ -47,6 +47,11 @@ export class ParameterState<T extends Parameter<U>, U extends {}> {
     this.parameter = parameter;
     this.value = value ?? this.parameter.defaultValue;
   }
+}
+
+export type ParameterValidation<T> = {
+  error: ParameterError;
+  fixed?: T,
 }
 
 export enum ParameterError {
@@ -86,25 +91,25 @@ export class NumberParameter<T extends number> extends Parameter<T> {
     this.checkDefault();
   }
 
-  validate(value: T): [error: ParameterError, fixed?: T] {
+  validate(value: T): ParameterValidation<T> {
     const epsilon = 1e-10;
     if (this.min !== undefined && value < this.min) {
-      return [ParameterError.UnderMin, this.min];
+      return {error: ParameterError.UnderMin, fixed: this.min};
     }
     if (this.max !== undefined && value > this.max) {
-      return [ParameterError.OverMax, this.max];
+      return {error: ParameterError.OverMax, fixed: this.max};
     }
     if (
       this.step !== undefined &&
       Math.abs(Math.round(value / this.step) - value / this.step) > epsilon
     ) {
       let fixed = (Math.round(value / this.step) * this.step) as T;
-      fixed = this.validate(fixed)[1] ?? fixed;
+      fixed = this.validate(fixed).fixed ?? fixed;
       if (fixed !== value) {
-        return [ParameterError.WrongStep, fixed];
+        return {error: ParameterError.WrongStep, fixed};
       }
     }
-    return [ParameterError.None];
+    return {error: ParameterError.None};
   }
 }
 
@@ -127,17 +132,17 @@ export class StringParameter<T extends string> extends Parameter<T> {
     this.checkDefault();
   }
 
-  validate(value: T): [error: ParameterError, fixed?: T] {
+  validate(value: T): ParameterValidation<T> {
     if (this.minLength !== undefined && value.length < this.minLength) {
-      return [ParameterError.UnderMinLength];
+      return {error: ParameterError.UnderMinLength};
     }
     if (this.maxLength !== undefined && value.length > this.maxLength) {
-      return [
-        ParameterError.OverMaxLength,
-        value.slice(0, this.maxLength) as T,
-      ];
+      return {
+        error: ParameterError.OverMaxLength,
+        fixed: value.slice(0, this.maxLength) as T,
+      };
     }
-    return [ParameterError.None];
+    return {error: ParameterError.None};
   }
 }
 
@@ -162,11 +167,11 @@ export class EnumParameter<T extends {}> extends Parameter<T> {
     this.checkDefault();
   }
 
-  validate(value: T): [error: ParameterError] {
+  validate(value: T): ParameterValidation<T> {
     if (!this.options.includes(value)) {
-      return [ParameterError.BadEnumOption];
+      return {error: ParameterError.BadEnumOption};
     }
-    return [ParameterError.None];
+    return {error: ParameterError.None};
   }
 }
 
@@ -218,10 +223,10 @@ export class NestedParameter<T extends {}> extends Parameter<T> {
     return descendants;
   }
 
-  validate(value: T): [error: ParameterError] {
+  validate(value: T): ParameterValidation<T> {
     if (!this.nested.has(value)) {
-      return [ParameterError.BadNestedOption];
+      return {error: ParameterError.BadNestedOption};
     }
-    return [ParameterError.None];
+    return {error: ParameterError.None};
   }
 }
