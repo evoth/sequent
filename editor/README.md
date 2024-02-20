@@ -11,3 +11,4 @@ This will be a web-based editor for composing sequences using actions and parame
 - Change methods to getters/setters as appropriate
   - Setters should throw an error if validation fails
 - Give errors IDs for easier error tracking?
+- Add methods to add/remove stuff (layers to sequences, repeats to layers, etc.)

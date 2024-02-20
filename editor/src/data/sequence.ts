@@ -1,3 +1,4 @@
+import { Manageable, Manager } from "./manager";
 import { Repeat, RepeatError, RepeatProps } from "./repeat";
 
 import type { Repeatable } from "./repeat";
@@ -17,14 +18,21 @@ export enum SequenceError {
   WrongRootTimestamp,
 }
 
-export class Sequence {
+export class Sequence extends Manageable<Sequence> implements Repeatable {
   layers: Layer[];
   // Undefined if root sequence
   rootTimestamp?: Timestamp;
 
-  constructor(layers: Layer[] = [], rootTimestamp?: Timestamp) {
+  constructor(manager: Manager<Sequence>,
+    name: string,
+    description: string, layers: Layer[] = [], rootTimestamp?: Timestamp) {
+    super(manager, name, description);
     this.layers = layers;
     this.rootTimestamp = rootTimestamp;
+  }
+
+  add() {
+    this.manager.add(this);
   }
 
   validate(): SequenceValidation {
@@ -54,7 +62,8 @@ export class Sequence {
     return {error: SequenceError.None, start: sequenceStart, end: sequenceEnd};
   }
 
-  getDuration(): [error: SequenceError, duration?: number] {
+  // Duration is undefined if sequence scope is infinite or if there are errors
+  getDuration(): number | undefined {
     const validation = this.validate();
     let duration;
     if (validation.start === undefined || validation.end === undefined) {
@@ -62,7 +71,7 @@ export class Sequence {
     } else {
       duration = validation.end.getOffset()[0] - validation.start.getOffset()[0];
     }
-    return [validation.error, duration];
+    return duration;
   }
 }
 
@@ -87,8 +96,9 @@ export enum LayerError {
   ChildOverlap,
 }
 
-export class LayerRepeat extends Repeat {
+export class Component extends Repeat {
   layerMode: LayerMode;
+  customName?: string;
 
   constructor(
     child: Repeatable,
@@ -96,21 +106,23 @@ export class LayerRepeat extends Repeat {
     isRepeating: boolean,
     layerMode: LayerMode,
     rootTimestamp?: Timestamp,
+    customName?: string,
   ) {
     super(child, props, isRepeating, rootTimestamp);
     this.layerMode = layerMode;
+    this.customName = customName;
   }
 }
 
 export class Layer {
-  children: Set<LayerRepeat>;
+  children: Set<Component>;
   // If sequence passes in root timestamp, all timestamps must descend from it.
   // Otherwise (as in the case of the root sequence), any timestamp ancestor
   // is fine as long as child timestamps are consistent with each other.
   rootTimestamp?: Timestamp;
 
-  constructor(children: LayerRepeat[] = [], rootTimestamp?: Timestamp) {
-    this.children = new Set<LayerRepeat>(children);
+  constructor(children: Component[] = [], rootTimestamp?: Timestamp) {
+    this.children = new Set<Component>(children);
     this.rootTimestamp = rootTimestamp;
   }
 
