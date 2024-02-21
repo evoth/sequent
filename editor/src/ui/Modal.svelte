@@ -1,12 +1,11 @@
 <script lang="ts">
   import { fade } from "svelte/transition";
-  import { scale } from "svelte/transition";
-  import { cubicInOut } from "svelte/easing";
-  export let isOpen: Boolean;
+  export let isOpen: boolean;
   export let title: string;
 
   export let onClose = () => {};
   export let onSubmit = () => {};
+  export let canSubmit = true;
 
   function close() {
     isOpen = false;
@@ -41,8 +40,9 @@
         <slot />
       </div>
       <div class="actions">
+        <slot name="actions" />
         <button on:click={close}>Cancel</button>
-        <button on:click={submit}>OK</button>
+        <button on:click={submit} disabled={!canSubmit}>OK</button>
       </div>
     </div>
   </div>

@@ -2,32 +2,48 @@
   import { Manager } from "../../../data/manager";
   import { Sequence } from "../../../data/sequence";
   import SequenceChip from "./SequenceChip.svelte";
-  import Modal from "../../Modal.svelte";
+  import SequenceEditModal from "./SequenceEditModal.svelte";
 
   export let manager: Manager<Sequence>;
 
-  let newModalOpen = false;
+  let modalOpen = false;
+  let modalTitle = "";
+  let onSubmit = () => {};
+  let sequenceData = {
+    name: "",
+    description: "",
+  };
+
+  function submitNewSequenceModal() {
+    new Sequence(manager, sequenceData.name, sequenceData.description);
+    // I think I won't have to do this with Svelte 5
+    manager.children = manager.children;
+  }
+
+  function openNewSequenceModal() {
+    modalTitle = "New sequence";
+    sequenceData = { name: "", description: "" };
+    onSubmit = submitNewSequenceModal;
+    modalOpen = true;
+  }
 </script>
 
 <div>
-  {#each manager.children.values() as sequence}
+  {#each manager.children as [id, sequence]}
     <SequenceChip {sequence} />
   {/each}
   <button
-    on:click={() => (newModalOpen = true)}
+    on:click={openNewSequenceModal}
     title="Add new sequence"
     class="inverse">+</button
   >
-  <Modal bind:isOpen={newModalOpen} title={"New sequence"}>
-    <label>
-      Name:
-      <input type="text" placeholder="Sequence name" />
-    </label>
-    <label>
-      Description:
-      <textarea rows="6" placeholder="Sequence description" />
-    </label>
-  </Modal>
+  <SequenceEditModal
+    title={modalTitle}
+    {onSubmit}
+    bind:isOpen={modalOpen}
+    bind:name={sequenceData.name}
+    bind:description={sequenceData.description}
+  />
 </div>
 
 <style>
