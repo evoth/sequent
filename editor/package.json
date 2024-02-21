@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
+    "@svelte-put/clickoutside": "^3.0.1",
     "@sveltejs/vite-plugin-svelte": "^3.0.1",
     "@tsconfig/svelte": "^5.0.2",
     "@types/jest": "^29.5.11",
@@ -25,6 +26,7 @@
     "vite": "^5.0.8"
   },
   "dependencies": {
-    "svelte-modals": "^1.3.0"
+    "svelte-modals": "^1.3.0",
+    "svelte-portal": "^2.2.1"
   }
 }

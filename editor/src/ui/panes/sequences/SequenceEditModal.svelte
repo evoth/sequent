@@ -49,6 +49,6 @@
 
 <style>
   .error {
-    margin-top: 0.5em;
+    margin-top: 0.5rem;
   }
 </style>

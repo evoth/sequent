@@ -1,5 +1,6 @@
 <script lang="ts">
   import { fade } from "svelte/transition";
+  import Portal from "svelte-portal";
   export let isOpen: boolean;
   export let title: string;
 
@@ -22,30 +23,34 @@
   <!-- TODO: find a better way? -->
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div
-    on:click={close}
-    class="backdrop"
-    in:fade={{ duration: 200 }}
-    out:fade={{ duration: 100 }}
-  ></div>
-  <div
-    role="dialog"
-    class="container"
-    in:fade={{ duration: 200 }}
-    out:fade={{ duration: 100 }}
-  >
-    <div class="modal">
-      <h2>{title}</h2>
-      <div class="contents">
-        <slot />
-      </div>
-      <div class="actions">
-        <slot name="actions" />
-        <button on:click={close}>Cancel</button>
-        <button on:click={submit} disabled={!canSubmit}>OK</button>
+  <Portal target="body">
+    <div
+      on:click={close}
+      class="backdrop"
+      in:fade={{ duration: 200 }}
+      out:fade={{ duration: 100 }}
+    ></div>
+    <div
+      role="dialog"
+      class="container"
+      in:fade={{ duration: 200 }}
+      out:fade={{ duration: 100 }}
+    >
+      <div class="modal">
+        <h2>{title}</h2>
+        <div class="contents">
+          <slot />
+        </div>
+        <div class="actions">
+          <slot name="actions" />
+          <button on:click={close} class="inverse">Cancel</button>
+          <button on:click={submit} disabled={!canSubmit} class="inverse"
+            >OK</button
+          >
+        </div>
       </div>
     </div>
-  </div>
+  </Portal>
 {/if}
 
 <style>
@@ -64,31 +69,30 @@
   }
 
   .modal {
-    min-width: 360px;
-    border-radius: 1em;
-    padding: 1.5em;
+    width: 400px;
+    border-radius: 1rem;
+    padding: 1.5rem;
     background: var(--gray-90);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
     pointer-events: auto;
+    margin: 2rem;
   }
 
   .contents {
-    padding: 1em 0em 1.5em 0em;
+    padding: 1rem 0 1.5rem 0;
     display: flex;
     flex-direction: column;
-    gap: 1em;
+    gap: 1rem;
   }
 
   h2 {
     text-align: center;
+    font-size: 1.5rem;
   }
 
   .actions {
     display: flex;
     justify-content: flex-end;
-    gap: 0.5em;
+    gap: 0.5rem;
   }
 
   .backdrop {

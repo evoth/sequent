@@ -7,9 +7,6 @@
   import { modalOpen } from "./stores";
 
   const sequenceManager = new Manager<Sequence>();
-  new Sequence(sequenceManager, "Beanz Man", "he apprach....");
-  new Sequence(sequenceManager, "Tim", "he apprach....");
-  new Sequence(sequenceManager, "Timmy", "he apprach....");
 </script>
 
 <main>
@@ -28,7 +25,7 @@
     align-items: center;
     column-gap: 8px;
     padding: 1.2rem;
-    font-size: 0.8em;
+    font-size: 0.8rem;
     background-color: var(--gray-90);
   }
 

@@ -7,39 +7,31 @@
   export let manager: Manager<Sequence>;
 
   let modalOpen = false;
-  let modalTitle = "";
-  let onSubmit = () => {};
   let sequenceData = {
     name: "",
     description: "",
   };
 
-  function submitNewSequenceModal() {
+  function newSequence() {
     new Sequence(manager, sequenceData.name, sequenceData.description);
     // I think I won't have to do this with Svelte 5
     manager.children = manager.children;
   }
 
   function openNewSequenceModal() {
-    modalTitle = "New sequence";
     sequenceData = { name: "", description: "" };
-    onSubmit = submitNewSequenceModal;
     modalOpen = true;
   }
 </script>
 
 <div>
-  {#each manager.children as [id, sequence]}
-    <SequenceChip {sequence} />
+  {#each manager.children as [id, sequence] (sequence.id)}
+    <SequenceChip {sequence} bind:manager />
   {/each}
-  <button
-    on:click={openNewSequenceModal}
-    title="Add new sequence"
-    class="inverse">+</button
-  >
+  <button on:click={openNewSequenceModal} title="Add new sequence">+</button>
   <SequenceEditModal
-    title={modalTitle}
-    {onSubmit}
+    title={"New sequence"}
+    onSubmit={newSequence}
     bind:isOpen={modalOpen}
     bind:name={sequenceData.name}
     bind:description={sequenceData.description}
@@ -52,14 +44,18 @@
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
-    column-gap: 8px;
+    column-gap: 0.8rem;
+    row-gap: 0.8rem;
     padding: 1rem;
   }
 
   button {
     padding: 1rem;
-    font-size: 1.3em;
+    font-size: 1.3rem;
     background-color: var(--gray-90);
-    border-radius: 0.5em;
+    border-radius: 0.8rem;
+  }
+  button:hover {
+    background-color: var(--gray-65);
   }
 </style>

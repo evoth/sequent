@@ -23,7 +23,7 @@
   update();
 </script>
 
-<button on:click={toggle} title="Switch theme" class="inverse">
+<button on:click={toggle} title="Switch theme">
   {#if theme == "light"}
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -61,6 +61,5 @@
     min-width: 48px;
     display: flex;
     align-items: center;
-    background-color: transparent;
   }
 </style>

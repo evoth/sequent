@@ -25,20 +25,18 @@ export class Manager<T extends Manageable<any>> {
 export abstract class Manageable<T extends Manageable<T>> {
   readonly id: string;
   readonly manager: Manager<T>;
-  readonly name?: string;
-  readonly description?: string;
+  private _name: string;
+  description: string;
 
   constructor(
     manager: Manager<T>,
-    name?: string,
-    description?: string,
+    name: string,
+    description: string = "",
     id?: string
   ) {
     this.manager = manager;
-    if (name === "") {
-      throw new Error("Name of manageable object cannot be the empty string.");
-    }
     this.name = name;
+    this._name = name;
     this.description = description;
     if (id === undefined) {
       this.id = this.manager.generateId();
@@ -46,6 +44,17 @@ export abstract class Manageable<T extends Manageable<T>> {
       this.id = id;
     }
     this.add();
+  }
+
+  set name(newName: string) {
+    if (newName === "") {
+      throw new Error("Name of manageable object cannot be the empty string.");
+    }
+    this._name = newName;
+  }
+
+  get name() {
+    return this._name;
   }
 
   abstract add(): void;
