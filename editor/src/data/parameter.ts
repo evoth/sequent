@@ -1,4 +1,4 @@
-import { Manageable, Manager, type idType } from "./manager";
+import { Manageable, Manager } from "./manager";
 
 // Represents the general description of a given parameter (T cannot be nullable)
 export class Parameter<T extends {}> extends Manageable<Parameter<any>> {

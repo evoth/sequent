@@ -3,13 +3,12 @@
   import { selectedSequence } from "../../../stores";
   import { clickoutside } from "@svelte-put/clickoutside";
   import { fade, slide } from "svelte/transition";
-  import { cubicOut, cubicIn } from "svelte/easing";
   import Modal from "../../Modal.svelte";
   import type { Manager } from "../../../data/manager";
   import SequenceEditModal from "./SequenceEditModal.svelte";
 
   export let sequence: Sequence;
-  export let manager: Manager<Sequence>;
+  export let sequences: SequenceItem[];
 
   let showOptions = false;
   let deleteModalOpen = false;
@@ -26,11 +25,16 @@
   }
 
   function deleteSequence() {
+    sequence.manager.children.delete(sequence.id);
+    const index = sequences.findIndex((seq) => seq.sequence === sequence);
+    sequences = sequences.filter((item) => item.sequence !== sequence);
     if ($selectedSequence === sequence) {
-      $selectedSequence = undefined;
+      if (sequences.length > 0) {
+        $selectedSequence = sequences[Math.max(0, index - 1)].sequence;
+      } else {
+        $selectedSequence = undefined;
+      }
     }
-    manager.children.delete(sequence.id);
-    manager.children = manager.children;
   }
 
   function openEditModal() {
@@ -47,17 +51,15 @@
   }
 </script>
 
-<div
-  class="outer"
-  class:selected={$selectedSequence === sequence}
-  transition:slide={{ duration: 200, axis: "x" }}
->
+<div class="outer" class:selected={$selectedSequence === sequence}>
   <button
     on:click={selectSequence}
     title="Select {sequence.name} sequence"
     class="chip-button select"
   >
-    {sequence.name}
+    <div>
+      {sequence.name}
+    </div>
   </button>
   <div
     class="options-container"
@@ -69,7 +71,7 @@
       title="Sequence options"
       class="chip-button options"
     >
-      <div>
+      <div class="icon-container">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="1em"
@@ -115,29 +117,49 @@
     gap: 0.5rem;
     padding: 0;
     font-size: 1.3rem;
-    background-color: var(--gray-90);
     border-radius: 0.8rem;
+    background-color: var(--gray-85);
     transition:
       background-color 0.2s,
       color 0.2s;
     white-space: nowrap;
+    cursor: pointer;
+    --outer-padding: 0.8rem;
+    --bottom-padding: var(--outer-padding);
+    --selected-bottom-padding: 1.3rem;
+    position: relative;
+    margin-bottom: calc(var(--selected-bottom-padding) - var(--bottom-padding));
   }
-  .outer:not(:has(.options:hover)):hover {
+  .outer:not(:has(.options:hover)):not(.selected):hover {
     background-color: var(--gray-65);
   }
   .outer.selected {
-    background-color: var(--gray-85);
-    border: 1px solid var(--gray-35);
+    background-color: var(--gray-95);
+    border: 1px solid var(--gray-65);
+    --bottom-padding: var(--selected-bottom-padding);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-color: transparent;
+  }
+
+  .outer.selected::after {
+    position: absolute;
+    content: "";
+    top: 100%;
+    left: 0px;
+    right: 0px;
+    height: 2px;
+    background-color: var(--gray-95);
   }
 
   .chip-button {
     font-size: 1.3rem;
-    padding: 1rem;
+    padding: var(--outer-padding);
+    padding-bottom: var(--bottom-padding);
   }
   .chip-button:hover {
     background-color: transparent;
   }
-
   .select {
     padding-right: 0;
   }
@@ -145,22 +167,24 @@
     padding: 0;
   }
 
-  .chip-button > div {
+  .icon-container {
     display: flex;
     align-items: center;
-    padding: 0.5rem 0;
-    margin: 0.5rem 0.5rem 0.5rem 0;
+    padding: calc(var(--outer-padding) / 2) 0;
+    margin: calc(var(--outer-padding) / 2) calc(var(--outer-padding) / 2)
+      calc(var(--outer-padding) / 2) 0;
     border-radius: 0.5rem;
     transition:
       background-color 0.2s,
       color 0.2s;
   }
-  .chip-button:hover > div {
-    background-color: var(--gray-65);
+  .chip-button:hover > .icon-container {
+    background-color: var(--gray-75);
   }
 
   .options-container {
     position: relative;
+    z-index: 1;
   }
 
   .options-menu {
@@ -172,10 +196,10 @@
     padding: 0.5rem;
     background-color: var(--gray-90);
     border-radius: 0.7rem;
-    border: 1px solid var(--gray-50);
+    border: 1px solid var(--gray-65);
     box-shadow:
-      0 10px 15px -3px rgb(0 0 0 / 0.6),
-      0 4px 6px -4px rgb(0 0 0 / 0.6);
+      0 10px 15px -3px var(--shadow),
+      0 4px 6px -4px var(--shadow);
   }
 
   .options-menu > button {

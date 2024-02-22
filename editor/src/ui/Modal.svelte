@@ -73,6 +73,7 @@
     border-radius: 1rem;
     padding: 1.5rem;
     background: var(--gray-90);
+    border: 1px solid var(--gray-65);
     pointer-events: auto;
     margin: 2rem;
   }
