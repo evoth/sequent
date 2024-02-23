@@ -92,6 +92,8 @@ body {
   --yellow-5: var(--dark-yellow);
   --yellow-95: var(--light-yellow);
   --shadow: color-mix(in srgb, var(--gray-50) 60%, transparent);
+  --component-saturation: 55%;
+  --component-lightness: 65%;
 }
 
 :root.dark {
@@ -113,6 +115,8 @@ body {
   --yellow-5: var(--light-yellow);
   --yellow-95: var(--dark-yellow);
   --shadow: color-mix(in srgb, var(--black) 60%, transparent);
+  --component-saturation: 50%;
+  --component-lightness: 35%;
 }
 
 #app {
@@ -202,4 +206,8 @@ p.error {
 p {
   white-space: pre-line;
   overflow-wrap: break-word;
+}
+
+div, ::after, ::before {
+  transition: background-color 0.2s, border-color 0.2s;
 }

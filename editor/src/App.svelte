@@ -1,13 +1,11 @@
 <script lang="ts">
   import ThemeToggle from "./ui/ThemeToggle.svelte";
-  import Sequences from "./ui/tabs/SequenceTabs.svelte";
+  import SequenceTabs from "./ui/tabs/SequenceTabs.svelte";
   import Timeline from "./ui/timeline/Timeline.svelte";
-  import { Manager } from "./data/manager";
-  import { Sequence } from "./data/sequence";
   import Pane from "./ui/panes/Pane.svelte";
   import PaneSection from "./ui/panes/PaneSection.svelte";
-
-  const sequenceManager = new Manager<Sequence>();
+  import ComponentsSection from "./ui/panes/components/ComponentsSection.svelte";
+  import { project } from "./stores";
 </script>
 
 <main>
@@ -17,11 +15,19 @@
   </div>
   <div class="panes">
     <Pane title="New components">
-      <PaneSection title="Actions" name="components-actions" />
-      <PaneSection title="Sequences" name="components-sequences" />
+      <ComponentsSection
+        title="Actions"
+        name="components-actions"
+        bind:manager={$project.actionSet.actionManager}
+      />
+      <ComponentsSection
+        title="Sequences"
+        name="components-sequences"
+        bind:manager={$project.sequenceManager}
+      />
     </Pane>
     <div class="timeline">
-      <Sequences manager={sequenceManager} />
+      <SequenceTabs />
       <Timeline />
     </div>
     <Pane title="Properties">

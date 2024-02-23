@@ -25,8 +25,8 @@ export class Action extends Manageable<Action> {
     manager: Manager<Action>,
     name: string,
     description: string,
+    durationProps: ActionDurationProps,
     parameters: Parameter<any>[] = [],
-    durationProps: ActionDurationProps
   ) {
     super(manager, name, description);
     this.parameters = parameters;

@@ -14,9 +14,9 @@ describe("action", () => {
       1,
       0.5
     );
-    let action = new Action(actionManager, "Test", "Test action", [param], {
+    let action = new Action(actionManager, "Test", "Test action", {
       defaultDuration: 0,
-    });
+    }, [param]);
     expect(action.parameters[0].validate(0)).toEqual({
       error: ParameterError.UnderMin,
       fixed: 0.5,
@@ -48,8 +48,8 @@ describe("action state", () => {
       actionManager,
       "Test",
       "Test action",
-      [param, param2],
-      { defaultDuration: 0 }
+      { defaultDuration: 0 },
+      [param, param2]
     );
     let actionState = action.newState();
     expect(actionState.parameterStates.get(paramId)!.value).toBe(17);

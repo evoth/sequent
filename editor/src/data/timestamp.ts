@@ -8,7 +8,8 @@ export class Timestamp extends Manageable<Timestamp> {
     manager: Manager<Timestamp>,
     value: number,
     relativeTo?: Timestamp,
-    name?: string,
+    // TODO: fix it so that name can be undefined?
+    name: string = "",
     description?: string
   ) {
     super(manager, name, description);

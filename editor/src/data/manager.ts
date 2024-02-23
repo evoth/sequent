@@ -27,17 +27,20 @@ export abstract class Manageable<T extends Manageable<T>> {
   readonly manager: Manager<T>;
   private _name: string;
   description: string;
+  hue: number;
 
   constructor(
     manager: Manager<T>,
     name: string,
     description: string = "",
-    id?: string
+    hue: number = Math.floor(Math.random() * 360),
+    id?: string,
   ) {
     this.manager = manager;
     this.name = name;
     this._name = name;
     this.description = description;
+    this.hue = hue;
     if (id === undefined) {
       this.id = this.manager.generateId();
     } else {

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Sequence } from "../../data/sequence";
-  import { selectedSequence } from "../../stores";
+  import { project } from "../../stores";
   import { clickoutside } from "@svelte-put/clickoutside";
   import { fade, slide } from "svelte/transition";
   import Modal from "../Modal.svelte";
@@ -19,19 +19,20 @@
     description: "",
   };
 
-  function selectSequence() {
-    $selectedSequence = sequence;
+  function openSequence() {
+    $project.openedSequence = sequence;
   }
 
   function deleteSequence() {
     sequence.manager.children.delete(sequence.id);
+    $project.sequenceManager.children = $project.sequenceManager.children;
     const index = sequences.findIndex((seq) => seq.sequence === sequence);
     sequences = sequences.filter((item) => item.sequence !== sequence);
-    if ($selectedSequence === sequence) {
+    if ($project.openedSequence === sequence) {
       if (sequences.length > 0) {
-        $selectedSequence = sequences[Math.max(0, index - 1)].sequence;
+        $project.openedSequence = sequences[Math.max(0, index - 1)].sequence;
       } else {
-        $selectedSequence = undefined;
+        $project.openedSequence = undefined;
       }
     }
   }
@@ -47,14 +48,15 @@
   function editSequence() {
     sequence.name = sequenceData.name;
     sequence.description = sequenceData.description;
+    $project.sequenceManager.children = $project.sequenceManager.children;
   }
 </script>
 
-<div class="outer" class:selected={$selectedSequence === sequence}>
+<div class="outer" class:opened={$project.openedSequence === sequence}>
   <button
-    on:click={selectSequence}
-    title="Select {sequence.name} sequence"
-    class="chip-button select"
+    on:click={openSequence}
+    title="Open {sequence.name} sequence"
+    class="chip-button open"
   >
     <div>
       {sequence.name}
@@ -125,23 +127,23 @@
     cursor: pointer;
     --outer-padding: 0.8rem;
     --bottom-padding: var(--outer-padding);
-    --selected-bottom-padding: 1.3rem;
+    --opened-bottom-padding: 1.3rem;
     position: relative;
-    margin-bottom: calc(var(--selected-bottom-padding) - var(--bottom-padding));
+    margin-bottom: calc(var(--opened-bottom-padding) - var(--bottom-padding));
   }
-  .outer:not(:has(.options:hover)):not(.selected):hover {
+  .outer:not(:has(.options:hover)):not(.opened):hover {
     background-color: var(--gray-65);
   }
-  .outer.selected {
+  .outer.opened {
     background-color: var(--gray-95);
     border: var(--border-style);
-    --bottom-padding: var(--selected-bottom-padding);
+    --bottom-padding: var(--opened-bottom-padding);
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     border-bottom-color: transparent;
   }
 
-  .outer.selected::after {
+  .outer.opened::after {
     position: absolute;
     content: "";
     top: 100%;
@@ -159,7 +161,7 @@
   .chip-button:hover {
     background-color: transparent;
   }
-  .select {
+  .open {
     padding-right: 0;
   }
   .options {

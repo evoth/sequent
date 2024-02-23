@@ -1,20 +1,16 @@
 <script lang="ts">
-  import { slide } from "svelte/transition";
-  import { Manager } from "../../data/manager";
   import { Sequence } from "../../data/sequence";
   import SequenceChip from "./SequenceChip.svelte";
   import SequenceEditModal from "./SequenceEditModal.svelte";
-  import { dndzone, type DndEvent, type Item } from "svelte-dnd-action";
+  import { dndzone, type DndEvent } from "svelte-dnd-action";
   import { flip } from "svelte/animate";
-  import { selectedSequence } from "../../stores";
+  import { project } from "../../stores";
 
-  export let manager: Manager<Sequence>;
-
-  let sequences: SequenceItem[] = [...manager.children.entries()].map(
-    ([id, sequence]) => {
-      return { id, sequence };
-    }
-  );
+  let sequences: SequenceItem[] = [
+    ...$project.sequenceManager.children.entries(),
+  ].map(([id, sequence]) => {
+    return { id, sequence };
+  });
 
   let modalOpen = false;
   let sequenceData = {
@@ -24,10 +20,11 @@
 
   function newSequence() {
     const newSequence = new Sequence(
-      manager,
+      $project.sequenceManager,
       sequenceData.name,
       sequenceData.description
     );
+    $project.sequenceManager.children = $project.sequenceManager.children;
     sequences = [
       ...sequences,
       {
@@ -35,7 +32,7 @@
         sequence: newSequence,
       },
     ];
-    $selectedSequence = newSequence;
+    $project.openedSequence = newSequence;
   }
 
   function openNewSequenceModal() {
