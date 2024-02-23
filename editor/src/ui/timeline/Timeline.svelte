@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { selectedSequence } from "../../../stores";
+  import { selectedSequence } from "../../stores";
 </script>
 
 {#if $selectedSequence !== undefined}

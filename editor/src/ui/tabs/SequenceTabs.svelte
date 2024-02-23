@@ -1,12 +1,12 @@
 <script lang="ts">
   import { slide } from "svelte/transition";
-  import { Manager } from "../../../data/manager";
-  import { Sequence } from "../../../data/sequence";
+  import { Manager } from "../../data/manager";
+  import { Sequence } from "../../data/sequence";
   import SequenceChip from "./SequenceChip.svelte";
   import SequenceEditModal from "./SequenceEditModal.svelte";
   import { dndzone, type DndEvent, type Item } from "svelte-dnd-action";
   import { flip } from "svelte/animate";
-  import { selectedSequence } from "../../../stores";
+  import { selectedSequence } from "../../stores";
 
   export let manager: Manager<Sequence>;
 
@@ -88,7 +88,7 @@
     display: flex;
     padding: 0 1rem;
     column-gap: 0.8rem;
-    border-bottom: 1px solid var(--gray-65);
+    border-bottom: var(--border-style);
   }
 
   section {

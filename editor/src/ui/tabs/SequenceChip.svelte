@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { Sequence } from "../../../data/sequence";
-  import { selectedSequence } from "../../../stores";
+  import { Sequence } from "../../data/sequence";
+  import { selectedSequence } from "../../stores";
   import { clickoutside } from "@svelte-put/clickoutside";
   import { fade, slide } from "svelte/transition";
-  import Modal from "../../Modal.svelte";
-  import type { Manager } from "../../../data/manager";
+  import Modal from "../Modal.svelte";
   import SequenceEditModal from "./SequenceEditModal.svelte";
 
   export let sequence: Sequence;
@@ -135,7 +134,7 @@
   }
   .outer.selected {
     background-color: var(--gray-95);
-    border: 1px solid var(--gray-65);
+    border: var(--border-style);
     --bottom-padding: var(--selected-bottom-padding);
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
@@ -196,7 +195,7 @@
     padding: 0.5rem;
     background-color: var(--gray-90);
     border-radius: 0.7rem;
-    border: 1px solid var(--gray-65);
+    border: var(--border-style);
     box-shadow:
       0 10px 15px -3px var(--shadow),
       0 4px 6px -4px var(--shadow);
