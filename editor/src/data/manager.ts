@@ -1,8 +1,17 @@
+export type IdType = string;
+
 // Manages a list of a certain type of object, keeping track of their IDs
 // In the future this will also initiate serialization and deserialization
-export class Manager<T extends Manageable<any>> {
+export class Manager<T extends Manageable<any>> implements Serializable {
   private idCounter: number = 0;
-  children: Map<string, T> = new Map<string, T>();
+  children: Map<IdType, T> = new Map<IdType, T>();
+
+  toJSON(): {
+    idCounter: number;
+    children: Map<IdType, CustomJSON<Manageable<any>>>;
+  } {
+    return { idCounter: this.idCounter, children: this.children };
+  }
 
   add(child: T) {
     if (this.children.has(child.id)) {
@@ -13,7 +22,7 @@ export class Manager<T extends Manageable<any>> {
     this.children.set(child.id, child);
   }
 
-  generateId(): string {
+  generateId(): IdType {
     while (String(this.idCounter) in this.children) {
       this.idCounter++;
     }
@@ -22,8 +31,10 @@ export class Manager<T extends Manageable<any>> {
 }
 
 // A hacky way to define "manageable" objects
-export abstract class Manageable<T extends Manageable<T>> {
-  readonly id: string;
+export abstract class Manageable<T extends Manageable<T>>
+  implements Serializable
+{
+  readonly id: IdType;
   readonly manager: Manager<T>;
   private _name: string;
   description: string;
@@ -34,7 +45,7 @@ export abstract class Manageable<T extends Manageable<T>> {
     name: string,
     description: string = "",
     hue: number = Math.floor(Math.random() * 360),
-    id?: string,
+    id?: IdType
   ) {
     this.manager = manager;
     this.name = name;
@@ -61,6 +72,16 @@ export abstract class Manageable<T extends Manageable<T>> {
   }
 
   abstract add(): void;
-}
 
-export type idType = Manageable<any>["id"];
+  manageableJSON(): CustomJSON<Manageable<any>> {
+    return {
+      id: this.id,
+      manager: null,
+      name: this.name,
+      description: this.description,
+      hue: this.hue,
+    };
+  }
+
+  abstract toJSON(): CustomJSON<Manageable<T>>;
+}

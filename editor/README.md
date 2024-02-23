@@ -12,3 +12,8 @@ This will be a web-based editor for composing sequences using actions and parame
   - Setters should throw an error if validation fails
 - Give errors IDs for easier error tracking?
 - Add methods to add/remove stuff (layers to sequences, repeats to layers, etc.)
+- **Deep sequence dependency validation (no cycles allowed)**
+
+## Plan: FOCUS ON MVP!!
+
+Not going to try to make anything perfect, just need to get it functional before I worry about any non-essential details

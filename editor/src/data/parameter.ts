@@ -1,7 +1,17 @@
-import { Manageable, Manager } from "./manager";
+import { Manageable, Manager, type IdType } from "./manager";
+
+type ParameterType = number | string | boolean;
+
+type ParameterJSON<T> = CustomJSON<Manageable<any>> & {
+  defaultValue: T;
+  type: string;
+  valueType: TypeofResult;
+};
 
 // Represents the general description of a given parameter (T cannot be nullable)
-export class Parameter<T extends {}> extends Manageable<Parameter<any>> {
+export class Parameter<T extends ParameterType> extends Manageable<
+  Parameter<any>
+> {
   readonly defaultValue: T;
 
   constructor(
@@ -14,6 +24,10 @@ export class Parameter<T extends {}> extends Manageable<Parameter<any>> {
     this.defaultValue = defaultValue;
   }
 
+  toJSON(): ParameterJSON<T> {
+    return this.parameterJson();
+  }
+
   add() {
     this.manager.add(this);
   }
@@ -22,7 +36,7 @@ export class Parameter<T extends {}> extends Manageable<Parameter<any>> {
   // The `fixed` return value optionally returns a "fixed" version of the value
   // that will pass validation.
   validate(value: T): ParameterValidation<T> {
-    return {error: ParameterError.None};
+    return { error: ParameterError.None };
   }
 
   checkDefault(): void {
@@ -36,10 +50,21 @@ export class Parameter<T extends {}> extends Manageable<Parameter<any>> {
   newState(value?: T): ParameterState<Parameter<T>, T> {
     return new ParameterState<Parameter<T>, T>(this, value);
   }
+
+  parameterJson(): ParameterJSON<T> {
+    return {
+      ...this.manageableJSON(),
+      type: "Parameter",
+      valueType: typeof this.defaultValue,
+      defaultValue: this.defaultValue,
+    };
+  }
 }
 
 // Represents the actual parameter value in an action instance
-export class ParameterState<T extends Parameter<U>, U extends {}> {
+export class ParameterState<T extends Parameter<U>, U extends ParameterType>
+  implements Serializable
+{
   readonly parameter: T;
   value: U;
 
@@ -47,12 +72,16 @@ export class ParameterState<T extends Parameter<U>, U extends {}> {
     this.parameter = parameter;
     this.value = value ?? this.parameter.defaultValue;
   }
+
+  toJSON(): { parameter: IdType; value: U } {
+    return { parameter: this.parameter.id, value: this.value };
+  }
 }
 
 export type ParameterValidation<T> = {
   error: ParameterError;
-  fixed?: T,
-}
+  fixed?: T;
+};
 
 export enum ParameterError {
   None,
@@ -91,13 +120,24 @@ export class NumberParameter<T extends number> extends Parameter<T> {
     this.checkDefault();
   }
 
+  toJSON(): ParameterJSON<T> & CustomJSON<NumberParameter<number>> {
+    return {
+      ...this.parameterJson(),
+      type: "NumberParameter",
+      min: this.min,
+      max: this.max,
+      step: this.step,
+      unit: this.unit,
+    };
+  }
+
   validate(value: T): ParameterValidation<T> {
     const epsilon = 1e-10;
     if (this.min !== undefined && value < this.min) {
-      return {error: ParameterError.UnderMin, fixed: this.min};
+      return { error: ParameterError.UnderMin, fixed: this.min };
     }
     if (this.max !== undefined && value > this.max) {
-      return {error: ParameterError.OverMax, fixed: this.max};
+      return { error: ParameterError.OverMax, fixed: this.max };
     }
     if (
       this.step !== undefined &&
@@ -106,10 +146,10 @@ export class NumberParameter<T extends number> extends Parameter<T> {
       let fixed = (Math.round(value / this.step) * this.step) as T;
       fixed = this.validate(fixed).fixed ?? fixed;
       if (fixed !== value) {
-        return {error: ParameterError.WrongStep, fixed};
+        return { error: ParameterError.WrongStep, fixed };
       }
     }
-    return {error: ParameterError.None};
+    return { error: ParameterError.None };
   }
 }
 
@@ -132,9 +172,18 @@ export class StringParameter<T extends string> extends Parameter<T> {
     this.checkDefault();
   }
 
+  toJSON(): ParameterJSON<T> & CustomJSON<StringParameter<string>> {
+    return {
+      ...this.parameterJson(),
+      type: "StringParameter",
+      minLength: this.minLength,
+      maxLength: this.maxLength,
+    };
+  }
+
   validate(value: T): ParameterValidation<T> {
     if (this.minLength !== undefined && value.length < this.minLength) {
-      return {error: ParameterError.UnderMinLength};
+      return { error: ParameterError.UnderMinLength };
     }
     if (this.maxLength !== undefined && value.length > this.maxLength) {
       return {
@@ -142,12 +191,12 @@ export class StringParameter<T extends string> extends Parameter<T> {
         fixed: value.slice(0, this.maxLength) as T,
       };
     }
-    return {error: ParameterError.None};
+    return { error: ParameterError.None };
   }
 }
 
 // Provides validation for enumerations (sets of allowed values)
-export class EnumParameter<T extends {}> extends Parameter<T> {
+export class EnumParameter<T extends ParameterType> extends Parameter<T> {
   readonly options: T[];
 
   constructor(
@@ -167,16 +216,24 @@ export class EnumParameter<T extends {}> extends Parameter<T> {
     this.checkDefault();
   }
 
+  toJSON(): ParameterJSON<T> & { options: T[] } {
+    return {
+      ...this.parameterJson(),
+      type: "EnumParameter",
+      options: this.options,
+    };
+  }
+
   validate(value: T): ParameterValidation<T> {
     if (!this.options.includes(value)) {
-      return {error: ParameterError.BadEnumOption};
+      return { error: ParameterError.BadEnumOption };
     }
-    return {error: ParameterError.None};
+    return { error: ParameterError.None };
   }
 }
 
 // Provides validation for nested parameters (values that map to sets of sub-parameters)
-export class NestedParameter<T extends {}> extends Parameter<T> {
+export class NestedParameter<T extends ParameterType> extends Parameter<T> {
   readonly nested: Map<T, Parameter<any>[]>;
   readonly descendants: Set<Parameter<any>>;
 
@@ -196,6 +253,21 @@ export class NestedParameter<T extends {}> extends Parameter<T> {
     this.nested = nested;
     this.descendants = this.getDescendants([]);
     this.checkDefault();
+  }
+
+  toJSON(): ParameterJSON<T> & { nested: Map<T, IdType[]> } {
+    const nestedIds = new Map<T, IdType[]>();
+    for (const [key, parameters] of this.nested.entries()) {
+      nestedIds.set(
+        key,
+        parameters.map((parameter) => parameter.id)
+      );
+    }
+    return {
+      ...this.parameterJson(),
+      type: "NestedParameter",
+      nested: nestedIds,
+    };
   }
 
   // Gets a set of all nested parameters, checking for self-containing parameters
@@ -225,8 +297,8 @@ export class NestedParameter<T extends {}> extends Parameter<T> {
 
   validate(value: T): ParameterValidation<T> {
     if (!this.nested.has(value)) {
-      return {error: ParameterError.BadNestedOption};
+      return { error: ParameterError.BadNestedOption };
     }
-    return {error: ParameterError.None};
+    return { error: ParameterError.None };
   }
 }

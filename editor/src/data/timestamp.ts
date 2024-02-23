@@ -17,6 +17,14 @@ export class Timestamp extends Manageable<Timestamp> {
     this.relativeTo = relativeTo;
   }
 
+  toJSON(): CustomJSON<Timestamp> {
+    return {
+      ...this.manageableJSON(),
+      value: this.value,
+      relativeTo: this.relativeTo?.id,
+    };
+  }
+
   add() {
     this.manager.add(this);
   }

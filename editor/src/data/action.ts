@@ -1,8 +1,8 @@
 import { Manageable, Manager } from "./manager";
 import { NestedParameter, Parameter, ParameterState } from "./parameter";
 
+import type { IdType } from "./manager";
 import type { Repeatable } from "./repeat";
-import type { idType } from "./manager";
 
 export type ActionDurationProps = {
   // Duration when durationParam doesn't exist or has no value
@@ -26,7 +26,7 @@ export class Action extends Manageable<Action> {
     name: string,
     description: string,
     durationProps: ActionDurationProps,
-    parameters: Parameter<any>[] = [],
+    parameters: Parameter<any>[] = []
   ) {
     super(manager, name, description);
     this.parameters = parameters;
@@ -41,6 +41,19 @@ export class Action extends Manageable<Action> {
       );
     }
     this.durationProps = durationProps;
+  }
+
+  toJSON(): Omit<CustomJSON<Action>, "descendants"> {
+    return {
+      ...this.manageableJSON(),
+      parameters: this.parameters.map((parameter) => parameter.id),
+      durationProps: {
+        defaultDuration: this.durationProps.defaultDuration,
+        durationParam: this.durationProps.durationParam?.id,
+        durationParamOffset: this.durationProps.durationParamOffset,
+        durationParamMultiplier: this.durationProps.durationParamMultiplier,
+      },
+    };
   }
 
   add() {
@@ -70,9 +83,9 @@ export class Action extends Manageable<Action> {
 }
 
 // Represents an actual action instance with its parameter values
-export class ActionState implements Repeatable {
+export class ActionState implements Repeatable, Serializable {
   readonly action: Action;
-  readonly parameterStates: Map<idType, ParameterState<Parameter<any>, any>>;
+  readonly parameterStates: Map<IdType, ParameterState<Parameter<any>, any>>;
 
   constructor(
     action: Action,
@@ -80,12 +93,16 @@ export class ActionState implements Repeatable {
   ) {
     this.action = action;
     this.parameterStates = new Map<
-      idType,
+      IdType,
       ParameterState<Parameter<any>, any>
     >();
     for (const paramState of parameterStates) {
       this.parameterStates.set(paramState.parameter.id, paramState);
     }
+  }
+
+  toJSON(): CustomJSON<ActionState> {
+    return { action: this.action.id, parameterStates: this.parameterStates };
   }
 
   // Represents duration of action; see ActionDurationProps type

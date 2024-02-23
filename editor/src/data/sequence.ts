@@ -5,11 +5,11 @@ import type { Repeatable } from "./repeat";
 import { Timestamp } from "./timestamp";
 
 export type SequenceValidation = {
-  error: SequenceError,
-  childError?: LayerError,
-  start?: Timestamp,
-  end?: Timestamp,
-}
+  error: SequenceError;
+  childError?: LayerError;
+  start?: Timestamp;
+  end?: Timestamp;
+};
 
 export enum SequenceError {
   None,
@@ -23,12 +23,24 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
   // Undefined if root sequence
   rootTimestamp?: Timestamp;
 
-  constructor(manager: Manager<Sequence>,
+  constructor(
+    manager: Manager<Sequence>,
     name: string,
-    description: string, layers: Layer[] = [], rootTimestamp?: Timestamp) {
+    description: string,
+    layers: Layer[] = [],
+    rootTimestamp?: Timestamp
+  ) {
     super(manager, name, description);
     this.layers = layers;
     this.rootTimestamp = rootTimestamp;
+  }
+
+  toJSON(): CustomJSON<Sequence> {
+    return {
+      ...this.manageableJSON(),
+      layers: this.layers,
+      rootTimestamp: this.rootTimestamp?.id,
+    };
   }
 
   add() {
@@ -40,26 +52,38 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
     let sequenceStart: Timestamp | undefined = undefined;
     let sequenceEnd: Timestamp | undefined = undefined;
     for (const layer of this.layers) {
-      const {error, childError, start, end} = layer.validate();
+      const { error, childError, start, end } = layer.validate();
       if (error != LayerError.None) {
-        return {error: SequenceError.ChildError, childError: error};
+        return { error: SequenceError.ChildError, childError: error };
       }
 
       if (this.rootTimestamp !== undefined) {
-        if (start !== undefined && sequenceStart !== undefined && start.getOffset()[0] < sequenceStart.getOffset()[0]) {
+        if (
+          start !== undefined &&
+          sequenceStart !== undefined &&
+          start.getOffset()[0] < sequenceStart.getOffset()[0]
+        ) {
           sequenceStart = start;
         }
-        if (end !== undefined && sequenceEnd !== undefined && end.getOffset()[0] > sequenceEnd.getOffset()[0]) {
+        if (
+          end !== undefined &&
+          sequenceEnd !== undefined &&
+          end.getOffset()[0] > sequenceEnd.getOffset()[0]
+        ) {
           sequenceEnd = end;
         }
       }
 
       if (layer.rootTimestamp !== this.rootTimestamp) {
-        return {error: SequenceError.WrongRootTimestamp};
+        return { error: SequenceError.WrongRootTimestamp };
       }
     }
 
-    return {error: SequenceError.None, start: sequenceStart, end: sequenceEnd};
+    return {
+      error: SequenceError.None,
+      start: sequenceStart,
+      end: sequenceEnd,
+    };
   }
 
   // Duration is undefined if sequence scope is infinite or if there are errors
@@ -69,7 +93,8 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
     if (validation.start === undefined || validation.end === undefined) {
       duration = undefined;
     } else {
-      duration = validation.end.getOffset()[0] - validation.start.getOffset()[0];
+      duration =
+        validation.end.getOffset()[0] - validation.start.getOffset()[0];
     }
     return duration;
   }
@@ -81,11 +106,11 @@ export enum LayerMode {
 }
 
 export type LayerValidation = {
-  error: LayerError,
-  childError?: RepeatError,
-  start?: Timestamp,
-  end?: Timestamp,
-}
+  error: LayerError;
+  childError?: RepeatError;
+  start?: Timestamp;
+  end?: Timestamp;
+};
 
 export enum LayerError {
   None,
@@ -96,7 +121,7 @@ export enum LayerError {
   ChildOverlap,
 }
 
-export class Component extends Repeat {
+export class Component extends Repeat implements Serializable {
   layerMode: LayerMode;
   customName?: string;
 
@@ -106,15 +131,23 @@ export class Component extends Repeat {
     isRepeating: boolean,
     layerMode: LayerMode,
     rootTimestamp?: Timestamp,
-    customName?: string,
+    customName?: string
   ) {
     super(child, props, isRepeating, rootTimestamp);
     this.layerMode = layerMode;
     this.customName = customName;
   }
+
+  toJSON(): CustomJSON<Component> {
+    return {
+      ...this.repeatJSON(),
+      layerMode: this.layerMode,
+      customName: this.customName,
+    };
+  }
 }
 
-export class Layer {
+export class Layer implements Serializable {
   children: Set<Component>;
   // If sequence passes in root timestamp, all timestamps must descend from it.
   // Otherwise (as in the case of the root sequence), any timestamp ancestor
@@ -126,28 +159,38 @@ export class Layer {
     this.rootTimestamp = rootTimestamp;
   }
 
+  toJSON(): CustomJSON<Layer> {
+    return {
+      children: [...this.children],
+      rootTimestamp: this.rootTimestamp?.id,
+    };
+  }
+
   validate(): LayerValidation {
     if (this.children.size == 0) {
-      return {error: LayerError.Empty};
+      return { error: LayerError.Empty };
     }
 
     const childBounds: [start?: Timestamp, end?: Timestamp][] = [];
     const rootTimestamps = new Set<Timestamp>();
     for (const child of this.children) {
-      const {error, solved} = child.validate();
+      const { error, solved } = child.validate();
       if (error !== RepeatError.None || solved === undefined) {
-        return {error: LayerError.ChildError, childError: error};
+        return { error: LayerError.ChildError, childError: error };
       }
       childBounds.push([solved.start, solved.end]);
       const [offset, root] = (solved.start ?? solved.end)!.getOffset();
       rootTimestamps.add(root);
     }
 
-    if (this.rootTimestamp !== undefined && rootTimestamps.values().next().value !== this.rootTimestamp) {
-      return {error: LayerError.WrongRootTimestamp};
+    if (
+      this.rootTimestamp !== undefined &&
+      rootTimestamps.values().next().value !== this.rootTimestamp
+    ) {
+      return { error: LayerError.WrongRootTimestamp };
     }
     if (rootTimestamps.size > 1) {
-      return {error: LayerError.TimestampRootMismatch};
+      return { error: LayerError.TimestampRootMismatch };
     }
 
     childBounds.sort((a, b) => {
@@ -160,17 +203,20 @@ export class Layer {
     for (const [i, [start, end]] of childBounds.entries()) {
       if (start === undefined) {
         if (i != 0) {
-          return {error: LayerError.ChildOverlap};
+          return { error: LayerError.ChildOverlap };
         }
       } else {
-        if (prevEnd === undefined || start.getOffset()[0] < prevEnd.getOffset()[0]) {
-          return {error: LayerError.ChildOverlap};
+        if (
+          prevEnd === undefined ||
+          start.getOffset()[0] < prevEnd.getOffset()[0]
+        ) {
+          return { error: LayerError.ChildOverlap };
         }
       }
       prevEnd = end;
     }
 
-    return {error: LayerError.None, start: childBounds[0][0], end: prevEnd};
+    return { error: LayerError.None, start: childBounds[0][0], end: prevEnd };
   }
 
   getDuration(): [error: LayerError, duration?: number] {
@@ -179,7 +225,8 @@ export class Layer {
     if (validation.start === undefined || validation.end === undefined) {
       duration = undefined;
     } else {
-      duration = validation.end.getOffset()[0] - validation.start.getOffset()[0];
+      duration =
+        validation.end.getOffset()[0] - validation.start.getOffset()[0];
     }
     return [validation.error, duration];
   }

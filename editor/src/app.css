@@ -93,7 +93,7 @@ body {
   --yellow-95: var(--light-yellow);
   --shadow: color-mix(in srgb, var(--gray-50) 60%, transparent);
   --component-saturation: 55%;
-  --component-lightness: 65%;
+  --component-lightness: 70%;
 }
 
 :root.dark {
