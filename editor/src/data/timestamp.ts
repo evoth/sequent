@@ -55,4 +55,8 @@ export class Timestamp extends Manageable<Timestamp> {
     const [offset, root] = this.relativeTo.getOffset();
     return [offset + this.value, root];
   }
+
+  getChildIds(): IdType[] {
+    return this.relativeTo !== undefined ? [this.relativeTo.id] : [];
+  }
 }

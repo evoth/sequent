@@ -181,6 +181,10 @@ export class Parameter<T extends ParameterType> extends Manageable<
   newState(value?: T): ParameterState<Parameter<T>, T> {
     return new ParameterState<Parameter<T>, T>(this, value);
   }
+
+  getChildIds(): IdType[] {
+    return [];
+  }
 }
 
 // Represents the actual parameter value in an action instance
@@ -435,5 +439,13 @@ export class NestedParameter<T extends ParameterType> extends Parameter<T> {
       return { error: ParameterError.BadNestedOption };
     }
     return { error: ParameterError.None };
+  }
+
+  getChildIds(): IdType[] {
+    let childIds: IdType[] = [];
+    for (const childList of this.nested.values()) {
+      childIds = [...childIds, ...childList.map((childParam) => childParam.id)];
+    }
+    return childIds;
   }
 }

@@ -1,42 +1,50 @@
 import {
-  EnumParameter,
   NestedParameter,
   NumberParameter,
-  Parameter,
   StringParameter,
 } from "./data/parameter";
 
+import { writable } from "svelte/store";
 import { Action } from "./data/action";
 import { ActionSet } from "./data/actionSet";
 import { Project } from "./data/project";
-import { writable } from "svelte/store";
 
 const actionSet = new ActionSet("Test");
 const param0 = new NumberParameter<number>(
   actionSet.parameterManager,
   "Test param",
   "",
-  7
+  7,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  "3"
 );
 const param1 = new StringParameter<string>(
   actionSet.parameterManager,
   "Test param",
   "",
-  "defgecd"
+  "defgecd",
+  undefined,
+  undefined,
+  "2"
 );
 const param2 = new NestedParameter<string>(
   actionSet.parameterManager,
   "Test param",
   "",
   "beanz",
-  new Map(Object.entries({ beanz: [param0], tim: [param1, param0], ".": [] }))
+  new Map(Object.entries({ beanz: [param0], tim: [param1, param0], ".": [] })),
+  "1"
 );
 const param3 = new NestedParameter<string>(
   actionSet.parameterManager,
   "Test param",
   "",
   "beanz",
-  new Map(Object.entries({ beanz: [param2], tim: [param0], ".": [] }))
+  new Map(Object.entries({ beanz: [param2], tim: [param0], ".": [] })),
+  "0"
 );
 new Action(
   actionSet.actionManager,

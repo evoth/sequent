@@ -8,16 +8,20 @@ import type {
 export type IdType = string;
 
 // Manages a list of a certain type of object, keeping track of their IDs
-// In the future this will also initiate serialization and deserialization
 export class Manager<T extends Manageable<any>> implements Serializable {
   idCounter: number = 0;
   children: Map<IdType, T> = new Map<IdType, T>();
 
   toJSON(): {
     idCounter: number;
-    children: Map<IdType, T>;
+    children: T[];
   } {
-    return { idCounter: this.idCounter, children: this.children };
+    this.topologicalSort();
+    // Serializes children as array because the order matters for proper deserialization
+    return {
+      idCounter: this.idCounter,
+      children: [...this.children.values()],
+    };
   }
 
   // Manager is a special case; its only job is to populate the already created object
@@ -27,7 +31,7 @@ export class Manager<T extends Manageable<any>> implements Serializable {
     genericFromJSON: FromJSON<T>,
     newManager: Manager<T>
   ): Manager<T> {
-    for (const child of Object.values(json.children)) {
+    for (const child of json.children) {
       genericFromJSON(child, managers);
     }
     return newManager;
@@ -47,6 +51,57 @@ export class Manager<T extends Manageable<any>> implements Serializable {
       this.idCounter++;
     }
     return String(this.idCounter++);
+  }
+
+  topologicalSort(): void {
+    const graph = new Map<
+      IdType,
+      { dependencies: number; dependants: Set<IdType> }
+    >();
+    // "Reversing" the dependency graph
+    for (const child of this.children.values()) {
+      const ids = new Set(child.getChildIds());
+      if (!graph.has(child.id)) {
+        graph.set(child.id, {
+          dependencies: ids.size,
+          dependants: new Set<IdType>(),
+        });
+      }
+      graph.get(child.id)!.dependencies = ids.size;
+
+      for (const id of ids) {
+        if (!graph.has(id)) {
+          graph.set(id, { dependencies: -1, dependants: new Set<IdType>() });
+        }
+        graph.get(id)!.dependants.add(child.id);
+      }
+    }
+
+    // Sort
+    const sortedOrder: IdType[] = [];
+    const ogLength = graph.size;
+    for (let i = 0; i < ogLength; i++) {
+      for (const [nodeId, node] of graph) {
+        if (node.dependencies !== 0) continue;
+        sortedOrder.push(nodeId);
+        for (const id of node.dependants) {
+          graph.get(id)!.dependencies--;
+        }
+        graph.delete(nodeId);
+        break;
+      }
+    }
+
+    if (sortedOrder.length != ogLength) {
+      throw new Error(
+        "No topological sort found for Manager children (circular dependency)."
+      );
+    }
+
+    // Rearrange children in sorted order (Map objects retain order of insertion)
+    this.children = new Map(
+      sortedOrder.map((id) => [id, this.children.get(id)!])
+    );
   }
 }
 
@@ -104,4 +159,6 @@ export abstract class Manageable<T extends Manageable<T>>
   }
 
   abstract add(): void;
+
+  abstract getChildIds(): IdType[];
 }

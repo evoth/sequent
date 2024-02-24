@@ -117,6 +117,18 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
     }
     return duration;
   }
+
+  getChildIds(): IdType[] {
+    let childIds: IdType[] = [];
+    for (const layer of this.layers) {
+      for (const component of layer.children) {
+        if (component.child instanceof Sequence) {
+          childIds.push(component.child.id);
+        }
+      }
+    }
+    return childIds;
+  }
 }
 
 export enum LayerMode {
