@@ -1,3 +1,9 @@
+import type {
+  CustomJSON,
+  EntityManagers,
+  FromJSON,
+  Serializable,
+} from "./serialization";
 import { Manageable, Manager } from "./manager";
 import { NestedParameter, Parameter, ParameterState } from "./parameter";
 
@@ -26,9 +32,11 @@ export class Action extends Manageable<Action> {
     name: string,
     description: string,
     durationProps: ActionDurationProps,
-    parameters: Parameter<any>[] = []
+    parameters: Parameter<any>[] = [],
+    id?: IdType,
+    hue?: number
   ) {
-    super(manager, name, description);
+    super(manager, name, description, id, hue);
     this.parameters = parameters;
     this.descendants = this.getDescendants();
     if (
@@ -54,6 +62,23 @@ export class Action extends Manageable<Action> {
         durationParamMultiplier: this.durationProps.durationParamMultiplier,
       },
     };
+  }
+
+  static fromJSON(
+    json: ReturnType<typeof this.prototype.toJSON>,
+    managers: EntityManagers
+  ): Action {
+    return new Action(managers.actionManager, json.name, json.description, {
+      defaultDuration: json.durationProps.defaultDuration,
+      durationParam:
+        json.durationProps.durationParam !== null
+          ? managers.parameterManager.children.get(
+              json.durationProps.durationParam
+            )
+          : undefined,
+      durationParamOffset: json.durationProps.durationParamOffset,
+      durationParamMultiplier: json.durationProps.durationParamMultiplier,
+    });
   }
 
   add() {

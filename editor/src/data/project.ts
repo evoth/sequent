@@ -1,3 +1,5 @@
+import type { CustomJSON, Serializable } from "./serialization";
+
 import { ActionSet } from "./actionSet";
 import { Manager } from "./manager";
 import { Sequence } from "./sequence";

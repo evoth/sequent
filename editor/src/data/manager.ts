@@ -1,16 +1,36 @@
+import type {
+  CustomJSON,
+  EntityManagers,
+  FromJSON,
+  Serializable,
+} from "./serialization";
+
 export type IdType = string;
 
 // Manages a list of a certain type of object, keeping track of their IDs
 // In the future this will also initiate serialization and deserialization
 export class Manager<T extends Manageable<any>> implements Serializable {
-  private idCounter: number = 0;
+  idCounter: number = 0;
   children: Map<IdType, T> = new Map<IdType, T>();
 
   toJSON(): {
     idCounter: number;
-    children: Map<IdType, CustomJSON<Manageable<any>>>;
+    children: Map<IdType, T>;
   } {
     return { idCounter: this.idCounter, children: this.children };
+  }
+
+  // Manager is a special case; its only job is to populate the already created object
+  static fromJSON<T extends Manageable<any>>(
+    json: ReturnType<typeof this.prototype.toJSON>,
+    managers: EntityManagers,
+    genericFromJSON: FromJSON<T>,
+    newManager: Manager<T>
+  ): Manager<T> {
+    for (const child of Object.values(json.children)) {
+      genericFromJSON(child, managers);
+    }
+    return newManager;
   }
 
   add(child: T) {
@@ -44,8 +64,8 @@ export abstract class Manageable<T extends Manageable<T>>
     manager: Manager<T>,
     name: string,
     description: string = "",
-    hue: number = Math.floor(Math.random() * 360),
-    id?: IdType
+    id?: IdType,
+    hue: number = Math.floor(Math.random() * 360)
   ) {
     this.manager = manager;
     this.name = name;
@@ -60,6 +80,18 @@ export abstract class Manageable<T extends Manageable<T>>
     this.add();
   }
 
+  abstract toJSON(): CustomJSON<Manageable<T>>;
+
+  manageableJSON(): CustomJSON<Manageable<any>> {
+    return {
+      id: this.id,
+      manager: null,
+      name: this.name,
+      description: this.description,
+      hue: this.hue,
+    };
+  }
+
   set name(newName: string) {
     if (newName === "") {
       throw new Error("Name of manageable object cannot be the empty string.");
@@ -72,16 +104,4 @@ export abstract class Manageable<T extends Manageable<T>>
   }
 
   abstract add(): void;
-
-  manageableJSON(): CustomJSON<Manageable<any>> {
-    return {
-      id: this.id,
-      manager: null,
-      name: this.name,
-      description: this.description,
-      hue: this.hue,
-    };
-  }
-
-  abstract toJSON(): CustomJSON<Manageable<T>>;
 }

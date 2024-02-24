@@ -1,4 +1,4 @@
-import { Manageable, Manager } from "./manager";
+import { Manageable, Manager, type IdType } from "./manager";
 
 export class Timestamp extends Manageable<Timestamp> {
   value: number;
@@ -10,9 +10,11 @@ export class Timestamp extends Manageable<Timestamp> {
     relativeTo?: Timestamp,
     // TODO: fix it so that name can be undefined?
     name: string = "",
-    description?: string
+    description?: string,
+    id?: IdType,
+    hue?: number
   ) {
-    super(manager, name, description);
+    super(manager, name, description, id, hue);
     this.value = value;
     this.relativeTo = relativeTo;
   }

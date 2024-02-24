@@ -13,6 +13,10 @@ This will be a web-based editor for composing sequences using actions and parame
 - Give errors IDs for easier error tracking?
 - Add methods to add/remove stuff (layers to sequences, repeats to layers, etc.)
 - **Deep sequence dependency validation (no cycles allowed)**
+- Just learned that parameters properties exist, so I should probably convert constructors to use that as much as possible
+- User better serialization/deserialization solution like https://www.npmjs.com/package/typescript-json-serializer
+
+- There's gonna be a problem with deserialization where undefined -> null
 
 ## Plan: FOCUS ON MVP!!
 

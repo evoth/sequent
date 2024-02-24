@@ -1,4 +1,4 @@
-import { Manageable, Manager } from "./manager";
+import { Manageable, Manager, type IdType } from "./manager";
 import { Repeat, RepeatError, RepeatProps } from "./repeat";
 
 import type { Repeatable } from "./repeat";
@@ -28,9 +28,11 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
     name: string,
     description: string,
     layers: Layer[] = [],
-    rootTimestamp?: Timestamp
+    rootTimestamp?: Timestamp,
+    id?: IdType,
+    hue?: number
   ) {
-    super(manager, name, description);
+    super(manager, name, description, id, hue);
     this.layers = layers;
     this.rootTimestamp = rootTimestamp;
   }

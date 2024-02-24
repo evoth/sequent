@@ -18,34 +18,3 @@ interface SequenceItem extends Item {
   id: string;
   sequence: Sequence;
 }
-
-type CustomJSONTypes =
-  | boolean
-  | number
-  | string
-  | undefined
-  | null
-  | Serializable;
-type CustomJSONValue =
-  | CustomJSONTypes
-  | CustomJSONTypes[]
-  | { [key: string]: CustomJSONValue }
-  | Map<string, CustomJSONValue>;
-
-type CustomJSON<T> = {
-  [P in keyof T as T[P] extends Function ? never : P]: CustomJSONValue;
-};
-
-interface Serializable {
-  toJSON: { [key: string]: any };
-}
-
-type TypeofResult =
-  | "string"
-  | "number"
-  | "bigint"
-  | "boolean"
-  | "symbol"
-  | "undefined"
-  | "object"
-  | "function";
