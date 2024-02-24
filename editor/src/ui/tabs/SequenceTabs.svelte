@@ -1,11 +1,10 @@
 <script lang="ts">
-  import { Sequence } from "../../data/sequence";
-  import SequenceChip from "./SequenceChip.svelte";
-  import SequenceEditModal from "./SequenceEditModal.svelte";
   import { dndzone, type DndEvent } from "svelte-dnd-action";
   import { flip } from "svelte/animate";
+  import { Sequence } from "../../data/sequence";
   import { project } from "../../stores";
-  import { Project } from "../../data/project";
+  import SequenceChip from "./SequenceChip.svelte";
+  import SequenceEditModal from "./SequenceEditModal.svelte";
 
   let sequences: SequenceItem[] = [
     ...$project.sequenceManager.children.entries(),

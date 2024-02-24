@@ -14,13 +14,19 @@ describe("action", () => {
       1,
       0.5
     );
-    let action = new Action(actionManager, "Test", "Test action", {
-      defaultDuration: 0,
-    }, [param]);
+    let action = new Action(
+      actionManager,
+      "Test",
+      "Test action",
+      {
+        defaultDuration: 0,
+      },
+      [param]
+    );
     expect(action.parameters[0].validate(0)).toEqual({
       error: ParameterError.UnderMin,
       fixed: 0.5,
-  });
+    });
   });
 });
 
@@ -57,10 +63,10 @@ describe("action state", () => {
     expect(actionState.parameterStates.get(paramId)!.value).toBe(5);
     expect(
       actionState.parameterStates.get(paramId)!.parameter.validate(100)
-    ).toEqual({error: ParameterError.None});
+    ).toEqual({ error: ParameterError.None });
     expect(
       actionState.parameterStates.get(param2Id)!.parameter.validate(100)
-    ).toEqual({error: ParameterError.OverMax, fixed: 10});
+    ).toEqual({ error: ParameterError.OverMax, fixed: 10 });
     let actionState2 = action.newState();
     expect(actionState2.parameterStates.get(paramId)!.value).toBe(17);
   });

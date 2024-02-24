@@ -1,8 +1,8 @@
 <script lang="ts">
+  import { clickoutside } from "@svelte-put/clickoutside";
+  import { fade } from "svelte/transition";
   import { Sequence } from "../../data/sequence";
   import { project } from "../../stores";
-  import { clickoutside } from "@svelte-put/clickoutside";
-  import { fade, slide } from "svelte/transition";
   import Modal from "../Modal.svelte";
   import SequenceEditModal from "./SequenceEditModal.svelte";
 

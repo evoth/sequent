@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { fade } from "svelte/transition";
   import Portal from "svelte-portal";
+  import { fade } from "svelte/transition";
   export let isOpen: boolean;
   export let title: string;
 

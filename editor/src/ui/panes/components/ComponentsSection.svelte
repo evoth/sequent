@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { Manager } from "../../../data/manager";
   import { Action } from "../../../data/action";
+  import { Manager } from "../../../data/manager";
   import { Sequence } from "../../../data/sequence";
   import PaneSection from "../PaneSection.svelte";
 

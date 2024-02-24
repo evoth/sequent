@@ -3,7 +3,6 @@ import { Manageable, Manager, type IdType } from "./manager";
 import type {
   CustomJSON,
   EntityManagers,
-  FromJSON,
   Serializable,
   TypeofResult,
 } from "./serialization";

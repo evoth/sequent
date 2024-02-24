@@ -1,11 +1,11 @@
 <script lang="ts">
+  import { project } from "./stores";
   import ThemeToggle from "./ui/ThemeToggle.svelte";
-  import SequenceTabs from "./ui/tabs/SequenceTabs.svelte";
-  import Timeline from "./ui/timeline/Timeline.svelte";
   import Pane from "./ui/panes/Pane.svelte";
   import PaneSection from "./ui/panes/PaneSection.svelte";
   import ComponentsSection from "./ui/panes/components/ComponentsSection.svelte";
-  import { project } from "./stores";
+  import SequenceTabs from "./ui/tabs/SequenceTabs.svelte";
+  import Timeline from "./ui/timeline/Timeline.svelte";
 </script>
 
 <main>

@@ -1,4 +1,4 @@
-import type { CustomJSON, EntityManagers, Serializable } from "./serialization";
+import type { CustomJSON, Serializable } from "./serialization";
 
 import { Action } from "./action";
 import { ActionSet } from "./actionSet";

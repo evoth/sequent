@@ -1,9 +1,4 @@
-import type {
-  CustomJSON,
-  EntityManagers,
-  FromJSON,
-  Serializable,
-} from "./serialization";
+import type { CustomJSON, EntityManagers, Serializable } from "./serialization";
 
 import { Action } from "./action";
 import { Manager } from "./manager";

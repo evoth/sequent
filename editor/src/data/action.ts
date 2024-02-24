@@ -1,14 +1,9 @@
-import type {
-  CustomJSON,
-  EntityManagers,
-  FromJSON,
-  Serializable,
-} from "./serialization";
 import { Manageable, Manager } from "./manager";
 import { NestedParameter, Parameter, ParameterState } from "./parameter";
+import type { Repeatable } from "./repeat";
+import type { CustomJSON, EntityManagers, Serializable } from "./serialization";
 
 import type { IdType } from "./manager";
-import type { Repeatable } from "./repeat";
 
 export type ActionDurationProps = {
   // Duration when durationParam doesn't exist or has no value
