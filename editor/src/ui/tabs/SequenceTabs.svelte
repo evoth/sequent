@@ -5,6 +5,7 @@
   import { dndzone, type DndEvent } from "svelte-dnd-action";
   import { flip } from "svelte/animate";
   import { project } from "../../stores";
+  import { Project } from "../../data/project";
 
   let sequences: SequenceItem[] = [
     ...$project.sequenceManager.children.entries(),
@@ -17,6 +18,17 @@
     name: "",
     description: "",
   };
+
+  // $: sequences,
+  //   (() => {
+  //     let json = JSON.parse(
+  //       JSON.stringify($project, (key, value) =>
+  //         value instanceof Map ? Object.fromEntries(value) : value
+  //       )
+  //     );
+  //     console.log(json);
+  //     console.log(Project.fromJSON(json));
+  //   })();
 
   function newSequence() {
     const newSequence = new Sequence(

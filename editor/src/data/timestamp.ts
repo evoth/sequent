@@ -1,4 +1,5 @@
 import { Manageable, Manager, type IdType } from "./manager";
+import type { CustomJSON, EntityManagers } from "./serialization";
 
 export class Timestamp extends Manageable<Timestamp> {
   value: number;
@@ -25,6 +26,22 @@ export class Timestamp extends Manageable<Timestamp> {
       value: this.value,
       relativeTo: this.relativeTo?.id,
     };
+  }
+
+  static fromJSON(
+    json: ReturnType<typeof this.prototype.toJSON>,
+    managers: EntityManagers
+  ): Timestamp {
+    return new Timestamp(
+      managers.timestampManager,
+      json.value,
+      //TODO: topological sort??
+      managers.timestampManager.children.get(json.relativeTo),
+      json.name,
+      json.description,
+      json.id,
+      json.hue
+    );
   }
 
   add() {

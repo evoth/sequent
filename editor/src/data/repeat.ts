@@ -1,3 +1,5 @@
+import type { CustomJSON, EntityManagers, Serializable } from "./serialization";
+
 import { ActionState } from "./action";
 import type { IdType } from "./manager";
 import { Sequence } from "./sequence";
@@ -29,6 +31,10 @@ export class Repeat implements Serializable {
     this.rootTimestamp = rootTimestamp;
   }
 
+  toJSON(): CustomJSON<Repeat> {
+    return this.repeatJSON();
+  }
+
   repeatJSON(): CustomJSON<Repeat> {
     let childJSON: { type: string; json?: Serializable; id?: IdType };
     if (this.child instanceof ActionState) {
@@ -36,7 +42,7 @@ export class Repeat implements Serializable {
     } else if (this.child instanceof Sequence) {
       childJSON = { type: "Sequence", id: this.child.id };
     } else {
-      childJSON = { type: "Unknown" };
+      throw new Error("Cannot serialize unknown Repeatable subclass.");
     }
     return {
       child: childJSON,
@@ -44,10 +50,6 @@ export class Repeat implements Serializable {
       isRepeating: this.isRepeating,
       rootTimestamp: this.rootTimestamp?.id,
     };
-  }
-
-  toJSON(): CustomJSON<Repeat> {
-    return this.repeatJSON();
   }
 
   validate(): RepeatValidation {
@@ -160,6 +162,24 @@ export class RepeatProps implements Serializable {
       includeChildDuration: this.includeChildDuration,
       trailingInterval: this.trailingInterval,
     };
+  }
+
+  static fromJSON(
+    json: ReturnType<typeof this.prototype.toJSON>,
+    managers: EntityManagers
+  ): RepeatProps {
+    return new RepeatProps(
+      {
+        start: managers.timestampManager.children.get(json.constraints.start),
+        end: managers.timestampManager.children.get(json.constraints.end),
+        duration: json.constraints.duration,
+        repetitions: json.constraints.repetitions,
+        interval: json.constraints.interval,
+      },
+      json.selectedConstraints,
+      json.includeChildDuration,
+      json.trailingInterval
+    );
   }
 
   validateConstraints(): RepeatError {

@@ -6,27 +6,6 @@
   import PaneSection from "./ui/panes/PaneSection.svelte";
   import ComponentsSection from "./ui/panes/components/ComponentsSection.svelte";
   import { project } from "./stores";
-  import { Manager } from "./data/manager";
-  import type { Action } from "./data/action";
-  import { Parameter } from "./data/parameter";
-  import type { Sequence } from "./data/sequence";
-  import type { Timestamp } from "./data/timestamp";
-  import { ActionSet } from "./data/actionSet";
-  import type { CustomJSON } from "./data/serialization";
-
-  const json = JSON.parse(
-    JSON.stringify($project.actionSet, (key, value) =>
-      value instanceof Map ? Object.fromEntries(value) : value
-    )
-  );
-  console.log(json);
-  const managers = {
-    actionManager: new Manager<Action>(),
-    parameterManager: new Manager<Parameter<any>>(),
-    sequenceManager: new Manager<Sequence>(),
-    timestampManager: new Manager<Timestamp>(),
-  };
-  console.log(ActionSet.fromJSON(json, managers));
 </script>
 
 <main>

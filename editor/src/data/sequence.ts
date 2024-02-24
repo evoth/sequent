@@ -1,7 +1,9 @@
+import { ActionState } from "./action";
 import { Manageable, Manager, type IdType } from "./manager";
 import { Repeat, RepeatError, RepeatProps } from "./repeat";
 
 import type { Repeatable } from "./repeat";
+import type { CustomJSON, EntityManagers, Serializable } from "./serialization";
 import { Timestamp } from "./timestamp";
 
 export type SequenceValidation = {
@@ -43,6 +45,21 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
       layers: this.layers,
       rootTimestamp: this.rootTimestamp?.id,
     };
+  }
+
+  static fromJSON(
+    json: ReturnType<typeof this.prototype.toJSON>,
+    managers: EntityManagers
+  ): Sequence {
+    return new Sequence(
+      managers.sequenceManager,
+      json.name,
+      json.description,
+      json.layers.map((layerJson: any) => Layer.fromJSON(layerJson, managers)),
+      managers.timestampManager.children.get(json.rootTimestamp),
+      json.id,
+      json.hue
+    );
   }
 
   add() {
@@ -143,9 +160,36 @@ export class Component extends Repeat implements Serializable {
   toJSON(): CustomJSON<Component> {
     return {
       ...this.repeatJSON(),
-      layerMode: this.layerMode,
+      // TODO: make sure enum conversion works correctly
+      layerMode: LayerMode[this.layerMode],
       customName: this.customName,
     };
+  }
+
+  static fromJSON(
+    json: ReturnType<typeof this.prototype.toJSON>,
+    managers: EntityManagers
+  ): Component {
+    let child: Repeatable;
+    if (json.child.type === "Action") {
+      child = ActionState.fromJSON(json.child.json, managers);
+    } else if (json.child.type === "Sequence") {
+      //TODO: topological sort??
+      child = managers.sequenceManager.children.get(json.child.id)!;
+    } else {
+      throw new Error(
+        "Unexpected value for 'child.type' when deserializing Component."
+      );
+    }
+    return new Component(
+      child,
+      RepeatProps.fromJSON(json.props, managers),
+      json.isRepeating,
+      // TODO: make sure enum conversion works correctly
+      LayerMode[json.layerMode as keyof typeof LayerMode],
+      managers.timestampManager.children.get(json.rootTimestamp),
+      json.customName
+    );
   }
 }
 
@@ -166,6 +210,18 @@ export class Layer implements Serializable {
       children: [...this.children],
       rootTimestamp: this.rootTimestamp?.id,
     };
+  }
+
+  static fromJSON(
+    json: ReturnType<typeof this.prototype.toJSON>,
+    managers: EntityManagers
+  ): Layer {
+    return new Layer(
+      json.children.map((componentJson: any) =>
+        Component.fromJSON(componentJson, managers)
+      ),
+      managers.timestampManager.children.get(json.rootTimestamp)
+    );
   }
 
   validate(): LayerValidation {

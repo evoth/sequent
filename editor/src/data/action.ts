@@ -68,17 +68,24 @@ export class Action extends Manageable<Action> {
     json: ReturnType<typeof this.prototype.toJSON>,
     managers: EntityManagers
   ): Action {
-    return new Action(managers.actionManager, json.name, json.description, {
-      defaultDuration: json.durationProps.defaultDuration,
-      durationParam:
-        json.durationProps.durationParam !== null
-          ? managers.parameterManager.children.get(
-              json.durationProps.durationParam
-            )
-          : undefined,
-      durationParamOffset: json.durationProps.durationParamOffset,
-      durationParamMultiplier: json.durationProps.durationParamMultiplier,
-    });
+    return new Action(
+      managers.actionManager,
+      json.name,
+      json.description,
+      {
+        defaultDuration: json.durationProps.defaultDuration,
+        durationParam: managers.parameterManager.children.get(
+          json.durationProps.durationParam
+        ),
+        durationParamOffset: json.durationProps.durationParamOffset,
+        durationParamMultiplier: json.durationProps.durationParamMultiplier,
+      },
+      json.parameters.map(
+        (id: IdType) => managers.parameterManager.children.get(id),
+        json.id,
+        json.hue
+      )
+    );
   }
 
   add() {
@@ -127,7 +134,22 @@ export class ActionState implements Repeatable, Serializable {
   }
 
   toJSON(): CustomJSON<ActionState> {
-    return { action: this.action.id, parameterStates: this.parameterStates };
+    return {
+      action: this.action.id,
+      parameterStates: this.parameterStates.values(),
+    };
+  }
+
+  static fromJSON(
+    json: ReturnType<typeof this.prototype.toJSON>,
+    managers: EntityManagers
+  ): ActionState {
+    return new ActionState(
+      managers.actionManager.children.get(json.action)!,
+      json.parameterStates.map((paramStateJson: any) =>
+        ParameterState.fromJSON(paramStateJson, managers)
+      )
+    );
   }
 
   // Represents duration of action; see ActionDurationProps type

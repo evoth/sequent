@@ -1,7 +1,9 @@
-import type { CustomJSON, Serializable } from "./serialization";
+import type { CustomJSON, EntityManagers, Serializable } from "./serialization";
 
+import { Action } from "./action";
 import { ActionSet } from "./actionSet";
 import { Manager } from "./manager";
+import { Parameter } from "./parameter";
 import { Sequence } from "./sequence";
 import { Timestamp } from "./timestamp";
 
@@ -9,29 +11,54 @@ import { Timestamp } from "./timestamp";
 export class Project implements Serializable {
   // TODO: name, description, etc.
   actionSet: ActionSet;
-  sequenceManager: Manager<Sequence>;
   timestampManager: Manager<Timestamp>;
+  sequenceManager: Manager<Sequence>;
   openedSequence?: Sequence;
   // TODO: add way to store order of sequence tabs
 
   constructor(
     actionSet: ActionSet,
-    sequenceManager: Manager<Sequence> = new Manager<Sequence>(),
     timestampManager: Manager<Timestamp> = new Manager<Timestamp>(),
+    sequenceManager: Manager<Sequence> = new Manager<Sequence>(),
     openedSequence?: Sequence
   ) {
     this.actionSet = actionSet;
-    this.sequenceManager = sequenceManager;
     this.timestampManager = timestampManager;
+    this.sequenceManager = sequenceManager;
     this.openedSequence = openedSequence;
   }
 
   toJSON(): CustomJSON<Project> {
     return {
       actionSet: this.actionSet,
-      sequenceManager: this.sequenceManager,
       timestampManager: this.timestampManager,
+      sequenceManager: this.sequenceManager,
       openedSequence: this.openedSequence?.id,
     };
+  }
+
+  static fromJSON(json: ReturnType<typeof this.prototype.toJSON>): Project {
+    const managers = {
+      actionManager: new Manager<Action>(),
+      parameterManager: new Manager<Parameter<any>>(),
+      sequenceManager: new Manager<Sequence>(),
+      timestampManager: new Manager<Timestamp>(),
+    };
+    return new Project(
+      ActionSet.fromJSON(json.actionSet, managers),
+      Manager.fromJSON(
+        json.timestampManager,
+        managers,
+        Timestamp.fromJSON,
+        managers.timestampManager
+      ),
+      Manager.fromJSON(
+        json.sequenceManager,
+        managers,
+        Sequence.fromJSON,
+        managers.sequenceManager
+      ),
+      json.openedSequence
+    );
   }
 }

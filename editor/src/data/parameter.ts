@@ -78,7 +78,7 @@ export class Parameter<T extends ParameterType> extends Manageable<
         numJson.max,
         numJson.step,
         numJson.unit,
-        numJson.id
+        json.id
       );
     } else if (json.type === "StringParameter") {
       const stringJson = json as ReturnType<
@@ -88,7 +88,7 @@ export class Parameter<T extends ParameterType> extends Manageable<
         ...firstParams,
         stringJson.minLength,
         stringJson.maxLength,
-        stringJson.id
+        json.id
       );
     } else if (json.type === "EnumParameter") {
       const enumJson = json as ReturnType<
@@ -121,6 +121,7 @@ export class Parameter<T extends ParameterType> extends Manageable<
       const nestedJson = json as ReturnType<
         typeof NestedParameter.prototype.toJSON
       >;
+      //TODO: topological sort??
       const nestedEntries = Object.entries(nestedJson.nested);
       const getMap = (parse: (value: string) => any) =>
         new Map(
@@ -197,6 +198,16 @@ export class ParameterState<T extends Parameter<U>, U extends ParameterType>
 
   toJSON(): { parameter: IdType; value: U } {
     return { parameter: this.parameter.id, value: this.value };
+  }
+
+  static fromJSON(
+    json: ReturnType<typeof this.prototype.toJSON>,
+    managers: EntityManagers
+  ): ParameterState<Parameter<ParameterType>, ParameterType> {
+    const parameter = managers.parameterManager.children.get(json.parameter)!;
+    type T = typeof parameter;
+    type U = typeof parameter.defaultValue;
+    return new ParameterState<T, U>(parameter, json.value);
   }
 }
 
@@ -404,7 +415,6 @@ export class NestedParameter<T extends ParameterType> extends Parameter<T> {
       throw new Error(`NestedParameter with ID ${this.id} contains itself.`);
     }
     const descendants = new Set<Parameter<any>>();
-    descendants.add(this);
     for (const option of this.nested.values()) {
       for (const child of option) {
         descendants.add(child);
