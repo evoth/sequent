@@ -15,6 +15,10 @@ This will be a web-based editor for composing sequences using actions and parame
 - **Deep sequence dependency validation (no cycles allowed)**
   - Need to do topological sort for managers before serialization, so we can use that to check for cycles as well?
 - Just learned that parameters properties exist, so I should probably convert constructors to use that as much as possible
+- Better keyboard controls
+  - Modals (pressing enter should submit, escape should cancel)
+  - Sequence tabs
+  - Navigation between panes?
 
 ## Plan: FOCUS ON MVP!!
 

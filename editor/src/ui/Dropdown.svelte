@@ -2,7 +2,8 @@
   import { clickoutside } from "@svelte-put/clickoutside";
   import { fade } from "svelte/transition";
 
-  export let closeCondition: boolean;
+  export let closeCondition = false;
+  export let align: "top" | "bottom" = "bottom";
 
   const openDropdown = () => (showOptions = true);
   let showOptions = false;
@@ -18,7 +19,11 @@
 >
   <slot name="button" {openDropdown} />
   {#if showOptions}
-    <div class="options-menu" transition:fade={{ duration: 100 }}>
+    <div
+      class="options-menu"
+      transition:fade={{ duration: 100 }}
+      style={align === "top" ? "top: 0.5rem" : "top: 100%"}
+    >
       <slot name="buttons" />
     </div>
   {/if}
@@ -32,7 +37,6 @@
 
   .options-menu {
     position: absolute;
-    top: 0.5rem;
     left: 0;
     display: flex;
     flex-direction: column;

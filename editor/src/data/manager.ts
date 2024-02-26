@@ -47,7 +47,7 @@ export class Manager<T extends Manageable<any>> implements Serializable {
   }
 
   generateId(): IdType {
-    while (String(this.idCounter) in this.children) {
+    while (this.children.has(String(this.idCounter))) {
       this.idCounter++;
     }
     return String(this.idCounter++);

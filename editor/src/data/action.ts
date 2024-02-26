@@ -79,7 +79,9 @@ export class Action extends Manageable<Action> {
         (id: IdType) => managers.parameterManager.children.get(id),
         json.id,
         json.hue
-      )
+      ),
+      json.id,
+      json.hue
     );
   }
 

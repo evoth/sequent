@@ -1,33 +1,14 @@
 <script lang="ts">
-  import { dndzone, type DndEvent } from "svelte-dnd-action";
-  import { flip } from "svelte/animate";
   import { Sequence } from "../../data/sequence";
   import { project } from "../../stores";
   import SequenceChip from "./SequenceChip.svelte";
   import SequenceEditModal from "./SequenceEditModal.svelte";
-
-  let sequences: SequenceItem[] = [
-    ...$project.sequenceManager.children.entries(),
-  ].map(([id, sequence]) => {
-    return { id, sequence };
-  });
 
   let modalOpen = false;
   let sequenceData = {
     name: "",
     description: "",
   };
-
-  // $: sequences,
-  //   (() => {
-  //     let json = JSON.parse(
-  //       JSON.stringify($project, (key, value) =>
-  //         value instanceof Map ? Object.fromEntries(value) : value
-  //       )
-  //     );
-  //     console.log(json);
-  //     console.log(Project.fromJSON(json));
-  //   })();
 
   function newSequence() {
     const newSequence = new Sequence(
@@ -36,13 +17,6 @@
       sequenceData.description
     );
     $project.sequenceManager.children = $project.sequenceManager.children;
-    sequences = [
-      ...sequences,
-      {
-        id: newSequence.id,
-        sequence: newSequence,
-      },
-    ];
     $project.openedSequence = newSequence;
   }
 
@@ -50,36 +24,39 @@
     sequenceData = { name: "", description: "" };
     modalOpen = true;
   }
-
-  function handleDndConsider(e: CustomEvent<DndEvent>) {
-    sequences = e.detail.items as SequenceItem[];
-  }
-  function handleDndFinalize(e: CustomEvent<DndEvent>) {
-    sequences = e.detail.items as SequenceItem[];
-  }
 </script>
 
 <div class="container">
-  <section
-    use:dndzone={{ items: sequences, dropTargetStyle: {}, dragAxis: "x" }}
-    on:consider={handleDndConsider}
-    on:finalize={handleDndFinalize}
-  >
-    {#each sequences as item (item.id)}
-      <div animate:flip={{ duration: 200 }}>
-        <SequenceChip sequence={item.sequence} bind:sequences />
-      </div>
-    {/each}
-  </section>
+  {#each $project.sequenceManager.children.values() as sequence (sequence.id)}
+    <SequenceChip {sequence} />
+  {/each}
   <button
     on:click={openNewSequenceModal}
     title="Add new sequence"
-    style:font-size={sequences.length > 0 ? "1.6rem" : "1.3rem"}
+    style:font-size={$project.sequenceManager.children.size > 0
+      ? "1.6rem"
+      : "1.3rem"}
   >
-    {#if sequences.length === 0}
+    {#if $project.sequenceManager.children.size === 0}
       + New sequence
     {:else}
-      +
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        ><line x1="12" y1="5" x2="12" y2="19"></line><line
+          x1="5"
+          y1="12"
+          x2="19"
+          y2="12"
+        ></line></svg
+      >
     {/if}
   </button>
   <SequenceEditModal
@@ -94,22 +71,17 @@
 <style>
   .container {
     display: flex;
-    padding: 0 1rem;
-    column-gap: 0.8rem;
+    padding: 0rem 1rem;
     border-bottom: var(--border-style);
-  }
-
-  section {
-    display: flex;
-    flex-direction: row;
-    align-items: start;
-    column-gap: 0.8rem;
   }
 
   button {
     border-radius: 0.8rem;
     padding: 0.5rem;
     margin-bottom: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   button:hover {
     background-color: var(--gray-65);

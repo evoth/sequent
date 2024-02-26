@@ -58,7 +58,7 @@ export class Project implements Serializable {
         Sequence.fromJSON,
         managers.sequenceManager
       ),
-      json.openedSequence
+      managers.sequenceManager.children.get(json.openedSequence)
     );
   }
 }

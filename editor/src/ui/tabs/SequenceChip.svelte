@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { slide } from "svelte/transition";
   import { Sequence } from "../../data/sequence";
   import { project } from "../../stores";
   import Dropdown from "../Dropdown.svelte";
@@ -6,7 +7,6 @@
   import SequenceEditModal from "./SequenceEditModal.svelte";
 
   export let sequence: Sequence;
-  export let sequences: SequenceItem[];
 
   let deleteModalOpen = false;
   let editModalOpen = false;
@@ -19,14 +19,15 @@
     $project.openedSequence = sequence;
   }
 
+  // TODO: clean this up when implementing custom drag and drop
   function deleteSequence() {
     sequence.manager.children.delete(sequence.id);
     $project.sequenceManager.children = $project.sequenceManager.children;
-    const index = sequences.findIndex((seq) => seq.sequence === sequence);
-    sequences = sequences.filter((item) => item.sequence !== sequence);
     if ($project.openedSequence === sequence) {
-      if (sequences.length > 0) {
-        $project.openedSequence = sequences[Math.max(0, index - 1)].sequence;
+      if ($project.sequenceManager.children.size > 0) {
+        $project.openedSequence = $project.sequenceManager.children
+          .values()
+          .next().value;
       } else {
         $project.openedSequence = undefined;
       }
@@ -48,7 +49,11 @@
   }
 </script>
 
-<div class="outer" class:opened={$project.openedSequence === sequence}>
+<div
+  class="outer"
+  class:opened={$project.openedSequence === sequence}
+  transition:slide={{ duration: 200, axis: "x" }}
+>
   <button
     on:click={openSequence}
     title="Open {sequence.name} sequence"
@@ -58,7 +63,7 @@
       {sequence.name}
     </div>
   </button>
-  <Dropdown closeCondition={deleteModalOpen || editModalOpen}>
+  <Dropdown closeCondition={deleteModalOpen || editModalOpen} align="top">
     <button
       slot="button"
       let:openDropdown
@@ -109,6 +114,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0;
+    margin-right: 0.8rem;
     font-size: 1.3rem;
     border-radius: 0.8rem;
     background-color: var(--gray-85);
@@ -117,7 +123,7 @@
       color 0.2s;
     white-space: nowrap;
     cursor: pointer;
-    --outer-padding: 0.8rem;
+    --outer-padding: 0.6rem;
     --bottom-padding: var(--outer-padding);
     --opened-bottom-padding: 1.3rem;
     position: relative;
@@ -148,7 +154,6 @@
   .chip-button {
     font-size: 1.3rem;
     padding: var(--outer-padding);
-    padding-bottom: var(--bottom-padding);
   }
   .chip-button:hover {
     background-color: transparent;
