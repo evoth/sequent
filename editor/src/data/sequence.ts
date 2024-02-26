@@ -186,7 +186,6 @@ export class Component extends Repeat implements Serializable {
     if (json.child.type === "Action") {
       child = ActionState.fromJSON(json.child.json, managers);
     } else if (json.child.type === "Sequence") {
-      //TODO: topological sort??
       child = managers.sequenceManager.children.get(json.child.id)!;
     } else {
       throw new Error(

@@ -1,19 +1,15 @@
 <script lang="ts">
-  import { clickoutside } from "@svelte-put/clickoutside";
-  import { fade } from "svelte/transition";
   import { Sequence } from "../../data/sequence";
   import { project } from "../../stores";
+  import Dropdown from "../Dropdown.svelte";
   import Modal from "../Modal.svelte";
   import SequenceEditModal from "./SequenceEditModal.svelte";
 
   export let sequence: Sequence;
   export let sequences: SequenceItem[];
 
-  let showOptions = false;
   let deleteModalOpen = false;
   let editModalOpen = false;
-  // Disables showOptions when modal is opened
-  $: showOptions = !deleteModalOpen && !editModalOpen && showOptions;
   let sequenceData = {
     name: "",
     description: "",
@@ -62,13 +58,11 @@
       {sequence.name}
     </div>
   </button>
-  <div
-    class="options-container"
-    use:clickoutside
-    on:clickoutside={() => (showOptions = false)}
-  >
+  <Dropdown closeCondition={deleteModalOpen || editModalOpen}>
     <button
-      on:click={() => (showOptions = true)}
+      slot="button"
+      let:openDropdown
+      on:click={openDropdown}
       title="Sequence options"
       class="chip-button options"
     >
@@ -88,27 +82,25 @@
         >
       </div>
     </button>
-    {#if showOptions}
-      <div class="options-menu" transition:fade={{ duration: 100 }}>
-        <button on:click={openEditModal}>Edit</button>
-        <button on:click={() => (deleteModalOpen = true)}>Delete</button>
-      </div>
-    {/if}
-    <Modal
-      bind:isOpen={deleteModalOpen}
-      title="Delete sequence"
-      onSubmit={deleteSequence}
-    >
-      <p>Delete the sequence named "{sequence.name}"?</p>
-    </Modal>
-    <SequenceEditModal
-      title={"Edit sequence"}
-      onSubmit={editSequence}
-      bind:isOpen={editModalOpen}
-      bind:name={sequenceData.name}
-      bind:description={sequenceData.description}
-    />
-  </div>
+    <svelte:fragment slot="buttons">
+      <button on:click={openEditModal}>Edit</button>
+      <button on:click={() => (deleteModalOpen = true)}>Delete</button>
+    </svelte:fragment>
+  </Dropdown>
+  <Modal
+    bind:isOpen={deleteModalOpen}
+    title="Delete sequence"
+    onSubmit={deleteSequence}
+  >
+    <p>Delete the sequence named "{sequence.name}"?</p>
+  </Modal>
+  <SequenceEditModal
+    title={"Edit sequence"}
+    onSubmit={editSequence}
+    bind:isOpen={editModalOpen}
+    bind:name={sequenceData.name}
+    bind:description={sequenceData.description}
+  />
 </div>
 
 <style>
@@ -181,31 +173,5 @@
   }
   .chip-button:hover > .icon-container {
     background-color: var(--gray-75);
-  }
-
-  .options-container {
-    position: relative;
-    z-index: 1;
-  }
-
-  .options-menu {
-    position: absolute;
-    top: 0.5rem;
-    left: 0;
-    display: flex;
-    flex-direction: column;
-    padding: 0.5rem;
-    background-color: var(--gray-90);
-    border-radius: 0.7rem;
-    border: var(--border-style);
-    box-shadow:
-      0 10px 15px -3px var(--shadow),
-      0 4px 6px -4px var(--shadow);
-  }
-
-  .options-menu > button {
-    font-size: 1.2rem;
-    padding: 0.3rem;
-    text-align: start;
   }
 </style>

@@ -120,7 +120,6 @@ export class Parameter<T extends ParameterType> extends Manageable<
       const nestedJson = json as ReturnType<
         typeof NestedParameter.prototype.toJSON
       >;
-      //TODO: topological sort??
       const nestedEntries = Object.entries(nestedJson.nested);
       const getMap = (parse: (value: string) => any) =>
         new Map(

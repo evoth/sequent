@@ -13,7 +13,7 @@ This will be a web-based editor for composing sequences using actions and parame
 - Give errors IDs for easier error tracking?
 - Add methods to add/remove stuff (layers to sequences, repeats to layers, etc.)
 - **Deep sequence dependency validation (no cycles allowed)**
-  - Will need to do topological sort for managers before serialization, so we can use that to check for cycles as well?
+  - Need to do topological sort for managers before serialization, so we can use that to check for cycles as well?
 - Just learned that parameters properties exist, so I should probably convert constructors to use that as much as possible
 
 ## Plan: FOCUS ON MVP!!

@@ -16,7 +16,7 @@ export type CustomJSON<T> = {
 
 export interface Serializable {
   toJSON(): { [key: string]: any };
-  // TODO: figure out way to require static fromJSON() method
+  // TODO: figure out way to require static fromJSON() method?
 }
 
 export type EntityManagers = {

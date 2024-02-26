@@ -35,7 +35,6 @@ export class Timestamp extends Manageable<Timestamp> {
     return new Timestamp(
       managers.timestampManager,
       json.value,
-      //TODO: topological sort??
       managers.timestampManager.children.get(json.relativeTo),
       json.name,
       json.description,

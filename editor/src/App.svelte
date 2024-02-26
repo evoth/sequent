@@ -1,6 +1,6 @@
 <script lang="ts">
   import { project } from "./stores";
-  import ThemeToggle from "./ui/ThemeToggle.svelte";
+  import TitleBar from "./ui/TitleBar.svelte";
   import Pane from "./ui/panes/Pane.svelte";
   import PaneSection from "./ui/panes/PaneSection.svelte";
   import ComponentsSection from "./ui/panes/components/ComponentsSection.svelte";
@@ -9,10 +9,7 @@
 </script>
 
 <main>
-  <div class="title">
-    <h1>Sequent Editor</h1>
-    <ThemeToggle />
-  </div>
+  <TitleBar />
   <div class="panes">
     <Pane title="New components">
       <ComponentsSection
@@ -42,18 +39,6 @@
     height: 100%;
     --border-style: 1px solid var(--gray-65);
     --border-style-dim: 1px solid var(--gray-85);
-  }
-
-  .title {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    column-gap: 8px;
-    padding: 1.2rem;
-    font-size: 0.8rem;
-    background-color: var(--gray-95);
-    border-bottom: var(--border-style);
   }
 
   .panes {
