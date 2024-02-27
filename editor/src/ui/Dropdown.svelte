@@ -4,9 +4,9 @@
 
   export let closeCondition = false;
   export let align: "top" | "bottom" = "bottom";
+  export let showOptions = false;
 
-  const openDropdown = () => (showOptions = true);
-  let showOptions = false;
+  const openDropdown = () => (showOptions = !showOptions);
 
   // Disables showOptions when closeCondition is true
   $: showOptions = !closeCondition && showOptions;
@@ -19,14 +19,17 @@
 >
   <slot name="button" {openDropdown} />
   {#if showOptions}
-    <div
-      class="options-menu"
-      transition:fade={{ duration: 100 }}
-      style={align === "top" ? "top: 0.5rem" : "top: 100%"}
-    >
-      <slot name="buttons" />
+    <div class="menu-container">
+      <div
+        class="options-menu"
+        transition:fade={{ duration: 100 }}
+        style={align === "top" ? "top: 0.5rem" : "top: 100%"}
+      >
+        <slot name="buttons" />
+      </div>
     </div>
   {/if}
+  <slot />
 </div>
 
 <style>
@@ -35,10 +38,14 @@
     z-index: 1;
   }
 
-  .options-menu {
+  .menu-container {
     position: absolute;
     left: 0;
-    display: flex;
+    min-width: 200px;
+  }
+
+  .options-menu {
+    display: inline-flex;
     flex-direction: column;
     padding: 0.5rem;
     background-color: var(--gray-90);

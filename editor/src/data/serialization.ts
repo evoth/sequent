@@ -41,3 +41,13 @@ export type TypeofResult =
   | "undefined"
   | "object"
   | "function";
+
+export function toFixedJSON(json: object) {
+  return JSON.parse(toJSONString(json));
+}
+
+export function toJSONString(json: object) {
+  return JSON.stringify(json, (key, value) =>
+    value instanceof Map ? Object.fromEntries(value) : value
+  );
+}

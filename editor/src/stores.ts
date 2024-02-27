@@ -1,6 +1,7 @@
 import { writable } from "svelte/store";
 import { ActionSet } from "./data/actionSet";
 import { Project } from "./data/project";
+import { toFixedJSON } from "./data/serialization";
 
 // Delete test data and figure out what happens for new user
 const actionSet = new ActionSet("Test");
@@ -47,7 +48,7 @@ const actionSet = new ActionSet("Test");
 //   { defaultDuration: 1, durationParam: param0 },
 //   [param0, param2, param1, param3]
 // );
-export const project = writable(new Project(actionSet));
+export const project = writable(new Project("New project", "", actionSet));
 
 // Open database
 // TODO: clean up and implement error handling
@@ -86,11 +87,7 @@ openRequest.onsuccess = () => {
       const objectStore = db
         .transaction(storeName, "readwrite")
         .objectStore(storeName);
-      const json = JSON.parse(
-        JSON.stringify(projectValue, (key, value) =>
-          value instanceof Map ? Object.fromEntries(value) : value
-        )
-      );
+      const json = toFixedJSON(projectValue);
       objectStore.put(json, storeName);
     }, 1000);
   });

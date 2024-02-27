@@ -19,6 +19,8 @@ This will be a web-based editor for composing sequences using actions and parame
   - Modals (pressing enter should submit, escape should cancel)
   - Sequence tabs
   - Navigation between panes?
+- ARIA attributes on things like dropdowns
+- Fix weird white flash in sequence tabs area on refresh
 
 ## Plan: FOCUS ON MVP!!
 

@@ -1,4 +1,8 @@
-import type { CustomJSON, EntityManagers, Serializable } from "./serialization";
+import {
+  type CustomJSON,
+  type EntityManagers,
+  type Serializable,
+} from "./serialization";
 
 import { Action } from "./action";
 import { Manager } from "./manager";
@@ -22,12 +26,13 @@ export class ActionSet implements Serializable {
     this.actionManager = actionManager;
   }
 
-  toJSON(): CustomJSON<ActionSet> {
+  toJSON(): CustomJSON<ActionSet> & { schemaVersion: number } {
     return {
       name: this.name,
       description: this.description,
       parameterManager: this.parameterManager,
       actionManager: this.actionManager,
+      schemaVersion: 0,
     };
   }
 

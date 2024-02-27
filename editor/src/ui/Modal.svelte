@@ -3,10 +3,10 @@
   import { fade } from "svelte/transition";
   export let isOpen: boolean;
   export let title: string;
-
   export let onClose = () => {};
   export let onSubmit = () => {};
   export let canSubmit = true;
+  export let showActions = true;
 
   function close() {
     isOpen = false;
@@ -41,13 +41,16 @@
         <div class="contents">
           <slot />
         </div>
-        <div class="actions">
-          <slot name="actions" />
-          <button on:click={close} class="inverse">Cancel</button>
-          <button on:click={submit} disabled={!canSubmit} class="inverse"
-            >OK</button
-          >
-        </div>
+        {#if showActions}
+          <div class="actions">
+            <slot name="actions" {close} {submit}>
+              <button on:click={close} class="inverse">Cancel</button>
+              <button on:click={submit} disabled={!canSubmit} class="inverse"
+                >OK</button
+              >
+            </slot>
+          </div>
+        {/if}
       </div>
     </div>
   </Portal>
@@ -79,7 +82,7 @@
   }
 
   .contents {
-    padding: 1rem 0 1.5rem 0;
+    margin-top: 1rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -94,6 +97,7 @@
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
+    margin-top: 1.5rem;
   }
 
   .backdrop {

@@ -1,23 +1,11 @@
 <script lang="ts">
-  import Dropdown from "./Dropdown.svelte";
+  import FileMenu from "./FileMenu.svelte";
   import ThemeToggle from "./ThemeToggle.svelte";
 </script>
 
 <div class="title">
   <h1>Sequent Editor</h1>
-  <Dropdown>
-    <button
-      class="menu-button"
-      slot="button"
-      let:openDropdown
-      on:click={openDropdown}
-      title="File options">File</button
-    >
-    <svelte:fragment slot="buttons">
-      <button>Open</button>
-      <button>Export</button>
-    </svelte:fragment>
-  </Dropdown>
+  <FileMenu />
   <div class="theme-button">
     <ThemeToggle />
   </div>
@@ -39,7 +27,7 @@
     border-bottom: var(--border-style);
   }
 
-  .menu-button {
+  :global(.menu-button) {
     padding: 0.7rem;
     font-size: 1.3rem;
   }
