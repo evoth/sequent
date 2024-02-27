@@ -135,15 +135,19 @@ button {
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
 }
-button:hover {
+button:hover:not(:disabled) {
   background-color: var(--gray-65);
+}
+button:disabled {
+  color: var(--gray-50);
+  cursor:not-allowed;
 }
 
 button.inverse {
   color: var(--gray-95);
   background-color: var(--gray-5);
 }
-button.inverse:hover {
+button.inverse:hover:not(:disabled) {
   background-color: var(--gray-35);
 }
 button.inverse:disabled {

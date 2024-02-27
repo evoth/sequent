@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { project } from "./stores";
+  import { project } from "./data/stores";
   import TitleBar from "./ui/TitleBar.svelte";
   import Pane from "./ui/panes/Pane.svelte";
   import PaneSection from "./ui/panes/PaneSection.svelte";

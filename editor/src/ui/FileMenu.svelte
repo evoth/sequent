@@ -1,13 +1,12 @@
 <script lang="ts">
   import { Project } from "../data/project";
   import { toJSONString } from "../data/serialization";
-  import { project } from "../stores";
+  import { fileHandle, project } from "../data/stores";
   import Dropdown from "./Dropdown.svelte";
   import Modal from "./Modal.svelte";
 
   let modalOpen = false;
   let showOptions: boolean;
-  let fileHandle: FileSystemFileHandle | undefined = undefined;
   let fileInput: HTMLInputElement | undefined = undefined;
 
   let modalTitle = "";
@@ -30,15 +29,15 @@
       };
       try {
         // TODO: try persisting across sessions using IndexedDB (see https://stackoverflow.com/a/65326027)
-        [fileHandle] = await (window as any).showOpenFilePicker(opts);
-        if (fileHandle === undefined) return;
-        const file = await fileHandle.getFile();
+        [$fileHandle] = await (window as any).showOpenFilePicker(opts);
+        if (!$fileHandle) return;
+        const file = await $fileHandle.getFile();
         const text = await file.text();
         $project = Project.fromJSON(JSON.parse(text));
       } catch {}
       modalOpen = false;
     } else {
-      if (fileInput === undefined) return;
+      if (!fileInput) return;
       fileInput.click();
     }
   }
@@ -46,7 +45,7 @@
   // Used to load file data from file input
   async function openOnChangeHelper() {
     modalOpen = false;
-    if (fileInput === undefined || fileInput.files === null) return;
+    if (!fileInput || !fileInput.files) return;
     if (fileInput.files?.length === 0) return;
     $project = Project.fromJSON(JSON.parse(await fileInput.files[0].text()));
   }
@@ -58,8 +57,8 @@
 
   // TODO: keyboard shortcuts
   async function save() {
-    if (fileHandle === undefined) throw Error("File handle is undefined.");
-    const writable = await fileHandle.createWritable();
+    if (!$fileHandle) throw Error("File handle is undefined.");
+    const writable = await $fileHandle.createWritable();
     await writable.write(toJSONString($project));
     await writable.close();
     showOptions = false;
@@ -84,7 +83,7 @@
     };
     try {
       // TODO: try persisting across sessions using IndexedDB (see https://stackoverflow.com/a/65326027)
-      fileHandle = await (window as any).showSaveFilePicker(opts);
+      $fileHandle = await (window as any).showSaveFilePicker(opts);
     } catch {}
     await save();
     modalOpen = false;
@@ -113,9 +112,7 @@
   <svelte:fragment slot="buttons">
     <button on:click={open}>Open</button>
     {#if "showSaveFilePicker" in window}
-      {#if fileHandle !== undefined}
-        <button on:click={save}>Save</button>
-      {/if}
+      <button on:click={save} disabled={!$fileHandle}>Save</button>
       <button on:click={saveAs}>Save as...</button>
     {:else}
       <button on:click={download}>Download</button>

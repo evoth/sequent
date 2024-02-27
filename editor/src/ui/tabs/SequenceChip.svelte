@@ -1,7 +1,7 @@
 <script lang="ts">
   import { slide } from "svelte/transition";
   import { Sequence } from "../../data/sequence";
-  import { project } from "../../stores";
+  import { project } from "../../data/stores";
   import Dropdown from "../Dropdown.svelte";
   import Modal from "../Modal.svelte";
   import SequenceEditModal from "./SequenceEditModal.svelte";

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Sequence } from "../../data/sequence";
-  import { project } from "../../stores";
+  import { project } from "../../data/stores";
   import SequenceChip from "./SequenceChip.svelte";
   import SequenceEditModal from "./SequenceEditModal.svelte";
 
