@@ -1,11 +1,11 @@
 <script lang="ts">
   import { project } from "./data/stores";
-  import TitleBar from "./ui/TitleBar.svelte";
   import Pane from "./ui/panes/Pane.svelte";
   import PaneSection from "./ui/panes/PaneSection.svelte";
   import ComponentsSection from "./ui/panes/components/ComponentsSection.svelte";
   import SequenceTabs from "./ui/tabs/SequenceTabs.svelte";
   import Timeline from "./ui/timeline/Timeline.svelte";
+  import TitleBar from "./ui/titleBar/TitleBar.svelte";
 </script>
 
 <main>

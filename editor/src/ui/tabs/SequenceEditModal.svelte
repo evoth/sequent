@@ -1,6 +1,6 @@
 <script lang="ts">
   import { slide } from "svelte/transition";
-  import Modal from "../Modal.svelte";
+  import Modal from "../utilities/Modal.svelte";
 
   export let isOpen: boolean;
   export let title: string;

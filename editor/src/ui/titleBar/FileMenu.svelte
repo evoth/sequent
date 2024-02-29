@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { Project } from "../data/project";
-  import { toJSONString } from "../data/serialization";
-  import { fileHandle, project } from "../data/stores";
-  import Dropdown from "./Dropdown.svelte";
-  import Modal from "./Modal.svelte";
+  import { Project } from "../../data/project";
+  import { toJSONString } from "../../data/serialization";
+  import { fileHandle, project } from "../../data/stores";
+  import Dropdown from "../utilities/Dropdown.svelte";
+  import Modal from "../utilities/Modal.svelte";
 
   let modalOpen = false;
   let showOptions: boolean;

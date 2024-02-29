@@ -2,8 +2,8 @@
   import { slide } from "svelte/transition";
   import { Sequence } from "../../data/sequence";
   import { project } from "../../data/stores";
-  import Dropdown from "../Dropdown.svelte";
-  import Modal from "../Modal.svelte";
+  import Dropdown from "../utilities/Dropdown.svelte";
+  import Modal from "../utilities/Modal.svelte";
   import SequenceEditModal from "./SequenceEditModal.svelte";
 
   export let sequence: Sequence;
