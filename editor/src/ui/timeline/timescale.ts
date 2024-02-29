@@ -17,22 +17,24 @@ class Timescale {
     this.getLabel = getLabel;
   }
 
-  private getIntervals(
+  getIntervals(
     start: number,
     end: number,
     interval: number | undefined,
-    getLabel: (offset: number) => string
+    getLabel: (offset: number) => string,
+    includeStart: boolean = false
   ): [offset: number, label: string][] {
     if (interval === undefined) return [];
 
     const intervals: [number, string][] = [];
-    for (
-      let i = Math.floor(start / interval);
-      i < Math.ceil(end / interval);
-      i++
-    ) {
+    const floor = Math.floor(start / interval);
+    const ceil = Math.ceil(end / interval);
+    for (let i = floor; i < ceil; i++) {
       const intervalOffset = i * interval;
-      if (interval >= start && interval < end) {
+      if (
+        (intervalOffset >= start && intervalOffset < end) ||
+        (includeStart && i == floor)
+      ) {
         intervals.push([intervalOffset, getLabel(intervalOffset)]);
       }
     }
@@ -43,7 +45,13 @@ class Timescale {
     start: number,
     end: number
   ): [offset: number, label: string][] {
-    return this.getIntervals(start, end, this.titleInterval, this.getTitle);
+    return this.getIntervals(
+      start,
+      end,
+      this.titleInterval,
+      this.getTitle,
+      true
+    );
   }
 
   getLabelIntervals(
@@ -82,9 +90,15 @@ class TimescaleSet {
     }
     return best;
   }
+
+  shiftIndex(reference: Timescale, shift: number): Timescale | undefined {
+    const index = this.timescales.indexOf(reference);
+    return this.timescales[index + shift];
+  }
 }
 
 // TODO: clean up / standardize / improve (this is just for testing)
+// TODO: and remember to add 1 and 5 times powers of ten on either side
 const levelLabel = (
   level: number,
   lastOnly: boolean = false
@@ -102,7 +116,7 @@ const levelLabel = (
       const [interval, unit] = levels[i];
       const num = Math.floor(offset / interval);
       flag = flag || num > 0;
-      labels.push(flag ? `${num}${unit}` : "");
+      labels.push(flag || i == level - 1 ? `${num}${unit}` : "");
       offset %= interval;
     }
     return lastOnly ? labels[level - 1] : labels.join("");

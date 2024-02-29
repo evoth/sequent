@@ -24,6 +24,8 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
   layers: Layer[];
   // Undefined if root sequence
   rootTimestamp?: Timestamp;
+  offset: number;
+  scale: number;
 
   constructor(
     manager: Manager<Sequence>,
@@ -31,12 +33,16 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
     description: string,
     layers: Layer[] = [],
     rootTimestamp?: Timestamp,
+    offset: number = 0,
+    scale: number = 10,
     id?: IdType,
     hue?: number
   ) {
     super(manager, name, description, id, hue);
     this.layers = layers;
     this.rootTimestamp = rootTimestamp;
+    this.offset = offset;
+    this.scale = scale;
   }
 
   toJSON(): CustomJSON<Sequence> {
@@ -44,6 +50,8 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
       ...this.manageableJSON(),
       layers: this.layers,
       rootTimestamp: this.rootTimestamp?.id,
+      offset: this.offset,
+      scale: this.scale,
     };
   }
 
@@ -57,6 +65,8 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
       json.description,
       json.layers.map((layerJson: any) => Layer.fromJSON(layerJson, managers)),
       managers.timestampManager.children.get(json.rootTimestamp),
+      json.offset,
+      json.scale,
       json.id,
       json.hue
     );

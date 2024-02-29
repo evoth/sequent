@@ -25,7 +25,9 @@
     </Pane>
     <div class="timeline">
       <SequenceTabs />
-      <Timeline />
+      {#if $project.openedSequence !== undefined}
+        <Timeline />
+      {/if}
     </div>
     <Pane title="Properties">
       <PaneSection title="Parameters" name="properties-parameters" />
