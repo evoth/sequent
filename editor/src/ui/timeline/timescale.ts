@@ -1,32 +1,35 @@
 // All durations in seconds
-class Timescale {
+export class Timescale {
   readonly titleInterval: number | undefined;
   readonly labelInterval: number;
+  readonly tileInterval: number;
   readonly getTitle: (offset: number) => string;
   readonly getLabel: (offset: number) => string;
 
   constructor(
     titleInterval: number | undefined,
     labelInterval: number,
+    tileInterval: number,
     getTitle: (offset: number) => string,
     getLabel: (offset: number) => string
   ) {
     this.titleInterval = titleInterval;
     this.labelInterval = labelInterval;
+    this.tileInterval = tileInterval;
     this.getTitle = getTitle;
     this.getLabel = getLabel;
   }
 
-  getIntervals(
+  getIntervals<T>(
     start: number,
     end: number,
     interval: number | undefined,
-    getLabel: (offset: number) => string,
+    getLabel: (offset: number) => T,
     includeStart: boolean = false
-  ): [offset: number, label: string][] {
+  ): [offset: number, label: T][] {
     if (interval === undefined) return [];
 
-    const intervals: [number, string][] = [];
+    const intervals: [number, T][] = [];
     const floor = Math.floor(start / interval);
     const ceil = Math.ceil(end / interval);
     for (let i = floor; i < ceil; i++) {
@@ -58,7 +61,26 @@ class Timescale {
     start: number,
     end: number
   ): [offset: number, label: string][] {
-    return this.getIntervals(start, end, this.labelInterval, this.getLabel);
+    return this.getIntervals(
+      start,
+      end,
+      this.labelInterval,
+      this.getLabel,
+      false
+    );
+  }
+
+  getTileIntervals(
+    start: number,
+    end: number
+  ): [offset: number, index: number][] {
+    return this.getIntervals(
+      start,
+      end,
+      this.tileInterval,
+      (offset: number) => offset / this.tileInterval,
+      true
+    );
   }
 }
 
@@ -91,8 +113,13 @@ class TimescaleSet {
     return best;
   }
 
-  shiftIndex(reference: Timescale, shift: number): Timescale | undefined {
+  shiftIndex(reference: Timescale, shift: number): Timescale {
     const index = this.timescales.indexOf(reference);
+    if (index === 0) {
+      return this.timescales[0];
+    } else if (index === this.timescales.length - 1) {
+      return this.timescales[this.timescales.length - 1];
+    }
     return this.timescales[index + shift];
   }
 }
@@ -124,16 +151,22 @@ const levelLabel = (
 };
 
 export const RelativeTimescales = new TimescaleSet([
-  new Timescale(undefined, 86400, (offset) => "", levelLabel(1, true)),
-  new Timescale(86400, 6 * 3600, levelLabel(1), levelLabel(2, true)),
-  new Timescale(86400, 2 * 3600, levelLabel(1), levelLabel(2, true)),
-  new Timescale(86400, 3600, levelLabel(1), levelLabel(2, true)),
-  new Timescale(3600, 15 * 60, levelLabel(2), levelLabel(3, true)),
-  new Timescale(3600, 5 * 60, levelLabel(2), levelLabel(3, true)),
-  new Timescale(3600, 60, levelLabel(2), levelLabel(3, true)),
-  new Timescale(60, 15 * 1, levelLabel(3), levelLabel(4, true)),
-  new Timescale(60, 5 * 1, levelLabel(3), levelLabel(4, true)),
-  new Timescale(60, 1, levelLabel(3), levelLabel(4, true)),
+  new Timescale(
+    undefined,
+    86400,
+    2 * 86400,
+    (offset) => "",
+    levelLabel(1, true)
+  ),
+  new Timescale(86400, 6 * 3600, 86400, levelLabel(1), levelLabel(2, true)),
+  new Timescale(86400, 2 * 3600, 6 * 3600, levelLabel(1), levelLabel(2, true)),
+  new Timescale(86400, 3600, 2 * 3600, levelLabel(1), levelLabel(2, true)),
+  new Timescale(3600, 15 * 60, 3600, levelLabel(2), levelLabel(3, true)),
+  new Timescale(3600, 5 * 60, 15 * 60, levelLabel(2), levelLabel(3, true)),
+  new Timescale(3600, 60, 5 * 60, levelLabel(2), levelLabel(3, true)),
+  new Timescale(60, 15 * 1, 60, levelLabel(3), levelLabel(4, true)),
+  new Timescale(60, 5 * 1, 15 * 1, levelLabel(3), levelLabel(4, true)),
+  new Timescale(60, 1, 5 * 1, levelLabel(3), levelLabel(4, true)),
 ]);
 
 // TODO: Add AbsoluteTimescale that overrides the getIntervals function with something that works with DateTimes

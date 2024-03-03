@@ -19,12 +19,12 @@
 >
   <slot name="button" {openDropdown} />
   {#if showOptions}
-    <div class="menu-container">
-      <div
-        class="options-menu"
-        transition:fade={{ duration: 100 }}
-        style={align === "top" ? "top: 0.5rem" : "top: 100%"}
-      >
+    <div
+      class="menu-container"
+      transition:fade={{ duration: 100 }}
+      style={align === "top" ? "top: 0.5rem" : "top: 100%"}
+    >
+      <div class="options-menu">
         <slot name="buttons" />
       </div>
     </div>

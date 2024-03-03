@@ -1,29 +1,26 @@
 <script lang="ts">
   import { project } from "../../data/stores";
   import Tile from "./Tile.svelte";
+  import TimelineTile from "./TimelineTile.svelte";
+  import TimescaleLabel from "./TimescaleLabel.svelte";
   import { RelativeTimescales } from "./timescale";
 
   let width = 0;
 
   $: scale = $project.openedSequence!.scale;
-  $: offset = $project.openedSequence!.offset;
+  $: start = $project.openedSequence!.offset;
+  $: end = start + width / scale;
 
-  $: tileTimescale = getTileTimescale(scale);
-  $: tileIntervals = tileTimescale.getIntervals(
-    offset,
-    offset + width / scale,
-    tileTimescale.labelInterval,
-    (offset) => String(offset / tileTimescale.labelInterval),
-    true
-  );
-
-  $: tileIntervals, console.log(tileIntervals.length);
+  $: timescale = RelativeTimescales.bestTimescale(360, scale);
+  $: titleIntervals = timescale.getTitleIntervals(start, end);
+  $: timelineTileIntervals = timescale.getTileIntervals(start, end);
 
   function scroll(event: WheelEvent) {
     if (event.ctrlKey) {
       event.preventDefault();
-      $project.openedSequence!.scale *= Math.pow(2, -event.deltaY / 2000);
+      $project.openedSequence!.scale *= Math.pow(2, -event.deltaY / 1500);
     } else if (event.shiftKey) {
+      event.preventDefault();
       $project.openedSequence!.offset += event.deltaY / scale;
       $project.openedSequence!.offset = Math.max(
         0,
@@ -31,23 +28,39 @@
       );
     }
   }
-
-  function getTileTimescale(newScale: number) {
-    const best = RelativeTimescales.bestTimescale(480, newScale);
-    return RelativeTimescales.shiftIndex(best, -1) ?? best;
-  }
 </script>
 
 <div class="container" on:wheel={scroll} bind:clientWidth={width}>
-  <p>scale: {$project.openedSequence?.scale}</p>
-  <p>offset: {offset}</p>
-  <div class="tiles">
-    {#each tileIntervals as [tileOffset, index] (tileOffset)}
+  <div class="titleTiles">
+    {#each titleIntervals as [tileOffset, title] (`${tileOffset} ${timescale.titleInterval}`)}
       <Tile
-        offset={tileOffset}
-        duration={tileTimescale.labelInterval}
-        index={Number(index)}
-      />
+        offset={Math.max(start, tileOffset)}
+        duration={Math.min(
+          end - Math.max(start, tileOffset),
+          timescale.titleInterval ?? Number.MAX_VALUE
+        )}
+        {timescale}
+      >
+        <TimescaleLabel label={title} />
+      </Tile>
+    {/each}
+  </div>
+  <div class="timelineTiles">
+    {#each timelineTileIntervals as [tileOffset, index] (`${tileOffset} ${timescale.tileInterval}`)}
+      <Tile offset={tileOffset} duration={timescale.tileInterval} {timescale}>
+        <svelte:fragment let:offset let:duration let:timescale>
+          <TimelineTile
+            labelIntervals={timescale.getLabelIntervals(
+              offset,
+              offset + duration
+            )}
+            tickIntervals={RelativeTimescales.shiftIndex(
+              timescale,
+              1
+            ).getLabelIntervals(offset, offset + duration)}
+          />
+        </svelte:fragment>
+      </Tile>
     {/each}
   </div>
 </div>
@@ -61,7 +74,12 @@
     overflow-y: hidden;
   }
 
-  .tiles {
+  .titleTiles {
+    position: relative;
+  }
+
+  .timelineTiles {
+    top: 1.5rem;
     position: relative;
     height: 100%;
   }
