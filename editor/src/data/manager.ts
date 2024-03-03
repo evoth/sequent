@@ -111,7 +111,7 @@ export abstract class Manageable<T extends Manageable<T>>
 {
   readonly id: IdType;
   readonly manager: Manager<T>;
-  private _name: string;
+  name: string;
   description: string;
   hue: number;
 
@@ -124,7 +124,6 @@ export abstract class Manageable<T extends Manageable<T>>
   ) {
     this.manager = manager;
     this.name = name;
-    this._name = name;
     this.description = description;
     this.hue = hue;
     if (id === undefined) {
@@ -145,17 +144,6 @@ export abstract class Manageable<T extends Manageable<T>>
       description: this.description,
       hue: this.hue,
     };
-  }
-
-  set name(newName: string) {
-    if (newName === "") {
-      throw new Error("Name of manageable object cannot be the empty string.");
-    }
-    this._name = newName;
-  }
-
-  get name() {
-    return this._name;
   }
 
   abstract add(): void;

@@ -37,7 +37,7 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
     rootTimestamp?: Timestamp,
     offset: number = 0,
     scale: number = 10,
-    scroll: number = 0,
+    scroll: number = 75,
     layerHeight: number = 150,
     id?: IdType,
     hue?: number
@@ -149,6 +149,10 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
     }
     return childIds;
   }
+
+  getManageableChild(): Manageable<Sequence> {
+    return this;
+  }
 }
 
 export enum LayerMode {
@@ -179,12 +183,11 @@ export class Component extends Repeat implements Serializable {
   constructor(
     child: Repeatable,
     props: RepeatProps,
-    isRepeating: boolean,
     layerMode: LayerMode,
     rootTimestamp?: Timestamp,
     customName?: string
   ) {
-    super(child, props, isRepeating, rootTimestamp);
+    super(child, props, rootTimestamp);
     this.layerMode = layerMode;
     this.customName = customName;
   }
@@ -215,7 +218,6 @@ export class Component extends Repeat implements Serializable {
     return new Component(
       child,
       RepeatProps.fromJSON(json.props, managers),
-      json.isRepeating,
       // TODO: make sure enum conversion works correctly
       LayerMode[json.layerMode as keyof typeof LayerMode],
       managers.timestampManager.children.get(json.rootTimestamp),

@@ -1,41 +1,52 @@
 <script lang="ts">
-  import { project } from "../../data/stores";
+  import { Sequence } from "../../data/sequence";
   import Tile from "./Tile.svelte";
+  import TimelineTile from "./TimelineTile.svelte";
   import TimescaleLabel from "./TimescaleLabel.svelte";
-  import TimelineTile from "./TimescaleTile.svelte";
+  import TimescaleTile from "./TimescaleTile.svelte";
   import { RelativeTimescales } from "./timescale";
+
+  export let sequence: Sequence;
 
   let width = 0;
   let height = 0;
   let containerElement: HTMLElement;
 
-  $: $project.openedSequence, clampOffset(width);
-  $: $project.openedSequence, clampScroll(height);
-  $: scale = $project.openedSequence!.scale;
-  $: start = $project.openedSequence!.offset;
-  $: end = start + width / scale;
+  $: sequence, clampOffset(width);
+  $: sequence,
+    clampScroll(height, sequence.layerHeight, sequence.layers.length);
+  $: start = sequence.offset;
+  $: end = start + width / sequence.scale;
 
-  $: scroll = $project.openedSequence!.scroll;
-  $: layerHeight = $project.openedSequence!.layerHeight;
-
-  $: timescale = RelativeTimescales.bestTimescale(360, scale);
+  $: timescale = RelativeTimescales.bestTimescale(360, sequence.scale);
   $: titleIntervals = timescale.getTitleIntervals(start, end);
   $: timelineTileIntervals = timescale.getTileIntervals(start, end);
+  $: tilesEnd =
+    timelineTileIntervals.length === 0
+      ? 0
+      : timelineTileIntervals[timelineTileIntervals.length - 1][0] +
+        timescale.tileInterval;
 
   function clampOffset(containerWidth: number) {
     if (containerWidth === 0) return;
-    $project.openedSequence!.offset = Math.max(
-      (containerWidth / $project.openedSequence!.scale) * -0.5,
-      $project.openedSequence!.offset
+    sequence.offset = Math.max(
+      (containerWidth / sequence.scale) * -0.5,
+      sequence.offset
     );
   }
 
-  // TODO: update to account for height of layers (if there are a bunch of layers, should be able to scroll bottom of layers to top of container)
-  function clampScroll(containerHeight: number) {
+  function clampScroll(
+    containerHeight: number,
+    layerHeight: number,
+    numLayers: number
+  ) {
     if (containerHeight === 0) return;
-    $project.openedSequence!.scroll = Math.max(
-      containerHeight * -0.5,
-      Math.min(containerHeight * 0.5, $project.openedSequence!.scroll)
+    sequence.scroll = Math.max(
+      containerHeight * -0.5 + layerHeight,
+      Math.min(
+        containerHeight * 0.5 + layerHeight * (numLayers - 1),
+        sequence.scroll
+      )
     );
   }
 
@@ -44,24 +55,22 @@
     event.preventDefault();
     if (event.ctrlKey) {
       const zoomDelta = Math.pow(2, -event.deltaY / 1500);
-      $project.openedSequence!.offset +=
+      sequence.offset +=
         (1 - 1 / zoomDelta) *
         ((event.clientX - containerElement.getBoundingClientRect().left) /
-          scale);
-      $project.openedSequence!.scale *= zoomDelta;
+          sequence.scale);
+      sequence.scale *= zoomDelta;
       clampOffset(width);
     } else if (event.shiftKey) {
-      $project.openedSequence!.offset += event.deltaY / scale;
+      sequence.offset += event.deltaY / sequence.scale;
       clampOffset(width);
     } else if (event.altKey) {
-      $project.openedSequence!.layerHeight -= event.deltaY / 10;
-      $project.openedSequence!.layerHeight = Math.max(
-        100,
-        Math.min(300, $project.openedSequence!.layerHeight)
-      );
+      // TODO: Center zoom on mouse
+      sequence.layerHeight -= event.deltaY / 10;
+      sequence.layerHeight = Math.max(100, Math.min(300, sequence.layerHeight));
     } else {
-      $project.openedSequence!.scroll -= event.deltaY / 2;
-      clampScroll(height);
+      sequence.scroll -= event.deltaY / 2;
+      clampScroll(height, sequence.layerHeight, sequence.layers.length);
     }
   }
 </script>
@@ -75,14 +84,18 @@
 >
   <div
     class="timelineTiles"
-    style:transform={`translateY(calc(-50% + ${scroll}px))`}
-    style:height={`${layerHeight}px`}
+    style:transform={`translateY(${sequence.scroll}px)`}
+    style:height={`${sequence.layerHeight}px`}
   >
-    {#each timelineTileIntervals as [tileOffset, index] (`${tileOffset} ${timescale.tileInterval}`)}
-      <Tile offset={tileOffset} duration={timescale.tileInterval} {timescale}>
-        <div
-          style="background-color: var(--gray-90); height: 100%; width: 100%;"
-        ></div>
+    {#each timelineTileIntervals.toReversed() as [tileOffset, _], tileIndex (`${tileOffset} ${timescale.tileInterval}`)}
+      <Tile offset={tileOffset} duration={timescale.tileInterval} {sequence}>
+        <TimelineTile
+          offset={tileOffset}
+          duration={timescale.tileInterval}
+          {sequence}
+          tileIndex={timelineTileIntervals.length - tileIndex - 1}
+          {tilesEnd}
+        />
       </Tile>
     {/each}
   </div>
@@ -95,7 +108,7 @@
           end - Math.max(start, tileOffset),
           timescale.titleInterval ?? Number.MAX_VALUE
         )}
-        {timescale}
+        {sequence}
       >
         <TimescaleLabel label={title} offset={tileOffset} />
       </Tile>
@@ -103,10 +116,12 @@
   </div>
   <div class="timescaleTiles">
     {#each timelineTileIntervals as [tileOffset, index] (`${tileOffset} ${timescale.tileInterval}`)}
-      <Tile offset={tileOffset} duration={timescale.tileInterval} {timescale}>
-        <svelte:fragment let:offset let:duration let:timescale>
-          <TimelineTile {offset} {duration} {timescale} />
-        </svelte:fragment>
+      <Tile offset={tileOffset} duration={timescale.tileInterval} {sequence}>
+        <TimescaleTile
+          offset={tileOffset}
+          duration={timescale.tileInterval}
+          {timescale}
+        />
       </Tile>
     {/each}
   </div>
@@ -141,6 +156,6 @@
   .timelineTiles {
     position: absolute;
     width: 100%;
-    top: 50%;
+    bottom: 50%;
   }
 </style>

@@ -1,14 +1,12 @@
 <script lang="ts">
-  import { project } from "../../data/stores";
-  import type { Timescale } from "./timescale";
+  import { Sequence } from "../../data/sequence";
 
   export let offset: number;
   export let duration: number;
-  export let timescale: Timescale;
+  export let sequence: Sequence;
 
-  $: tileOffset =
-    (offset - $project.openedSequence!.offset) * $project.openedSequence!.scale;
-  $: tileWidth = duration * $project.openedSequence!.scale;
+  $: tileOffset = (offset - sequence.offset) * sequence.scale;
+  $: tileWidth = duration * sequence.scale;
 </script>
 
 <div
@@ -16,7 +14,7 @@
   style:transform={`translateX(${tileOffset}px)`}
   style:width={`${tileWidth}px`}
 >
-  <slot {offset} {duration} {timescale} />
+  <slot />
 </div>
 
 <style>

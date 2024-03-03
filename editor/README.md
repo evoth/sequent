@@ -20,7 +20,9 @@ This will be a web-based editor for composing sequences using actions and parame
   - Sequence tabs
   - Navigation between panes?
 - ARIA attributes on things like dropdowns
+- Use correct HTML elements instead of just divs within divs within divs within...
 - Fix weird white flash in sequence tabs area on refresh
+- Investigate using margins instead of absolute positioning in cases where it's feasible
 
 ## Plan: FOCUS ON MVP!!
 

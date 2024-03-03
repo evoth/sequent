@@ -1,19 +1,19 @@
+import type { IdType, Manageable } from "./manager";
 import type { CustomJSON, EntityManagers, Serializable } from "./serialization";
 
 import { ActionState } from "./action";
-import type { IdType } from "./manager";
 import { Sequence } from "./sequence";
 import { Timestamp } from "./timestamp";
 
 export interface Repeatable {
   // An undefined duration means infinite
   getDuration(): number | undefined;
+  getManageableChild(): Manageable<any>;
 }
 
 export class Repeat implements Serializable {
   child: Repeatable;
   props: RepeatProps;
-  isRepeating: boolean;
   // If sequence passes in root timestamp, all timestamps must descend from it.
   // Otherwise (as in the case of the root sequence), any timestamp ancestor
   // is fine as long as start/end timestamps are consistent with each other.
@@ -22,12 +22,10 @@ export class Repeat implements Serializable {
   constructor(
     child: Repeatable,
     props: RepeatProps,
-    isRepeating: boolean,
     rootTimestamp?: Timestamp
   ) {
     this.child = child;
     this.props = props;
-    this.isRepeating = isRepeating;
     this.rootTimestamp = rootTimestamp;
   }
 
@@ -47,14 +45,11 @@ export class Repeat implements Serializable {
     return {
       child: childJSON,
       props: this.props,
-      isRepeating: this.isRepeating,
       rootTimestamp: this.rootTimestamp?.id,
     };
   }
 
   validate(): RepeatValidation {
-    if (!this.isRepeating) return { error: RepeatError.None };
-
     const childDuration = this.child.getDuration();
     if (childDuration === undefined)
       return { error: RepeatError.ChildDurationInfinite };
@@ -62,8 +57,6 @@ export class Repeat implements Serializable {
   }
 
   getDuration(): [error: RepeatError, duration?: number] {
-    if (!this.isRepeating) return [RepeatError.None, this.child.getDuration()];
-
     const childDuration = this.child.getDuration();
     if (childDuration === undefined) return [RepeatError.ChildDurationInfinite];
 
@@ -266,9 +259,9 @@ export class RepeatProps implements Serializable {
       return { error: RepeatError.NegativeDuration };
     }
 
-    // Must have at least 2 whole number repetitions
+    // Must have at least 1 whole number repetition
     if (this.isSelected("repetitions")) {
-      if (this.constraints.repetitions! < 2) {
+      if (this.constraints.repetitions! < 1) {
         return { error: RepeatError.TooFewRepetitions };
       }
       if (this.constraints.repetitions! % 1 !== 0) {

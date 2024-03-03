@@ -137,7 +137,7 @@ export class ActionState implements Repeatable, Serializable {
   toJSON(): CustomJSON<ActionState> {
     return {
       action: this.action.id,
-      parameterStates: this.parameterStates.values(),
+      parameterStates: [...this.parameterStates.values()],
     };
   }
 
@@ -168,5 +168,9 @@ export class ActionState implements Repeatable, Serializable {
       (durationProps.durationParamOffset ?? 0) +
       durationParamValue * (durationProps.durationParamMultiplier ?? 1)
     );
+  }
+
+  getManageableChild(): Manageable<Action> {
+    return this.action;
   }
 }

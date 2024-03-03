@@ -26,7 +26,7 @@
     <div class="timeline">
       <SequenceTabs />
       {#if $project.openedSequence !== undefined}
-        <Timeline />
+        <Timeline bind:sequence={$project.openedSequence} />
       {/if}
     </div>
     <Pane title="Properties">

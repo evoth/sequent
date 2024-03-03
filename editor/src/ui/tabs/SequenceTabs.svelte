@@ -1,6 +1,8 @@
 <script lang="ts">
-  import { Sequence } from "../../data/sequence";
+  import { RepeatProps } from "../../data/repeat";
+  import { Component, Layer, LayerMode, Sequence } from "../../data/sequence";
   import { project } from "../../data/stores";
+  import { Timestamp } from "../../data/timestamp";
   import SequenceChip from "./SequenceChip.svelte";
   import SequenceEditModal from "./SequenceEditModal.svelte";
 
@@ -11,10 +13,64 @@
   };
 
   function newSequence() {
+    // TODO: remove (debugging)
+    const rootTimestamp = new Timestamp($project.timestampManager, 0);
+    // TODO: Figure out root timestamp stuff (option for "root" sequence)
     const newSequence = new Sequence(
       $project.sequenceManager,
       sequenceData.name,
-      sequenceData.description
+      sequenceData.description,
+      [],
+      rootTimestamp
+    );
+    // TODO: remove (debugging)
+    newSequence.layers.push(
+      new Layer(
+        [
+          new Component(
+            $project.actionSet.actionManager.children.get("0")!.newState(),
+            new RepeatProps(
+              {
+                start: new Timestamp(
+                  $project.timestampManager,
+                  200,
+                  rootTimestamp
+                ),
+                repetitions: 1,
+                interval: 0,
+              },
+              ["start", "repetitions", "interval"]
+            ),
+            LayerMode.Coincide,
+            rootTimestamp
+          ),
+        ],
+        rootTimestamp
+      )
+    );
+    newSequence.layers.push(
+      new Layer(
+        [
+          new Component(
+            $project.actionSet.actionManager.children.get("0")!.newState(),
+            new RepeatProps(
+              {
+                start: new Timestamp(
+                  $project.timestampManager,
+                  400,
+                  rootTimestamp
+                ),
+                repetitions: 1,
+                interval: 0,
+              },
+              ["start", "repetitions", "interval"]
+            ),
+            LayerMode.Coincide,
+            rootTimestamp
+          ),
+        ],
+        rootTimestamp
+      )
     );
     $project.sequenceManager.children = $project.sequenceManager.children;
     $project.openedSequence = newSequence;
