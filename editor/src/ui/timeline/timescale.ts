@@ -114,13 +114,13 @@ class TimescaleSet {
   }
 
   shiftIndex(reference: Timescale, shift: number): Timescale {
-    const index = this.timescales.indexOf(reference);
-    if (index === 0) {
+    const index = this.timescales.indexOf(reference) + shift;
+    if (index <= 0) {
       return this.timescales[0];
-    } else if (index === this.timescales.length - 1) {
+    } else if (index >= this.timescales.length - 1) {
       return this.timescales[this.timescales.length - 1];
     }
-    return this.timescales[index + shift];
+    return this.timescales[index];
   }
 }
 

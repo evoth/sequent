@@ -41,11 +41,13 @@
     height: 100%;
     --border-style: 1px solid var(--gray-65);
     --border-style-dim: 1px solid var(--gray-85);
+    display: flex;
+    flex-direction: column;
   }
 
   .panes {
+    flex: 1;
     display: flex;
-    height: 100%;
   }
 
   .timeline {
@@ -53,5 +55,7 @@
     flex: 1;
     border-left: var(--border-style);
     border-right: var(--border-style);
+    display: flex;
+    flex-direction: column;
   }
 </style>

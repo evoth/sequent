@@ -1,8 +1,16 @@
 <script lang="ts">
   import TimescaleLabel from "./TimescaleLabel.svelte";
+  import { RelativeTimescales, Timescale } from "./timescale";
 
-  export let labelIntervals: [offset: number, label: string][];
-  export let tickIntervals: [offset: number, label: string][];
+  export let offset: number;
+  export let duration: number;
+  export let timescale: Timescale;
+
+  let labelIntervals = timescale.getLabelIntervals(offset, offset + duration);
+  let tickIntervals = RelativeTimescales.shiftIndex(
+    timescale,
+    1
+  ).getLabelIntervals(offset, offset + duration);
 </script>
 
 <div class="container">

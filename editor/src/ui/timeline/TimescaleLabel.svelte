@@ -6,13 +6,15 @@
 
 {#if offset >= 0}
   <div class="container">
-    <p class="label">{label}</p>
     <div
       class="tick"
       style:border-color={level > 0 ? "var(--gray-50)" : undefined}
       style:min-height={level > 0 ? "1rem" : undefined}
       style:height={level > 0 ? undefined : "100%"}
-    ></div>
+    >
+      <div class="patch"></div>
+    </div>
+    <p class="label">{label}</p>
   </div>
 {/if}
 
@@ -25,16 +27,23 @@
     position: relative;
   }
 
-  .label {
-    color: var(--gray-35);
-    position: absolute;
-    padding-left: 0.5rem;
-    background-color: var(--gray-95);
+  .patch {
     z-index: -1;
+    background-color: var(--gray-95);
+    position: absolute;
     left: -1px;
+    width: 2px;
+    height: 100%;
   }
 
   .tick {
     border-left: 1px solid var(--gray-35);
+    position: relative;
+  }
+
+  .label {
+    color: var(--gray-35);
+    position: absolute;
+    left: 0.4rem;
   }
 </style>
