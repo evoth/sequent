@@ -6,6 +6,7 @@
   import { RelativeTimescales } from "./timescale";
 
   let width = 0;
+  let containerElement: HTMLElement;
 
   $: scale = $project.openedSequence!.scale;
   $: start = $project.openedSequence!.offset;
@@ -18,7 +19,16 @@
   function scroll(event: WheelEvent) {
     if (event.ctrlKey) {
       event.preventDefault();
-      $project.openedSequence!.scale *= Math.pow(2, -event.deltaY / 1500);
+      const zoomDelta = Math.pow(2, -event.deltaY / 1500);
+      $project.openedSequence!.offset +=
+        (1 - 1 / zoomDelta) *
+        ((event.clientX - containerElement.getBoundingClientRect().left) /
+          scale);
+      $project.openedSequence!.offset = Math.max(
+        0,
+        $project.openedSequence!.offset
+      );
+      $project.openedSequence!.scale *= zoomDelta;
     } else if (event.shiftKey) {
       event.preventDefault();
       $project.openedSequence!.offset += event.deltaY / scale;
@@ -30,7 +40,12 @@
   }
 </script>
 
-<div class="container" on:wheel={scroll} bind:clientWidth={width}>
+<div
+  class="container"
+  on:wheel={scroll}
+  bind:clientWidth={width}
+  bind:this={containerElement}
+>
   <div class="titleTiles">
     {#each titleIntervals as [tileOffset, title] (`${tileOffset} ${timescale.titleInterval}`)}
       <Tile
@@ -45,7 +60,7 @@
       </Tile>
     {/each}
   </div>
-  <div class="timelineTiles">
+  <div class="timescaleTiles">
     {#each timelineTileIntervals as [tileOffset, index] (`${tileOffset} ${timescale.tileInterval}`)}
       <Tile offset={tileOffset} duration={timescale.tileInterval} {timescale}>
         <svelte:fragment let:offset let:duration let:timescale>
@@ -78,7 +93,7 @@
     position: relative;
   }
 
-  .timelineTiles {
+  .timescaleTiles {
     top: 1.5rem;
     position: relative;
     height: 100%;

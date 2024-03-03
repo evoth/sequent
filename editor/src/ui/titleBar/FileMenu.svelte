@@ -7,7 +7,7 @@
 
   let modalOpen = false;
   let showOptions: boolean;
-  let fileInput: HTMLInputElement | undefined = undefined;
+  let fileInput: HTMLInputElement;
 
   let modalTitle = "";
   let modalDescription = "";
@@ -37,7 +37,6 @@
       } catch {}
       modalOpen = false;
     } else {
-      if (!fileInput) return;
       fileInput.click();
     }
   }
@@ -45,7 +44,7 @@
   // Used to load file data from file input
   async function openOnChangeHelper() {
     modalOpen = false;
-    if (!fileInput || !fileInput.files) return;
+    if (!fileInput.files) return;
     if (fileInput.files?.length === 0) return;
     $project = Project.fromJSON(JSON.parse(await fileInput.files[0].text()));
   }

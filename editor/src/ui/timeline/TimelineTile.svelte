@@ -7,12 +7,8 @@
 
 <div class="container">
   <div class="ticks">
-    {#each tickIntervals as [tickOffset, label], index}
-      {#if index > 0}
-        <TimescaleLabel label="" level={1} />
-      {:else}
-        <div style="width: 100%"></div>
-      {/if}
+    {#each tickIntervals as [tickOffset, label]}
+      <TimescaleLabel label="" level={1} />
     {/each}
   </div>
   <div class="labels">
