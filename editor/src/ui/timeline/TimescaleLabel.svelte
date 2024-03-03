@@ -1,17 +1,20 @@
 <script lang="ts">
   export let label: string;
   export let level = 0;
+  export let offset: number;
 </script>
 
-<div class="container">
-  <p class="label">{label}</p>
-  <div
-    class="tick"
-    style:border-color={level > 0 ? "var(--gray-50)" : undefined}
-    style:min-height={level > 0 ? "1rem" : undefined}
-    style:height={level > 0 ? undefined : "100%"}
-  ></div>
-</div>
+{#if offset >= 0}
+  <div class="container">
+    <p class="label">{label}</p>
+    <div
+      class="tick"
+      style:border-color={level > 0 ? "var(--gray-50)" : undefined}
+      style:min-height={level > 0 ? "1rem" : undefined}
+      style:height={level > 0 ? undefined : "100%"}
+    ></div>
+  </div>
+{/if}
 
 <style>
   .container {

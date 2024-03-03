@@ -8,12 +8,12 @@
 <div class="container">
   <div class="ticks">
     {#each tickIntervals as [tickOffset, label]}
-      <TimescaleLabel label="" level={1} />
+      <TimescaleLabel label="" level={1} offset={tickOffset} />
     {/each}
   </div>
   <div class="labels">
     {#each labelIntervals as [labelOffset, label]}
-      <TimescaleLabel {label} />
+      <TimescaleLabel {label} offset={labelOffset} />
     {/each}
   </div>
 </div>

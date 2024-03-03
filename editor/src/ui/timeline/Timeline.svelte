@@ -8,6 +8,7 @@
   let width = 0;
   let containerElement: HTMLElement;
 
+  $: $project.openedSequence, clampOffset(width);
   $: scale = $project.openedSequence!.scale;
   $: start = $project.openedSequence!.offset;
   $: end = start + width / scale;
@@ -15,6 +16,15 @@
   $: timescale = RelativeTimescales.bestTimescale(360, scale);
   $: titleIntervals = timescale.getTitleIntervals(start, end);
   $: timelineTileIntervals = timescale.getTileIntervals(start, end);
+
+  function clampOffset(containerWidth: number) {
+    console.log(containerWidth);
+    if (containerWidth === 0) return;
+    $project.openedSequence!.offset = Math.max(
+      (containerWidth / $project.openedSequence!.scale) * -0.5,
+      $project.openedSequence!.offset
+    );
+  }
 
   function scroll(event: WheelEvent) {
     if (event.ctrlKey) {
@@ -24,18 +34,12 @@
         (1 - 1 / zoomDelta) *
         ((event.clientX - containerElement.getBoundingClientRect().left) /
           scale);
-      $project.openedSequence!.offset = Math.max(
-        0,
-        $project.openedSequence!.offset
-      );
       $project.openedSequence!.scale *= zoomDelta;
+      clampOffset(width);
     } else if (event.shiftKey) {
       event.preventDefault();
       $project.openedSequence!.offset += event.deltaY / scale;
-      $project.openedSequence!.offset = Math.max(
-        0,
-        $project.openedSequence!.offset
-      );
+      clampOffset(width);
     }
   }
 </script>
@@ -56,7 +60,7 @@
         )}
         {timescale}
       >
-        <TimescaleLabel label={title} />
+        <TimescaleLabel label={title} offset={tileOffset} />
       </Tile>
     {/each}
   </div>
