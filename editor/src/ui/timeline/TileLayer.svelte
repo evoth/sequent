@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Component, Layer } from "../../data/sequence";
-  import LayerComponent from "./LayerComponent.svelte";
+  import LayerComponentWrapper from "./LayerComponentWrapper.svelte";
 
   export let offset: number;
   export let duration: number;
@@ -57,7 +57,7 @@
   style:background-color={`var(--gray-${index % 2 == 0 ? "93" : "95"})`}
 >
   {#each components as [component, start, end]}
-    <LayerComponent
+    <LayerComponentWrapper
       {offset}
       tileDuration={duration}
       {component}

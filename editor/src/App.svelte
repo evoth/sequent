@@ -6,6 +6,8 @@
   import SequenceTabs from "./ui/tabs/SequenceTabs.svelte";
   import Timeline from "./ui/timeline/Timeline.svelte";
   import TitleBar from "./ui/titleBar/TitleBar.svelte";
+
+  let timelineElement: HTMLElement;
 </script>
 
 <main>
@@ -16,17 +18,19 @@
         title="Actions"
         name="components-actions"
         bind:manager={$project.actionSet.actionManager}
+        {timelineElement}
       />
       <ComponentsSection
         title="Sequences"
         name="components-sequences"
         bind:manager={$project.sequenceManager}
+        {timelineElement}
       />
     </Pane>
     <div class="timeline">
       <SequenceTabs />
       {#if $project.openedSequence !== undefined}
-        <Timeline bind:sequence={$project.openedSequence} />
+        <Timeline sequence={$project.openedSequence} bind:timelineElement />
       {/if}
     </div>
     <Pane title="Properties">

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Component } from "../../data/sequence";
+  import ComponentBody from "./ComponentBody.svelte";
 
   export let offset: number;
   export let tileDuration: number;
@@ -12,19 +13,15 @@
 
 <div
   class="container"
-  style:background-color={`hsl(${child.hue}deg var(--component-saturation) var(--component-lightness))`}
   style:left={`${((start - offset) / tileDuration) * 100}%`}
   style:width={`${((end - start) / tileDuration) * 100}%`}
 >
-  <p>{child.name}</p>
+  <ComponentBody {component} />
 </div>
 
 <style>
   .container {
     position: absolute;
-    height: 90%;
-    top: 5%;
-    border-radius: 1rem;
-    padding: 1rem;
+    height: 100%;
   }
 </style>

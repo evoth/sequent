@@ -67,6 +67,7 @@
     justify-content: space-between;
     align-items: center;
     transition: background-color 0.2s;
+    cursor: pointer;
   }
   .heading:hover {
     background-color: var(--gray-65);

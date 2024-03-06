@@ -53,6 +53,8 @@ export class Manager<T extends Manageable<any>> implements Serializable {
     return String(this.idCounter++);
   }
 
+  // TODO: Add a method for dependency/cycle detection using DFS
+
   topologicalSort(): void {
     const graph = new Map<
       IdType,

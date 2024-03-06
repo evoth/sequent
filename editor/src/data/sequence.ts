@@ -98,16 +98,18 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
 
       if (this.rootTimestamp !== undefined) {
         if (
-          start !== undefined &&
-          sequenceStart !== undefined &&
-          start.getOffset()[0] < sequenceStart.getOffset()[0]
+          sequenceStart === undefined ||
+          (start !== undefined &&
+            sequenceStart !== undefined &&
+            start.getOffset()[0] < sequenceStart.getOffset()[0])
         ) {
           sequenceStart = start;
         }
         if (
-          end !== undefined &&
-          sequenceEnd !== undefined &&
-          end.getOffset()[0] > sequenceEnd.getOffset()[0]
+          sequenceEnd === undefined ||
+          (end !== undefined &&
+            sequenceEnd !== undefined &&
+            end.getOffset()[0] > sequenceEnd.getOffset()[0])
         ) {
           sequenceEnd = end;
         }
@@ -292,17 +294,13 @@ export class Layer implements Serializable {
 
     let prevEnd: Timestamp | undefined = undefined;
     for (const [i, [start, end]] of childBounds.entries()) {
-      if (start === undefined) {
-        if (i != 0) {
-          return { error: LayerError.ChildOverlap };
-        }
-      } else {
-        if (
+      if (
+        i != 0 &&
+        (start === undefined ||
           prevEnd === undefined ||
-          start.getOffset()[0] < prevEnd.getOffset()[0]
-        ) {
-          return { error: LayerError.ChildOverlap };
-        }
+          start.getOffset()[0] < prevEnd.getOffset()[0])
+      ) {
+        return { error: LayerError.ChildOverlap };
       }
       prevEnd = end;
     }

@@ -7,10 +7,10 @@
   import { RelativeTimescales } from "./timescale";
 
   export let sequence: Sequence;
+  export let timelineElement: HTMLElement;
 
   let width = 0;
   let height = 0;
-  let containerElement: HTMLElement;
 
   $: sequence, clampOffset(width);
   $: sequence,
@@ -57,12 +57,12 @@
       const zoomDelta = Math.pow(2, -event.deltaY / 1500);
       sequence.offset +=
         (1 - 1 / zoomDelta) *
-        ((event.clientX - containerElement.getBoundingClientRect().left) /
+        ((event.clientX - timelineElement.getBoundingClientRect().left) /
           sequence.scale);
       sequence.scale *= zoomDelta;
       clampOffset(width);
     } else if (event.shiftKey) {
-      sequence.offset += event.deltaY / sequence.scale;
+      sequence.offset += (event.deltaY / sequence.scale) * 0.75;
       clampOffset(width);
     } else if (event.altKey) {
       // TODO: Center zoom on mouse
@@ -80,7 +80,7 @@
   on:wheel={handleScroll}
   bind:clientWidth={width}
   bind:clientHeight={height}
-  bind:this={containerElement}
+  bind:this={timelineElement}
 >
   <div
     class="timelineTiles"
