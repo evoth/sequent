@@ -23,6 +23,9 @@ This will be a web-based editor for composing sequences using actions and parame
 - Use correct HTML elements instead of just divs within divs within divs within...
 - Fix weird white flash in sequence tabs area on refresh
 - Investigate using margins instead of absolute positioning in cases where it's feasible
+- Figure out mess of binding and be intentional with indices in each blocks
+- Prevent autosave from lagging drag and drop (it autosaves when creating the layer)
+- Also maybe try to make the database not lag the whole app
 
 ## Plan: FOCUS ON MVP!!
 

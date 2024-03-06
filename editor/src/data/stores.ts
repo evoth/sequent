@@ -13,7 +13,7 @@ const param0 = new NumberParameter<number>(
   actionSet.parameterManager,
   "Test param",
   "",
-  400,
+  7,
   undefined,
   undefined,
   undefined,
@@ -64,3 +64,5 @@ newDB.initAutosave(
 );
 newDB.initAutosave(fileHandle, "fileHandle");
 export const db = readable(newDB);
+
+export const updateIndex = writable(0);

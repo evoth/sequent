@@ -12,7 +12,15 @@
 
 <div class="container">
   {#each sequence.layers as layer, index}
-    <TileLayer {offset} {duration} {layer} {index} {tileIndex} {tilesEnd} />
+    <TileLayer
+      {offset}
+      {duration}
+      {layer}
+      {index}
+      {tileIndex}
+      {tilesEnd}
+      bind:sequence
+    />
   {/each}
 </div>
 

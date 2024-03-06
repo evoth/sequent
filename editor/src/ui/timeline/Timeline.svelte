@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Sequence } from "../../data/sequence";
+  import { updateIndex } from "../../data/stores";
   import Tile from "./Tile.svelte";
   import TimelineTile from "./TimelineTile.svelte";
   import TimescaleLabel from "./TimescaleLabel.svelte";
@@ -89,12 +90,12 @@
     style:transform={`translateY(${sequence.scroll}px)`}
     style:height={`${sequence.layerHeight}px`}
   >
-    {#each timelineTileIntervals.toReversed() as [tileOffset, _], tileIndex (`${tileOffset} ${timescale.tileInterval}`)}
+    {#each timelineTileIntervals.toReversed() as [tileOffset, _], tileIndex (`${tileOffset} ${timescale.tileInterval} ${$updateIndex}`)}
       <Tile offset={tileOffset} duration={timescale.tileInterval} {sequence}>
         <TimelineTile
           offset={tileOffset}
           duration={timescale.tileInterval}
-          {sequence}
+          bind:sequence
           tileIndex={timelineTileIntervals.length - tileIndex - 1}
           {tilesEnd}
         />

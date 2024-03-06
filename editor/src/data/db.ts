@@ -46,9 +46,10 @@ export class DB {
 
       setTimeout(() => {
         if (ticker !== oldTicker) return;
+        console.log("hey");
         // Store serialized object in IndexedDB
         this.set(autosaveName, serialize(value));
-      }, 1000);
+      }, 5000);
     });
   }
 

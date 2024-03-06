@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Component, Layer } from "../../data/sequence";
+  import { Component, Layer, Sequence } from "../../data/sequence";
+  import { updateIndex } from "../../data/stores";
   import Draggable from "./Draggable.svelte";
   import LayerComponentWrapper from "./LayerComponentWrapper.svelte";
 
@@ -9,6 +10,7 @@
   export let index: number;
   export let tileIndex: number;
   export let tilesEnd: number;
+  export let sequence: Sequence;
 
   $: components = findComponents(tilesEnd, tileIndex);
 
@@ -50,6 +52,12 @@
     }
     return newComponents;
   }
+
+  function removeComponent(component: Component) {
+    layer.children.delete(component);
+    // TODO: CURSEDDDDDDDDDDDDDDDDDDD
+    $updateIndex++;
+  }
 </script>
 
 <div
@@ -58,7 +66,12 @@
   style:background-color={`var(--gray-${index % 2 == 0 ? "93" : "95"})`}
 >
   {#each components as [component, start, end]}
-    <Draggable getComponent={() => component} hideChildOnDrag>
+    <Draggable
+      getComponent={() => component}
+      hideChildOnDrag
+      bind:sequence
+      removeComponent={() => removeComponent(component)}
+    >
       <LayerComponentWrapper
         {offset}
         tileDuration={duration}

@@ -50,7 +50,11 @@
   {#each manager.children.entries() as [id, component] (id)}
     <!-- TODO: disallow any sequences which depend on current sequence -->
     {#if component !== $project.openedSequence}
-      <Draggable getComponent={() => getComponent(component)}>
+      <Draggable
+        getComponent={() => getComponent(component)}
+        bind:sequence={$project.openedSequence}
+        removeComponent={() => {}}
+      >
         <div
           class="component"
           style:background-color={`hsl(${component.hue}deg var(--component-saturation) var(--component-lightness))`}
