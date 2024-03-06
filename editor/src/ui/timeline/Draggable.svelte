@@ -4,7 +4,6 @@
   import { project } from "../../data/stores";
   import ComponentBody from "./ComponentBody.svelte";
 
-  export let timelineElement: HTMLElement;
   export let getComponent: () => Component | undefined;
   export let hideChildOnDrag = false;
 
@@ -30,7 +29,9 @@
   }
 
   function dragMove(event: MouseEvent) {
-    const timelineBox = timelineElement.getBoundingClientRect();
+    const timelineBox = document
+      .getElementById("timeline")!
+      .getBoundingClientRect();
 
     let width = draggingDuration * $project.openedSequence!.scale;
     let height = $project.openedSequence!.layerHeight;

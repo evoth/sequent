@@ -11,7 +11,6 @@
   export let title: string;
   export let name: string;
   export let manager: Manager<Action | Sequence>;
-  export let timelineElement: HTMLElement;
 
   function getComponent(component: Action | Sequence): Component | undefined {
     if ($project.openedSequence === undefined) return;
@@ -51,7 +50,7 @@
   {#each manager.children.entries() as [id, component] (id)}
     <!-- TODO: disallow any sequences which depend on current sequence -->
     {#if component !== $project.openedSequence}
-      <Draggable {timelineElement} getComponent={() => getComponent(component)}>
+      <Draggable getComponent={() => getComponent(component)}>
         <div
           class="component"
           style:background-color={`hsl(${component.hue}deg var(--component-saturation) var(--component-lightness))`}

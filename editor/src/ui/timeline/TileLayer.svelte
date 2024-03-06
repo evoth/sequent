@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Component, Layer } from "../../data/sequence";
+  import Draggable from "./Draggable.svelte";
   import LayerComponentWrapper from "./LayerComponentWrapper.svelte";
 
   export let offset: number;
@@ -57,13 +58,15 @@
   style:background-color={`var(--gray-${index % 2 == 0 ? "93" : "95"})`}
 >
   {#each components as [component, start, end]}
-    <LayerComponentWrapper
-      {offset}
-      tileDuration={duration}
-      {component}
-      {start}
-      {end}
-    />
+    <Draggable getComponent={() => component} hideChildOnDrag>
+      <LayerComponentWrapper
+        {offset}
+        tileDuration={duration}
+        {component}
+        {start}
+        {end}
+      />
+    </Draggable>
   {/each}
 </div>
 

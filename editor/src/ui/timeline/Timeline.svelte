@@ -7,7 +7,8 @@
   import { RelativeTimescales } from "./timescale";
 
   export let sequence: Sequence;
-  export let timelineElement: HTMLElement;
+
+  let timelineElement: HTMLElement;
 
   let width = 0;
   let height = 0;
@@ -76,11 +77,12 @@
 </script>
 
 <div
+  id="timeline"
   class="container"
+  bind:this={timelineElement}
   on:wheel={handleScroll}
   bind:clientWidth={width}
   bind:clientHeight={height}
-  bind:this={timelineElement}
 >
   <div
     class="timelineTiles"
