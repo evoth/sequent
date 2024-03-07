@@ -35,7 +35,7 @@
   ): [offset: number, pixels: number][] {
     if (sequence === undefined || draggingDuration === undefined) return [];
 
-    const timelineStart = sequence.offset;
+    const timelineStart = Math.max(0, sequence.offset);
     const timelineEnd = sequence.offset + timelineBox.width / sequence.scale;
     const offsetValid = (offset: number) =>
       offset + draggingDuration > timelineStart && offset < timelineEnd;
@@ -67,7 +67,7 @@
 
       if (
         startOffset !== undefined &&
-        startOffset - prevEnd > draggingDuration
+        startOffset - prevEnd >= draggingDuration
       ) {
         if (offsetValid(prevEnd)) {
           snaps.push([prevEnd, ENDPOINT_SNAP_PX]);
