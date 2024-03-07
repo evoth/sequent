@@ -1,8 +1,9 @@
 <script lang="ts">
   import Portal from "svelte-portal";
-  import { Component, Layer, Sequence } from "../../data/sequence";
+  import { Component, Layer, LayerError, Sequence } from "../../data/sequence";
   import { updateIndex } from "../../data/stores";
   import ComponentBody from "./ComponentBody.svelte";
+  import { LABEL_TIMESCALE_PX, RelativeTimescales } from "./timescale";
 
   export let getComponent: () => Component | undefined;
   export let hideChildOnDrag = false;
@@ -18,8 +19,109 @@
   let previewBox: DOMRect;
   let previewLayer: number;
   let previewOffset: number;
+  let previewNoSnap: boolean;
+
+  let snapPoints: [offset: number, pixels: number][];
+  let snapLayer: number | undefined;
 
   let outsideBounds = true;
+
+  const ENDPOINT_SNAP_PX = 25;
+  const TICK_SNAP_PX = 0;
+
+  function getSnapPoints(
+    layerIndex: number,
+    timelineBox: DOMRect
+  ): [offset: number, pixels: number][] {
+    if (sequence === undefined || draggingDuration === undefined) return [];
+
+    const timelineStart = sequence.offset;
+    const timelineEnd = sequence.offset + timelineBox.width / sequence.scale;
+    const offsetValid = (offset: number) =>
+      offset + draggingDuration > timelineStart && offset < timelineEnd;
+    const tickTimescale = RelativeTimescales.shiftIndex(
+      RelativeTimescales.bestTimescale(LABEL_TIMESCALE_PX, sequence.scale),
+      2
+    );
+    const tickSnaps = (
+      start: number,
+      end: number
+    ): [offset: number, pixels: number][] => {
+      const tickIntervals = tickTimescale.getLabelIntervals(start, end);
+      return tickIntervals
+        .map(([offset, label]): [number, number] => [offset, TICK_SNAP_PX])
+        .filter(([offset, pixels]) => offsetValid(offset));
+    };
+
+    const layerValidation = sequence.layers[layerIndex].validate(dragging);
+    if (layerValidation.error === LayerError.Empty)
+      return tickSnaps(timelineStart, timelineEnd);
+    if (layerValidation.childBounds === undefined) return [];
+
+    let snaps: [offset: number, pixels: number][] = [];
+    let prevEnd: number | undefined = 0;
+    for (const [start, end] of layerValidation.childBounds) {
+      if (prevEnd === undefined) break;
+      const startOffset = start?.getOffset()[0];
+      const endOffset = end?.getOffset()[0];
+
+      if (
+        startOffset !== undefined &&
+        startOffset - prevEnd > draggingDuration
+      ) {
+        if (offsetValid(prevEnd)) {
+          snaps.push([prevEnd, ENDPOINT_SNAP_PX]);
+        }
+        if (offsetValid(startOffset - draggingDuration)) {
+          snaps.push([startOffset - draggingDuration, ENDPOINT_SNAP_PX]);
+        }
+        snaps = [
+          ...snaps,
+          ...tickSnaps(
+            Math.max(timelineStart, prevEnd),
+            Math.min(timelineEnd, startOffset - draggingDuration)
+          ),
+        ];
+      }
+
+      prevEnd = endOffset;
+    }
+
+    if (prevEnd !== undefined && offsetValid(prevEnd)) {
+      snaps = [
+        ...snaps,
+        [prevEnd, ENDPOINT_SNAP_PX],
+        ...tickSnaps(Math.max(timelineStart, prevEnd), timelineEnd),
+      ];
+    }
+
+    return snaps;
+  }
+
+  function snap(
+    offset: number,
+    snaps: [offset: number, pixels: number][]
+  ): number | undefined {
+    if (sequence === undefined) return undefined;
+
+    let snapOffset: number | undefined = undefined;
+    let snapPixels = 0;
+
+    for (const [sOffset, sPixels] of snaps) {
+      const diff = Math.abs(offset - sOffset);
+      if (diff <= sPixels / sequence.scale && sPixels > snapPixels) {
+        snapOffset = sOffset;
+        snapPixels = sPixels;
+      } else if (
+        (snapOffset === undefined || diff < Math.abs(offset - snapOffset)) &&
+        snapPixels === 0
+      ) {
+        snapOffset = sOffset;
+      }
+    }
+
+    return snapOffset;
+  }
 
   function dragStart(event: MouseEvent) {
     event.preventDefault();
@@ -34,6 +136,7 @@
     draggingDuration = dragging?.getDuration()[1] ?? 5;
     // TODO: account for padding
     dragOffset = [event.offsetX, event.offsetY];
+    snapLayer = undefined;
     dragMove(event);
 
     sequence.layers.push(new Layer([], sequence.rootTimestamp));
@@ -43,17 +146,28 @@
   function dragMove(event: MouseEvent) {
     if (sequence === undefined) return;
 
-    const timelineBox = document
-      .getElementById("timeline")!
-      .getBoundingClientRect();
-
     let width = draggingDuration * sequence.scale;
     let height = sequence.layerHeight;
-    let x = event.clientX - Math.min(width, dragOffset[0]);
-    let y = event.clientY - Math.min(height, dragOffset[1]);
+    const DRAG_EDGE_BUFFER = 20;
+    let x =
+      event.clientX -
+      Math.min(
+        width - DRAG_EDGE_BUFFER,
+        Math.max(DRAG_EDGE_BUFFER, dragOffset[0])
+      );
+    let y =
+      event.clientY -
+      Math.min(
+        height - DRAG_EDGE_BUFFER,
+        Math.max(DRAG_EDGE_BUFFER, dragOffset[1])
+      );
 
     // TODO: Handle infinite sequences (starting at negative infinity)
     draggingBox = new DOMRect(x, y, width, height);
+
+    const timelineBox = document
+      .getElementById("timeline")!
+      .getBoundingClientRect();
 
     if (
       event.clientX < timelineBox.left ||
@@ -79,10 +193,26 @@
       Math.min(sequence.layers.length - 1, previewLayer)
     );
 
-    previewOffset = timelineX / sequence.scale + sequence.offset;
+    if (snapLayer !== previewLayer) {
+      snapLayer = previewLayer;
+      snapPoints = getSnapPoints(snapLayer, timelineBox);
+    }
+
+    const snappedOffset = snap(
+      timelineX / sequence.scale + sequence.offset,
+      snapPoints
+    );
+    if (snappedOffset === undefined) {
+      previewNoSnap = true;
+      return;
+    } else {
+      previewNoSnap = false;
+    }
+
+    previewOffset = snappedOffset;
 
     previewBox = new DOMRect(
-      x,
+      timelineBox.left + (previewOffset - sequence.offset) * sequence.scale,
       timelineBox.height / 2 +
         timelineBox.top -
         (previewLayer + 1) * sequence.layerHeight +
@@ -95,10 +225,12 @@
   function dragEnd(event: MouseEvent) {
     if (sequence === undefined || dragging === undefined) return;
 
-    removeComponent();
+    if (!previewNoSnap) {
+      removeComponent();
+    }
 
     // TODO: Should probably have error handling here
-    if (!outsideBounds) {
+    if (!outsideBounds && !previewNoSnap) {
       dragging.props.constraints.start!.value = previewOffset;
       sequence.layers[previewLayer].children.add(dragging);
     }
@@ -128,7 +260,7 @@
   <Portal target="body">
     <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div class="dragArea" on:mousemove={dragMove} on:mouseup={dragEnd}>
-      {#if !outsideBounds}
+      {#if !outsideBounds && !previewNoSnap}
         <div
           class="previewContainer"
           style:left={`${previewBox.left}px`}
@@ -146,7 +278,11 @@
         style:width={`${draggingBox.width}px`}
         style:height={`${draggingBox.height}px`}
       >
-        <ComponentBody component={dragging} disabled={outsideBounds} shadow />
+        <ComponentBody
+          component={dragging}
+          disabled={outsideBounds || previewNoSnap}
+          shadow
+        />
       </div>
     </div>
   </Portal>

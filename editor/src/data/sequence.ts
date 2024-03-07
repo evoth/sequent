@@ -167,6 +167,7 @@ export type LayerValidation = {
   childError?: RepeatError;
   start?: Timestamp;
   end?: Timestamp;
+  childBounds?: [start?: Timestamp, end?: Timestamp][];
 };
 
 export enum LayerError {
@@ -259,14 +260,19 @@ export class Layer implements Serializable {
     );
   }
 
-  validate(): LayerValidation {
-    if (this.children.size == 0) {
+  validate(excludeComponent?: Component): LayerValidation {
+    if (
+      this.children.size === 0 ||
+      (this.children.size === 1 &&
+        this.children.values().next().value === excludeComponent)
+    ) {
       return { error: LayerError.Empty };
     }
 
     const childBounds: [start?: Timestamp, end?: Timestamp][] = [];
     const rootTimestamps = new Set<Timestamp>();
     for (const child of this.children) {
+      if (child === excludeComponent) continue;
       const { error, solved } = child.validate();
       if (error !== RepeatError.None || solved === undefined) {
         return { error: LayerError.ChildError, childError: error };
@@ -305,7 +311,12 @@ export class Layer implements Serializable {
       prevEnd = end;
     }
 
-    return { error: LayerError.None, start: childBounds[0][0], end: prevEnd };
+    return {
+      error: LayerError.None,
+      start: childBounds[0][0],
+      end: prevEnd,
+      childBounds: childBounds,
+    };
   }
 
   getDuration(): [error: LayerError, duration?: number] {

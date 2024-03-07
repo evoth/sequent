@@ -20,6 +20,7 @@
   ): [component: Component, start: number, end: number][] {
     const newComponents: [Component, number, number][] = [];
     // TODO: Make stuff work with absolute sequences (will have to change a lot of other stuff too)
+    // TODO: use childBounds from Layer.validate()
     for (const child of layer.children) {
       const validation = child.validate();
 

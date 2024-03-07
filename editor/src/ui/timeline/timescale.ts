@@ -1,3 +1,5 @@
+export const LABEL_TIMESCALE_PX = 360;
+
 // All durations in seconds
 export class Timescale {
   readonly titleInterval: number | undefined;

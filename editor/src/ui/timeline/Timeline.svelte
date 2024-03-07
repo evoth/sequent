@@ -5,7 +5,7 @@
   import TimelineTile from "./TimelineTile.svelte";
   import TimescaleLabel from "./TimescaleLabel.svelte";
   import TimescaleTile from "./TimescaleTile.svelte";
-  import { RelativeTimescales } from "./timescale";
+  import { LABEL_TIMESCALE_PX, RelativeTimescales } from "./timescale";
 
   export let sequence: Sequence;
 
@@ -20,7 +20,10 @@
   $: start = sequence.offset;
   $: end = start + width / sequence.scale;
 
-  $: timescale = RelativeTimescales.bestTimescale(360, sequence.scale);
+  $: timescale = RelativeTimescales.bestTimescale(
+    LABEL_TIMESCALE_PX,
+    sequence.scale
+  );
   $: titleIntervals = timescale.getTitleIntervals(start, end);
   $: timelineTileIntervals = timescale.getTileIntervals(start, end);
   $: tilesEnd =
@@ -90,7 +93,7 @@
     style:transform={`translateY(${sequence.scroll}px)`}
     style:height={`${sequence.layerHeight}px`}
   >
-    {#each timelineTileIntervals.toReversed() as [tileOffset, _], tileIndex (`${tileOffset} ${timescale.tileInterval} ${$updateIndex}`)}
+    {#each timelineTileIntervals.toReversed() as [tileOffset, _], tileIndex (`${tileOffset} ${timescale.tileInterval} ${$updateIndex} ${sequence.id}`)}
       <Tile offset={tileOffset} duration={timescale.tileInterval} {sequence}>
         <TimelineTile
           offset={tileOffset}
