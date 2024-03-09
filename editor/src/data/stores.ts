@@ -1,5 +1,6 @@
 import { readable, writable } from "svelte/store";
 import { NestedParameter, NumberParameter, StringParameter } from "./parameter";
+import { Component, Sequence } from "./sequence";
 
 import { Action } from "./action";
 import { ActionSet } from "./actionSet";
@@ -66,3 +67,7 @@ newDB.initAutosave(fileHandle, "fileHandle");
 export const db = readable(newDB);
 
 export const updateIndex = writable(0);
+
+export const selectedComponents = writable<
+  Map<Sequence, Component | undefined>
+>(new Map());

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Sequence } from "../../data/sequence";
-  import { updateIndex } from "../../data/stores";
+  import { selectedComponents, updateIndex } from "../../data/stores";
   import Tile from "./Tile.svelte";
   import TimelineTile from "./TimelineTile.svelte";
   import TimescaleLabel from "./TimescaleLabel.svelte";
@@ -80,6 +80,9 @@
   }
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-click-events-have-key-events -->
 <div
   id="timeline"
   class="container"
@@ -87,6 +90,10 @@
   on:wheel={handleScroll}
   bind:clientWidth={width}
   bind:clientHeight={height}
+  on:click={() => {
+    $selectedComponents.set(sequence, undefined);
+    $selectedComponents = $selectedComponents;
+  }}
 >
   <div
     class="timelineTiles"

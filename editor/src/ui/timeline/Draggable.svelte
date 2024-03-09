@@ -1,7 +1,7 @@
 <script lang="ts">
   import Portal from "svelte-portal";
   import { Component, Layer, LayerError, Sequence } from "../../data/sequence";
-  import { updateIndex } from "../../data/stores";
+  import { selectedComponents, updateIndex } from "../../data/stores";
   import ComponentBody from "./ComponentBody.svelte";
   import { LABEL_TIMESCALE_PX, RelativeTimescales } from "./timescale";
 
@@ -60,7 +60,10 @@
 
     const layerValidation = sequence.layers[layerIndex].validate(dragging);
     if (layerValidation.error === LayerError.Empty)
-      return tickSnaps(timelineStart, timelineEnd);
+      return tickSnaps(
+        Math.max(0, timelineStart - draggingDuration),
+        timelineEnd
+      );
     if (layerValidation.childBounds === undefined) return [];
 
     let snaps: [offset: number, pixels: number][] = [];
@@ -261,6 +264,7 @@
     if (!outsideBounds && !previewNoSnap) {
       dragging.props.constraints.start!.value = previewOffset;
       sequence.layers[previewLayer].children.add(dragging);
+      $selectedComponents.set(sequence, dragging);
     }
 
     $updateIndex++;
