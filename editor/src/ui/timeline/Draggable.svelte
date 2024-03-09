@@ -26,8 +26,13 @@
 
   let outsideBounds = true;
 
+  let originalBox: DOMRect;
+  let isDragging: boolean;
+  $: addRemoveExtraLayer(isDragging);
+
   const ENDPOINT_SNAP_PX = 25;
   const TICK_SNAP_PX = 0;
+  const MIN_DRAG_DELTA = 10;
 
   function getSnapPoints(
     layerIndex: number,
@@ -123,10 +128,29 @@
     return snapOffset;
   }
 
+  function hasBeenDragged(event: MouseEvent): boolean {
+    return (
+      Math.abs(event.clientX - (originalBox.x + dragOffset[0])) >=
+        MIN_DRAG_DELTA ||
+      Math.abs(event.clientY - (originalBox.y + dragOffset[1])) >=
+        MIN_DRAG_DELTA
+    );
+  }
+
+  function addRemoveExtraLayer(newIsDragging: boolean) {
+    if (sequence === undefined) return;
+    if (newIsDragging) {
+      sequence.layers.push(new Layer([], sequence.rootTimestamp));
+      sequence.layers = sequence.layers;
+    } else {
+      sequence.layers = sequence.layers.filter(
+        (layer) => layer.children.size > 0
+      );
+    }
+  }
+
   function dragStart(event: MouseEvent) {
     event.preventDefault();
-
-    if (sequence === undefined) return;
 
     dragging = getComponent();
 
@@ -134,13 +158,13 @@
     if (dragging === undefined) return;
 
     draggingDuration = dragging?.getDuration()[1] ?? 5;
-    // TODO: account for padding
-    dragOffset = [event.offsetX, event.offsetY];
+    originalBox = (event.target as HTMLElement)
+      .closest(".dragParent > *")!
+      .getBoundingClientRect();
+    dragOffset = [event.clientX - originalBox.x, event.clientY - originalBox.y];
     snapLayer = undefined;
+    isDragging = false;
     dragMove(event);
-
-    sequence.layers.push(new Layer([], sequence.rootTimestamp));
-    sequence.layers = sequence.layers;
   }
 
   function dragMove(event: MouseEvent) {
@@ -148,19 +172,23 @@
 
     let width = draggingDuration * sequence.scale;
     let height = sequence.layerHeight;
+
+    isDragging = hasBeenDragged(event);
     const DRAG_EDGE_BUFFER = 20;
-    let x =
-      event.clientX -
-      Math.min(
-        width - DRAG_EDGE_BUFFER,
-        Math.max(DRAG_EDGE_BUFFER, dragOffset[0])
-      );
-    let y =
-      event.clientY -
-      Math.min(
-        height - DRAG_EDGE_BUFFER,
-        Math.max(DRAG_EDGE_BUFFER, dragOffset[1])
-      );
+
+    let offsetX = dragOffset[0];
+    offsetX = Math.min(
+      width - DRAG_EDGE_BUFFER,
+      Math.max(DRAG_EDGE_BUFFER, offsetX)
+    );
+    let x = isDragging ? event.clientX - offsetX : originalBox.x;
+
+    let offsetY = dragOffset[1];
+    offsetY = Math.min(
+      height - DRAG_EDGE_BUFFER,
+      Math.max(DRAG_EDGE_BUFFER, offsetY)
+    );
+    let y = isDragging ? event.clientY - offsetY : originalBox.y;
 
     // TODO: Handle infinite sequences (starting at negative infinity)
     draggingBox = new DOMRect(x, y, width, height);
@@ -235,22 +263,15 @@
       sequence.layers[previewLayer].children.add(dragging);
     }
 
-    const emptyLayers = new Set<Layer>();
-    for (const layer of sequence.layers) {
-      if (layer.children.size === 0) {
-        emptyLayers.add(layer);
-      }
-    }
-    sequence.layers = sequence.layers.filter((l) => !emptyLayers.has(l));
-
     $updateIndex++;
 
     dragging = undefined;
+    isDragging = false;
   }
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div on:mousedown={(event) => dragStart(event)}>
+<div class="dragParent" on:mousedown={(event) => dragStart(event)}>
   {#if !(hideChildOnDrag && dragging !== undefined)}
     <slot />
   {/if}
@@ -281,7 +302,8 @@
         <ComponentBody
           component={dragging}
           disabled={outsideBounds || previewNoSnap}
-          shadow
+          shadow={isDragging}
+          highlight
         />
       </div>
     </div>
