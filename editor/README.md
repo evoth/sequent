@@ -24,13 +24,14 @@ This will be a web-based editor for composing sequences using actions and parame
 - Fix weird white flash in sequence tabs area on refresh
 - Investigate using margins instead of absolute positioning in cases where it's feasible
 - Figure out mess of binding and be intentional with indices in each blocks
+  - Get rid of updateIndex
 - Prevent autosave from lagging drag and drop (it autosaves when creating the layer)
 - Also maybe try to make the database not lag the whole app
 - Weird cases to handle later
   - Duration changes (automatically move component to new layer if overlap?)
     - Sequence can change length whenever one of its components are modified, moved, removed, added, etc.
     - Duration can go to zero when add components removed from sequence
-      - Then that sequence will be a "ghost" that reappears when the sequence has a positive duration again
+      - Then that sequence will be a "ghost" that reappears when the sequence has a positive duration again (not desired behavior, to be clear)
   - Sequence tabs are in reverse order of dependency due to serialization stuff--maybe we'll leave it like this until we support tab reordering? But it would make sense to have them reversed of how they are right now
 - Disable infinity in negative direction for now? (still code defensively for it but don't specifically build features to support it, and don't allow it to be selected by user)
 

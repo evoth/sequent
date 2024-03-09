@@ -1,6 +1,5 @@
 <script lang="ts">
   import { Component, Layer, Sequence } from "../../data/sequence";
-  import { updateIndex } from "../../data/stores";
   import Draggable from "./Draggable.svelte";
   import LayerComponentWrapper from "./LayerComponentWrapper.svelte";
 
@@ -56,8 +55,6 @@
 
   function removeComponent(component: Component) {
     layer.children.delete(component);
-    // TODO: CURSEDDDDDDDDDDDDDDDDDDD
-    $updateIndex++;
   }
 </script>
 
@@ -66,7 +63,7 @@
   style:transform={`translateY(${-index * 100}%)`}
   style:background-color={`var(--gray-${index % 2 == 0 ? "93" : "95"})`}
 >
-  {#each components as [component, start, end]}
+  {#each components as [component, start, end] (component)}
     <Draggable
       getComponent={() => component}
       hideChildOnDrag
