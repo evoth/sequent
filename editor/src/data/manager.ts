@@ -53,9 +53,10 @@ export class Manager<T extends Manageable<any>> implements Serializable {
     return String(this.idCounter++);
   }
 
-  // TODO: Add a method for dependency/cycle detection using DFS
-
-  topologicalSort(): void {
+  findChildDependants(): Map<
+    IdType,
+    { dependencies: number; dependants: Set<IdType> }
+  > {
     const graph = new Map<
       IdType,
       { dependencies: number; dependants: Set<IdType> }
@@ -78,6 +79,11 @@ export class Manager<T extends Manageable<any>> implements Serializable {
         graph.get(id)!.dependants.add(child.id);
       }
     }
+    return graph;
+  }
+
+  topologicalSort(): void {
+    const graph = this.findChildDependants();
 
     // Sort
     const sortedOrder: IdType[] = [];
@@ -151,4 +157,10 @@ export abstract class Manageable<T extends Manageable<T>>
   abstract add(): void;
 
   abstract getChildIds(): IdType[];
+
+  getDependants(): T[] {
+    return [...this.manager.findChildDependants().get(this.id)!.dependants].map(
+      (id) => this.manager.children.get(id)!
+    );
+  }
 }
