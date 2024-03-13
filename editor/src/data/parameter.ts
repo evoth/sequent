@@ -125,8 +125,8 @@ export class Parameter<T extends ParameterType> extends Manageable<
         new Map(
           nestedEntries.map(([key, paramIds]) => [
             parse(key),
-            paramIds.map((id: IdType) =>
-              managers.parameterManager.children.get(id)
+            paramIds.map(
+              (id: IdType) => managers.parameterManager.children.get(id)!
             ),
           ])
         );

@@ -1,7 +1,6 @@
 <script lang="ts">
   import { Sequence } from "../../data/sequence";
   import { project } from "../../data/stores";
-  import { Timestamp } from "../../data/timestamp";
   import SequenceChip from "./SequenceChip.svelte";
   import SequenceEditModal from "./SequenceEditModal.svelte";
 
@@ -13,14 +12,12 @@
 
   function newSequence() {
     // TODO: remove (debugging)
-    const rootTimestamp = new Timestamp($project.timestampManager, 0);
     // TODO: Figure out root timestamp stuff (option for "root" sequence)
     const newSequence = new Sequence(
       $project.sequenceManager,
       sequenceData.name,
       sequenceData.description,
-      [],
-      rootTimestamp
+      []
     );
     // // TODO: remove (debugging)
     // newSequence.layers.push(

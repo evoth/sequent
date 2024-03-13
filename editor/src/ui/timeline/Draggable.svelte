@@ -70,8 +70,8 @@
     let prevEnd: number | undefined = 0;
     for (const [start, end] of layerValidation.childBounds) {
       if (prevEnd === undefined) break;
-      const startOffset = start?.offset;
-      const endOffset = end?.offset;
+      const startOffset = start;
+      const endOffset = end;
 
       if (
         startOffset !== undefined &&
@@ -143,7 +143,7 @@
   function addRemoveExtraLayer(newIsDragging: boolean) {
     if (sequence === undefined) return;
     if (newIsDragging) {
-      sequence.layers.push(new Layer([], sequence.rootTimestamp));
+      sequence.layers.push(new Layer([]));
       sequence.layers = sequence.layers;
     } else {
       sequence.layers = sequence.layers.filter(
@@ -272,7 +272,7 @@
 
     // TODO: Should probably have error handling here
     if (!outsideBounds && !previewNoSnap) {
-      dragging.props.constraints.start!.value = previewOffset;
+      dragging.props.constraints.start! = previewOffset;
       sequence.layers[previewLayer].children.add(dragging);
     }
 

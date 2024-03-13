@@ -4,7 +4,6 @@
   import { RepeatProps } from "../../../data/repeat";
   import { Component, LayerMode, Sequence } from "../../../data/sequence";
   import { project } from "../../../data/stores";
-  import { Timestamp } from "../../../data/timestamp";
   import Draggable from "../../timeline/Draggable.svelte";
   import PaneSection from "../PaneSection.svelte";
 
@@ -19,12 +18,7 @@
 
     const repeatProps = new RepeatProps(
       {
-        start: new Timestamp(
-          $project.timestampManager,
-          0,
-          false,
-          $project.openedSequence.rootTimestamp
-        ),
+        start: 0,
         repetitions: 1,
         interval: 5,
       },
@@ -35,16 +29,10 @@
       return new Component(
         component.newState(),
         repeatProps,
-        LayerMode.Coincide,
-        $project.openedSequence.rootTimestamp
+        LayerMode.Coincide
       );
     } else if (component instanceof Sequence) {
-      return new Component(
-        component,
-        repeatProps,
-        LayerMode.Coincide,
-        $project.openedSequence.rootTimestamp
-      );
+      return new Component(component, repeatProps, LayerMode.Coincide);
     }
   }
 </script>

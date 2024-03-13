@@ -2,7 +2,6 @@ import type { Action } from "./action";
 import type { Manager } from "./manager";
 import type { Parameter } from "./parameter";
 import type { Sequence } from "./sequence";
-import type { Timestamp } from "./timestamp";
 
 export type CustomJSONValue =
   | any
@@ -23,7 +22,6 @@ export type EntityManagers = {
   actionManager: Manager<Action>;
   parameterManager: Manager<Parameter<any>>;
   sequenceManager: Manager<Sequence>;
-  timestampManager: Manager<Timestamp>;
 };
 
 export type FromJSON<T> = (

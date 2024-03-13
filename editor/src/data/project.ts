@@ -5,14 +5,12 @@ import { ActionSet } from "./actionSet";
 import { Manager } from "./manager";
 import { Parameter } from "./parameter";
 import { Sequence } from "./sequence";
-import { Timestamp } from "./timestamp";
 
 // project object project object project object project object
 export class Project implements Serializable {
   name: string;
   description: string;
   actionSet: ActionSet;
-  timestampManager: Manager<Timestamp>;
   sequenceManager: Manager<Sequence>;
   openedSequence?: Sequence;
   // TODO: add way to store order of sequence tabs
@@ -21,14 +19,12 @@ export class Project implements Serializable {
     name: string,
     description: string = "",
     actionSet: ActionSet,
-    timestampManager: Manager<Timestamp> = new Manager<Timestamp>(),
     sequenceManager: Manager<Sequence> = new Manager<Sequence>(),
     openedSequence?: Sequence
   ) {
     this.name = name;
     this.description = description;
     this.actionSet = actionSet;
-    this.timestampManager = timestampManager;
     this.sequenceManager = sequenceManager;
     this.openedSequence = openedSequence;
   }
@@ -38,7 +34,6 @@ export class Project implements Serializable {
       name: this.name,
       description: this.description,
       actionSet: this.actionSet,
-      timestampManager: this.timestampManager,
       sequenceManager: this.sequenceManager,
       openedSequence: this.openedSequence?.id,
       schemaVersion: 0,
@@ -50,18 +45,11 @@ export class Project implements Serializable {
       actionManager: new Manager<Action>(),
       parameterManager: new Manager<Parameter<any>>(),
       sequenceManager: new Manager<Sequence>(),
-      timestampManager: new Manager<Timestamp>(),
     };
     return new Project(
       json.name,
       json.description,
       ActionSet.fromJSON(json.actionSet, managers),
-      Manager.fromJSON(
-        json.timestampManager,
-        managers,
-        Timestamp.fromJSON,
-        managers.timestampManager
-      ),
       Manager.fromJSON(
         json.sequenceManager,
         managers,

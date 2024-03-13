@@ -4,27 +4,23 @@ import { Repeat, RepeatError, RepeatProps } from "./repeat";
 
 import type { Repeatable } from "./repeat";
 import type { CustomJSON, EntityManagers, Serializable } from "./serialization";
-import { Timestamp } from "./timestamp";
 
 export type SequenceValidation = {
   error: SequenceError;
   childError?: LayerError;
-  start?: Timestamp;
-  end?: Timestamp;
+  start?: number;
+  end?: number;
 };
 
 export enum SequenceError {
   None,
   ChildError,
-  TimestampRootMismatch,
-  WrongRootTimestamp,
 }
 
 export class Sequence extends Manageable<Sequence> implements Repeatable {
   layers: Layer[];
   // Undefined if root sequence
   // For right now, we don't support mixed layer types, so rootTimestamp is required
-  rootTimestamp: Timestamp;
   offset: number;
   scale: number;
   scroll: number;
@@ -35,7 +31,6 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
     name: string,
     description: string,
     layers: Layer[] = [],
-    rootTimestamp: Timestamp,
     offset: number = 0,
     scale: number = 10,
     scroll: number = 75,
@@ -45,7 +40,6 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
   ) {
     super(manager, name, description, id, hue);
     this.layers = layers;
-    this.rootTimestamp = rootTimestamp;
     this.offset = offset;
     this.scale = scale;
     this.scroll = scroll;
@@ -56,7 +50,6 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
     return {
       ...this.manageableJSON(),
       layers: this.layers,
-      rootTimestamp: this.rootTimestamp?.id,
       offset: this.offset,
       scale: this.scale,
       scroll: this.scroll,
@@ -73,7 +66,6 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
       json.name,
       json.description,
       json.layers.map((layerJson: any) => Layer.fromJSON(layerJson, managers)),
-      managers.timestampManager.children.get(json.rootTimestamp)!,
       json.offset,
       json.scale,
       json.scroll,
@@ -89,35 +81,27 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
 
   validate(): SequenceValidation {
     // https://sungazermusic.bandcamp.com/track/sequence-start
-    let sequenceStart: Timestamp | undefined = undefined;
-    let sequenceEnd: Timestamp | undefined = undefined;
+    let sequenceStart: number | undefined = undefined;
+    let sequenceEnd: number | undefined = undefined;
     for (const layer of this.layers) {
       const { error, childError, start, end } = layer.validate();
       if (error != LayerError.None) {
         return { error: SequenceError.ChildError, childError: error };
       }
 
-      if (this.rootTimestamp !== undefined) {
-        if (
-          sequenceStart === undefined ||
-          (start !== undefined &&
-            sequenceStart !== undefined &&
-            start.offset < sequenceStart.offset)
-        ) {
-          sequenceStart = start;
-        }
-        if (
-          sequenceEnd === undefined ||
-          (end !== undefined &&
-            sequenceEnd !== undefined &&
-            end.offset > sequenceEnd.offset)
-        ) {
-          sequenceEnd = end;
-        }
+      if (
+        sequenceStart === undefined ||
+        (start !== undefined &&
+          sequenceStart !== undefined &&
+          start < sequenceStart)
+      ) {
+        sequenceStart = start;
       }
-
-      if (layer.rootTimestamp !== this.rootTimestamp) {
-        return { error: SequenceError.WrongRootTimestamp };
+      if (
+        sequenceEnd === undefined ||
+        (end !== undefined && sequenceEnd !== undefined && end > sequenceEnd)
+      ) {
+        sequenceEnd = end;
       }
     }
 
@@ -135,7 +119,7 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
     if (validation.start === undefined || validation.end === undefined) {
       duration = undefined;
     } else {
-      duration = validation.end.offset - validation.start.offset;
+      duration = validation.end - validation.start;
     }
     return duration;
   }
@@ -165,17 +149,15 @@ export enum LayerMode {
 export type LayerValidation = {
   error: LayerError;
   childError?: RepeatError;
-  start?: Timestamp;
-  end?: Timestamp;
-  childBounds?: [start?: Timestamp, end?: Timestamp][];
+  start?: number;
+  end?: number;
+  childBounds?: [start?: number, end?: number][];
 };
 
 export enum LayerError {
   None,
   Empty,
   ChildError,
-  TimestampRootMismatch,
-  WrongRootTimestamp,
   ChildOverlap,
 }
 
@@ -187,10 +169,9 @@ export class Component extends Repeat implements Serializable {
     child: Repeatable,
     props: RepeatProps,
     layerMode: LayerMode,
-    rootTimestamp?: Timestamp,
     customName?: string
   ) {
-    super(child, props, rootTimestamp);
+    super(child, props);
     this.layerMode = layerMode;
     this.customName = customName;
   }
@@ -223,7 +204,6 @@ export class Component extends Repeat implements Serializable {
       RepeatProps.fromJSON(json.props, managers),
       // TODO: make sure enum conversion works correctly
       LayerMode[json.layerMode as keyof typeof LayerMode],
-      managers.timestampManager.children.get(json.rootTimestamp),
       json.customName
     );
   }
@@ -231,20 +211,14 @@ export class Component extends Repeat implements Serializable {
 
 export class Layer implements Serializable {
   children: Set<Component>;
-  // If sequence passes in root timestamp, all timestamps must descend from it.
-  // Otherwise (as in the case of the root sequence), any timestamp ancestor
-  // is fine as long as child timestamps are consistent with each other.
-  rootTimestamp?: Timestamp;
 
-  constructor(children: Component[] = [], rootTimestamp?: Timestamp) {
+  constructor(children: Component[] = []) {
     this.children = new Set<Component>(children);
-    this.rootTimestamp = rootTimestamp;
   }
 
   toJSON(): CustomJSON<Layer> {
     return {
       children: [...this.children],
-      rootTimestamp: this.rootTimestamp?.id,
     };
   }
 
@@ -255,8 +229,7 @@ export class Layer implements Serializable {
     return new Layer(
       json.children.map((componentJson: any) =>
         Component.fromJSON(componentJson, managers)
-      ),
-      managers.timestampManager.children.get(json.rootTimestamp)
+      )
     );
   }
 
@@ -269,8 +242,7 @@ export class Layer implements Serializable {
       return { error: LayerError.Empty };
     }
 
-    const childBounds: [start?: Timestamp, end?: Timestamp][] = [];
-    const rootTimestamps = new Set<Timestamp>();
+    const childBounds: [start?: number, end?: number][] = [];
     for (const child of this.children) {
       if (child === excludeComponent) continue;
       const { error, solved } = child.validate();
@@ -278,32 +250,19 @@ export class Layer implements Serializable {
         return { error: LayerError.ChildError, childError: error };
       }
       childBounds.push([solved.start, solved.end]);
-      rootTimestamps.add((solved.start ?? solved.end)!.root);
-    }
-
-    if (
-      this.rootTimestamp !== undefined &&
-      rootTimestamps.values().next().value !== this.rootTimestamp
-    ) {
-      return { error: LayerError.WrongRootTimestamp };
-    }
-    if (rootTimestamps.size > 1) {
-      return { error: LayerError.TimestampRootMismatch };
     }
 
     childBounds.sort((a, b) => {
       if (a[0] === undefined) return -1;
       if (b[0] === undefined) return 1;
-      return a[0].offset - b[0].offset;
+      return a[0] - b[0];
     });
 
-    let prevEnd: Timestamp | undefined = undefined;
+    let prevEnd: number | undefined = undefined;
     for (const [i, [start, end]] of childBounds.entries()) {
       if (
         i != 0 &&
-        (start === undefined ||
-          prevEnd === undefined ||
-          start.offset < prevEnd.offset)
+        (start === undefined || prevEnd === undefined || start < prevEnd)
       ) {
         return { error: LayerError.ChildOverlap };
       }
@@ -324,7 +283,7 @@ export class Layer implements Serializable {
     if (validation.start === undefined || validation.end === undefined) {
       duration = undefined;
     } else {
-      duration = validation.end.offset - validation.start.offset;
+      duration = validation.end - validation.start;
     }
     return [validation.error, duration];
   }

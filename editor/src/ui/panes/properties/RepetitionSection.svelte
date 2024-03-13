@@ -6,8 +6,11 @@
     type SolvedRepeatConstraints,
   } from "../../../data/repeat";
   import { Component, Sequence } from "../../../data/sequence";
-  import { project, selectedComponents } from "../../../data/stores";
-  import { Timestamp } from "../../../data/timestamp";
+  import {
+    project,
+    selectedComponents,
+    updateIndex,
+  } from "../../../data/stores";
   import PaneSection from "../PaneSection.svelte";
 
   let component: Component | undefined;
@@ -17,7 +20,6 @@
 
   $: component = getComponent($selectedComponents, $project.openedSequence);
   $: validation = component?.validate();
-  $: constraints = validation?.solved;
   $: selectedConstraints = component?.props.selectedConstraints ?? [];
 
   function getComponent(
@@ -33,19 +35,22 @@
   {#if component !== undefined && validation !== undefined}
     {#if validation.error !== RepeatError.None}
       <p>RepeatError: {validation.error}</p>
-    {:else if validation.solved !== undefined && constraints !== undefined}
+    {:else if validation.solved !== undefined}
       {#each Object.entries(validation.solved) as [constraint, value]}
         {#if selectedConstraints.includes(constraint)}
           <label class="horizontal">
             {constraint[0].toUpperCase() + constraint.substring(1)}:
-            <input type="number" step="any" min="0" />
+            <input
+              type="number"
+              step="any"
+              min="0"
+              bind:value={component.props.constraints[constraint]}
+              on:change={() => $updateIndex++}
+            />
           </label>
         {:else}
           <p>
-            {constraint[0].toUpperCase() + constraint.substring(1)}: {value instanceof
-            Timestamp
-              ? value.offset
-              : value}
+            {constraint[0].toUpperCase() + constraint.substring(1)}: {value}
           </p>
         {/if}
       {/each}

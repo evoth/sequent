@@ -33,14 +33,14 @@
           continue;
         }
       } else {
-        childStart = validation.solved.start.offset;
+        childStart = validation.solved.start;
       }
 
       let childEnd: number;
       if (validation.solved.end === undefined) {
         childEnd = newTilesEnd;
       } else {
-        childEnd = Math.min(newTilesEnd, validation.solved.end.offset);
+        childEnd = Math.min(newTilesEnd, validation.solved.end);
       }
 
       if (

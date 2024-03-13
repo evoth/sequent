@@ -3,7 +3,6 @@ import type { CustomJSON, EntityManagers, Serializable } from "./serialization";
 
 import { ActionState } from "./action";
 import { Sequence } from "./sequence";
-import { Timestamp } from "./timestamp";
 
 export interface Repeatable {
   // An undefined duration means infinite
@@ -14,19 +13,10 @@ export interface Repeatable {
 export class Repeat implements Serializable {
   child: Repeatable;
   props: RepeatProps;
-  // If sequence passes in root timestamp, all timestamps must descend from it.
-  // Otherwise (as in the case of the root sequence), any timestamp ancestor
-  // is fine as long as start/end timestamps are consistent with each other.
-  rootTimestamp?: Timestamp;
 
-  constructor(
-    child: Repeatable,
-    props: RepeatProps,
-    rootTimestamp?: Timestamp
-  ) {
+  constructor(child: Repeatable, props: RepeatProps) {
     this.child = child;
     this.props = props;
-    this.rootTimestamp = rootTimestamp;
   }
 
   toJSON(): CustomJSON<Repeat> {
@@ -45,7 +35,6 @@ export class Repeat implements Serializable {
     return {
       child: childJSON,
       props: this.props,
-      rootTimestamp: this.rootTimestamp?.id,
     };
   }
 
@@ -60,10 +49,7 @@ export class Repeat implements Serializable {
     const childDuration = this.child.getDuration();
     if (childDuration === undefined) return [RepeatError.ChildDurationInfinite];
 
-    const { error, solved } = this.props.validate(
-      childDuration,
-      this.rootTimestamp
-    );
+    const { error, solved } = this.props.validate(childDuration);
     return [error, solved?.duration];
   }
 }
@@ -78,8 +64,6 @@ export enum RepeatError {
   WrongNumConstraints,
   InvalidConstraints,
   EmptyConstraints,
-  TimestampRootMismatch,
-  WrongRootTimestamp,
   EndBeforeStart,
   NegativeDuration,
   TooFewRepetitions,
@@ -90,16 +74,16 @@ export enum RepeatError {
 }
 
 export type RepeatConstraints = {
-  start?: Timestamp;
-  end?: Timestamp;
+  start?: number;
+  end?: number;
   duration?: number;
   repetitions?: number;
   interval?: number;
 };
 
 export type SolvedRepeatConstraints = {
-  start?: Timestamp;
-  end?: Timestamp;
+  start?: number;
+  end?: number;
   duration?: number;
   repetitions: number;
   interval: number;
@@ -146,8 +130,8 @@ export class RepeatProps implements Serializable {
   toJSON(): CustomJSON<RepeatProps> {
     return {
       constraints: {
-        start: this.constraints.start?.id,
-        end: this.constraints.end?.id,
+        start: this.constraints.start,
+        end: this.constraints.end,
         duration: this.constraints.duration,
         repetitions: this.constraints.repetitions,
         interval: this.constraints.interval,
@@ -164,8 +148,8 @@ export class RepeatProps implements Serializable {
   ): RepeatProps {
     return new RepeatProps(
       {
-        start: managers.timestampManager.children.get(json.constraints.start),
-        end: managers.timestampManager.children.get(json.constraints.end),
+        start: json.constraints.start,
+        end: json.constraints.end,
         duration: json.constraints.duration,
         repetitions: json.constraints.repetitions,
         interval: json.constraints.interval,
@@ -213,7 +197,7 @@ export class RepeatProps implements Serializable {
     return this.selectedConstraints.includes(constraintName);
   }
 
-  validate(childDuration: number, rootTimestamp?: Timestamp): RepeatValidation {
+  validate(childDuration: number): RepeatValidation {
     const constraintError = this.validateConstraints();
     if (constraintError !== RepeatError.None) {
       return { error: constraintError };
@@ -228,31 +212,9 @@ export class RepeatProps implements Serializable {
     }
 
     if (this.isSelected("start") && this.isSelected("end")) {
-      const [startOffset, startRoot] = this.constraints.start!.getOffset();
-      const [endOffset, endRoot] = this.constraints.end!.getOffset();
-      // If both start and end are used, they have to be descended from the same root timestamp
-      if (startRoot !== endRoot) {
-        return { error: RepeatError.TimestampRootMismatch };
-      }
       // Must end after start!
-      if (endOffset < startOffset) {
+      if (this.constraints.end! < this.constraints.start!) {
         return { error: RepeatError.EndBeforeStart };
-      }
-    }
-
-    // If rootTimestamp is supplied, both timestamps must be descended from it
-    if (rootTimestamp !== undefined) {
-      if (
-        this.isSelected("start") &&
-        this.constraints.start!.root !== rootTimestamp
-      ) {
-        return { error: RepeatError.WrongRootTimestamp };
-      }
-      if (
-        this.isSelected("end") &&
-        this.constraints.end!.root !== rootTimestamp
-      ) {
-        return { error: RepeatError.WrongRootTimestamp };
       }
     }
 
@@ -275,7 +237,7 @@ export class RepeatProps implements Serializable {
     if (this.isSelected("duration")) {
       duration = this.constraints.duration!;
     } else if (this.isSelected("start") && this.isSelected("end")) {
-      duration = this.constraints.end!.offset - this.constraints.start!.offset;
+      duration = this.constraints.end! - this.constraints.start!;
     } else if (this.isSelected("interval")) {
       let interval = this.constraints.interval!;
       if (!this.includeChildDuration) {
@@ -297,38 +259,26 @@ export class RepeatProps implements Serializable {
     }
 
     // Solve for start
-    let start: Timestamp | null;
+    let start: number | null;
     if (this.isSelected("start")) {
       start = this.constraints.start!;
     } else {
       if (duration === null) {
         start = null;
       } else {
-        const end = this.constraints.end!;
-        start = new Timestamp(
-          end.manager,
-          end.value - duration,
-          false,
-          end.relativeTo
-        );
+        start = this.constraints.end! - duration;
       }
     }
 
     // Solve for end
-    let end: Timestamp | null;
+    let end: number | null;
     if (this.isSelected("end")) {
       end = this.constraints.end!;
     } else {
       if (duration === null) {
         end = null;
       } else {
-        const start = this.constraints.start!;
-        end = new Timestamp(
-          start.manager,
-          start.value + duration,
-          false,
-          start.relativeTo
-        );
+        end = this.constraints.start! + duration;
       }
     }
 
