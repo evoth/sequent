@@ -25,7 +25,6 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
   // Undefined if root sequence
   // For right now, we don't support mixed layer types, so rootTimestamp is required
   rootTimestamp: Timestamp;
-  isAbsolute: boolean;
   offset: number;
   scale: number;
   scroll: number;
@@ -37,7 +36,6 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
     description: string,
     layers: Layer[] = [],
     rootTimestamp: Timestamp,
-    isAbsolute: boolean = false,
     offset: number = 0,
     scale: number = 10,
     scroll: number = 75,
@@ -48,7 +46,6 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
     super(manager, name, description, id, hue);
     this.layers = layers;
     this.rootTimestamp = rootTimestamp;
-    this.isAbsolute = isAbsolute;
     this.offset = offset;
     this.scale = scale;
     this.scroll = scroll;
@@ -60,7 +57,6 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
       ...this.manageableJSON(),
       layers: this.layers,
       rootTimestamp: this.rootTimestamp?.id,
-      isAbsolute: this.isAbsolute,
       offset: this.offset,
       scale: this.scale,
       scroll: this.scroll,
@@ -78,7 +74,6 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
       json.description,
       json.layers.map((layerJson: any) => Layer.fromJSON(layerJson, managers)),
       managers.timestampManager.children.get(json.rootTimestamp)!,
-      json.isAbsolute,
       json.offset,
       json.scale,
       json.scroll,
@@ -107,7 +102,7 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
           sequenceStart === undefined ||
           (start !== undefined &&
             sequenceStart !== undefined &&
-            start.getOffset()[0] < sequenceStart.getOffset()[0])
+            start.offset < sequenceStart.offset)
         ) {
           sequenceStart = start;
         }
@@ -115,7 +110,7 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
           sequenceEnd === undefined ||
           (end !== undefined &&
             sequenceEnd !== undefined &&
-            end.getOffset()[0] > sequenceEnd.getOffset()[0])
+            end.offset > sequenceEnd.offset)
         ) {
           sequenceEnd = end;
         }
@@ -140,8 +135,7 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
     if (validation.start === undefined || validation.end === undefined) {
       duration = undefined;
     } else {
-      duration =
-        validation.end.getOffset()[0] - validation.start.getOffset()[0];
+      duration = validation.end.offset - validation.start.offset;
     }
     return duration;
   }
@@ -284,8 +278,7 @@ export class Layer implements Serializable {
         return { error: LayerError.ChildError, childError: error };
       }
       childBounds.push([solved.start, solved.end]);
-      const [offset, root] = (solved.start ?? solved.end)!.getOffset();
-      rootTimestamps.add(root);
+      rootTimestamps.add((solved.start ?? solved.end)!.root);
     }
 
     if (
@@ -301,7 +294,7 @@ export class Layer implements Serializable {
     childBounds.sort((a, b) => {
       if (a[0] === undefined) return -1;
       if (b[0] === undefined) return 1;
-      return a[0].getOffset()[0] - b[0].getOffset()[0];
+      return a[0].offset - b[0].offset;
     });
 
     let prevEnd: Timestamp | undefined = undefined;
@@ -310,7 +303,7 @@ export class Layer implements Serializable {
         i != 0 &&
         (start === undefined ||
           prevEnd === undefined ||
-          start.getOffset()[0] < prevEnd.getOffset()[0])
+          start.offset < prevEnd.offset)
       ) {
         return { error: LayerError.ChildOverlap };
       }
@@ -331,8 +324,7 @@ export class Layer implements Serializable {
     if (validation.start === undefined || validation.end === undefined) {
       duration = undefined;
     } else {
-      duration =
-        validation.end.getOffset()[0] - validation.start.getOffset()[0];
+      duration = validation.end.offset - validation.start.offset;
     }
     return [validation.error, duration];
   }

@@ -6,6 +6,7 @@
   import Pane from "./Pane.svelte";
   import PaneSection from "./PaneSection.svelte";
   import ComponentsSection from "./components/ComponentsSection.svelte";
+  import RepetitionSection from "./properties/RepetitionSection.svelte";
 
   export let width: number;
 </script>
@@ -26,7 +27,7 @@
         />
         {#if width < BREAKPOINT_XL}
           <PaneSection title="Parameters" name="properties-parameters" />
-          <PaneSection title="Repitition" name="properties-repitition" />
+          <RepetitionSection />
         {/if}
       </Pane>
     </div>
@@ -40,7 +41,7 @@
   {#if width >= BREAKPOINT_XL}
     <Pane>
       <PaneSection title="Parameters" name="properties-parameters" />
-      <PaneSection title="Repitition" name="properties-repitition" />
+      <RepetitionSection />
     </Pane>
   {/if}
 </div>
@@ -58,7 +59,7 @@
         bind:manager={$project.sequenceManager}
       />
       <PaneSection title="Parameters" name="properties-parameters" />
-      <PaneSection title="Repitition" name="properties-repitition" />
+      <RepetitionSection />
     </Pane>
   </div>
 {/if}

@@ -4,27 +4,35 @@ import type { CustomJSON, EntityManagers } from "./serialization";
 export class Timestamp extends Manageable<Timestamp> {
   value: number;
   relativeTo?: Timestamp;
+  // Only matters if timestamp is root timestamp
+  isAbsolute: boolean;
 
   constructor(
     manager: Manager<Timestamp>,
     value: number,
+    isAbsolute: boolean = false,
     relativeTo?: Timestamp,
     // TODO: fix it so that name can be undefined?
     name: string = "",
     description?: string,
     id?: IdType,
-    hue?: number
+    hue?: number,
+    addToManager?: boolean
   ) {
-    super(manager, name, description, id, hue);
+    super(manager, name, description, id, hue, addToManager);
     this.value = value;
     this.relativeTo = relativeTo;
+    this.isAbsolute = isAbsolute;
   }
 
   toJSON(): CustomJSON<Timestamp> {
     return {
       ...this.manageableJSON(),
       value: this.value,
+      isAbsolute: this.isAbsolute,
       relativeTo: this.relativeTo?.id,
+      offset: null,
+      root: null,
     };
   }
 
@@ -35,6 +43,7 @@ export class Timestamp extends Manageable<Timestamp> {
     return new Timestamp(
       managers.timestampManager,
       json.value,
+      json.isAbsolute,
       managers.timestampManager.children.get(json.relativeTo),
       json.name,
       json.description,
@@ -53,6 +62,18 @@ export class Timestamp extends Manageable<Timestamp> {
     }
     const [offset, root] = this.relativeTo.getOffset();
     return [offset + this.value, root];
+  }
+
+  get offset(): number {
+    return this.getOffset()[0];
+  }
+
+  set offset(newOffset: number) {
+    this.value = newOffset - (this.offset - this.value);
+  }
+
+  get root(): Timestamp {
+    return this.getOffset()[1];
   }
 
   getChildIds(): IdType[] {

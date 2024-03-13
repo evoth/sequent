@@ -167,6 +167,10 @@ label {
   flex-direction: column;
   gap: 0.5rem;
 }
+label.horizontal {
+  flex-direction: row;
+  align-items: center;
+}
 
 input, textarea {
   border-style: solid;

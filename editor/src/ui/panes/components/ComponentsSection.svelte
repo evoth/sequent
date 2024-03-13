@@ -22,6 +22,7 @@
         start: new Timestamp(
           $project.timestampManager,
           0,
+          false,
           $project.openedSequence.rootTimestamp
         ),
         repetitions: 1,

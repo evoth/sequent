@@ -129,7 +129,8 @@ export abstract class Manageable<T extends Manageable<T>>
     name: string,
     description: string = "",
     id?: IdType,
-    hue: number = Math.floor(Math.random() * 360)
+    hue: number = Math.floor(Math.random() * 360),
+    addToManager: boolean = true
   ) {
     this.manager = manager;
     this.name = name;
@@ -140,7 +141,7 @@ export abstract class Manageable<T extends Manageable<T>>
     } else {
       this.id = id;
     }
-    this.add();
+    if (addToManager) this.add();
   }
 
   abstract toJSON(): CustomJSON<Manageable<T>>;

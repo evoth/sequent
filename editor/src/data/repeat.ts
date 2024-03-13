@@ -107,12 +107,13 @@ export type SolvedRepeatConstraints = {
 
 // Represents a tree of valid constraints. For each step, the keys are the
 // valid values and the values are lists of valid constraints that can follow.
+// TODO: Allow infinite repetitions and anchoring by end time
 export const validConstraints: {
   [key in keyof RepeatConstraints]?: (keyof RepeatConstraints)[];
 }[] = [
   {
-    start: ["end", "duration", "repetitions", "interval"],
-    end: ["duration", "repetitions", "interval"],
+    start: ["end", "duration", "repetitions"], //, "interval"],
+    // end: ["duration", "repetitions", "interval"],
   },
   {
     end: ["repetitions", "interval"],
@@ -243,13 +244,13 @@ export class RepeatProps implements Serializable {
     if (rootTimestamp !== undefined) {
       if (
         this.isSelected("start") &&
-        this.constraints.start!.getOffset()[1] !== rootTimestamp
+        this.constraints.start!.root !== rootTimestamp
       ) {
         return { error: RepeatError.WrongRootTimestamp };
       }
       if (
         this.isSelected("end") &&
-        this.constraints.end!.getOffset()[1] !== rootTimestamp
+        this.constraints.end!.root !== rootTimestamp
       ) {
         return { error: RepeatError.WrongRootTimestamp };
       }
@@ -274,9 +275,7 @@ export class RepeatProps implements Serializable {
     if (this.isSelected("duration")) {
       duration = this.constraints.duration!;
     } else if (this.isSelected("start") && this.isSelected("end")) {
-      duration =
-        this.constraints.end!.getOffset()[0] -
-        this.constraints.start!.getOffset()[0];
+      duration = this.constraints.end!.offset - this.constraints.start!.offset;
     } else if (this.isSelected("interval")) {
       let interval = this.constraints.interval!;
       if (!this.includeChildDuration) {
@@ -309,6 +308,7 @@ export class RepeatProps implements Serializable {
         start = new Timestamp(
           end.manager,
           end.value - duration,
+          false,
           end.relativeTo
         );
       }
@@ -326,6 +326,7 @@ export class RepeatProps implements Serializable {
         end = new Timestamp(
           start.manager,
           start.value + duration,
+          false,
           start.relativeTo
         );
       }

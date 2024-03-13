@@ -28,7 +28,7 @@
     position: absolute;
     width: 100%;
     border-radius: 1rem;
-    padding: 1rem 0;
+    padding: 1rem 0.2rem;
     cursor: pointer;
     height: 90%;
     top: 5%;
@@ -52,6 +52,6 @@
   }
 
   .spacer {
-    width: 1rem;
+    width: 0.8rem;
   }
 </style>

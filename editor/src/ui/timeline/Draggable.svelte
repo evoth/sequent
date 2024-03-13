@@ -70,8 +70,8 @@
     let prevEnd: number | undefined = 0;
     for (const [start, end] of layerValidation.childBounds) {
       if (prevEnd === undefined) break;
-      const startOffset = start?.getOffset()[0];
-      const endOffset = end?.getOffset()[0];
+      const startOffset = start?.offset;
+      const endOffset = end?.offset;
 
       if (
         startOffset !== undefined &&
@@ -158,7 +158,9 @@
     dragging = getComponent();
 
     // TODO: Error handling
-    if (dragging === undefined) return;
+    if (sequence === undefined || dragging === undefined) return;
+
+    $selectedComponents.set(sequence, dragging);
 
     draggingDuration = dragging?.getDuration()[1] ?? 5;
     originalBox = (event.target as HTMLElement)
@@ -179,11 +181,16 @@
     isDragging = hasBeenDragged(event);
     const DRAG_EDGE_BUFFER = 20;
 
+    // TODO: If width is less that buffer * 2, offset should be width / 2
     let offsetX = dragOffset[0];
-    offsetX = Math.min(
-      width - DRAG_EDGE_BUFFER,
-      Math.max(DRAG_EDGE_BUFFER, offsetX)
-    );
+    if (width < DRAG_EDGE_BUFFER * 2) {
+      offsetX = width / 2;
+    } else {
+      offsetX = Math.min(
+        width - DRAG_EDGE_BUFFER,
+        Math.max(DRAG_EDGE_BUFFER, offsetX)
+      );
+    }
     let x = isDragging ? event.clientX - offsetX : originalBox.x;
 
     let offsetY = dragOffset[1];
@@ -256,6 +263,9 @@
   function dragEnd(event: MouseEvent) {
     if (sequence === undefined || dragging === undefined) return;
 
+    if (outsideBounds) {
+      $selectedComponents.set(sequence, undefined);
+    }
     if (!previewNoSnap) {
       removeComponent();
     }
@@ -264,7 +274,6 @@
     if (!outsideBounds && !previewNoSnap) {
       dragging.props.constraints.start!.value = previewOffset;
       sequence.layers[previewLayer].children.add(dragging);
-      $selectedComponents.set(sequence, dragging);
     }
 
     $updateIndex++;
