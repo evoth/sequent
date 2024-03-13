@@ -48,7 +48,18 @@
   }
 
   .highlight {
-    border: 1px solid var(--gray-35);
+    border: 2px solid var(--gray-35);
+  }
+  .highlight::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 1rem;
+    background-color: var(--gray-35);
+    opacity: 15%;
   }
 
   .spacer {

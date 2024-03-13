@@ -126,13 +126,15 @@
     component.props = props;
     $updateIndex++;
   }
+
+  const capitalize = (s: string) => s[0].toUpperCase() + s.substring(1);
 </script>
 
 <PaneSection title="Repetition" name={"properties-repitition"}>
   {#if component !== undefined && props !== undefined}
     {#each Object.entries(props.constraints) as [constraint, value]}
       <label class="horizontal">
-        {constraint[0].toUpperCase() + constraint.substring(1)}:
+        {capitalize(constraint)}:
         <input
           type="number"
           step="any"
@@ -179,7 +181,7 @@
             class="constraint-button"
             disabled={getConstraintOptions(i).length <= 1}
           >
-            {selectedConstraints[i]}
+            {capitalize(selectedConstraints[i])}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="1.3em"
@@ -199,7 +201,7 @@
                   on:click={() => {
                     selectConstraint(option, i);
                     toggleDropdown();
-                  }}>{option}</button
+                  }}>{capitalize(option)}</button
                 >
               {/if}
             {/each}
