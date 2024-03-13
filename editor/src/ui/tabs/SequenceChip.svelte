@@ -66,8 +66,8 @@
   <Dropdown closeCondition={deleteModalOpen || editModalOpen} align="top">
     <button
       slot="button"
-      let:openDropdown
-      on:click={openDropdown}
+      let:toggleDropdown
+      on:click={toggleDropdown}
       title="Sequence options"
       class="chip-button options"
     >

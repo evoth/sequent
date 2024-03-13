@@ -242,7 +242,8 @@ export class RepeatProps implements Serializable {
       let interval = this.constraints.interval!;
       if (!this.includeChildDuration) {
         interval += childDuration;
-      } else if (interval < childDuration) {
+      }
+      if (interval < childDuration) {
         return { error: RepeatError.IntervalTooShort };
       }
       if (this.isSelected("repetitions")) {
@@ -288,7 +289,8 @@ export class RepeatProps implements Serializable {
       interval = this.constraints.interval!;
       if (!this.includeChildDuration) {
         interval += childDuration;
-      } else if (interval < childDuration) {
+      }
+      if (interval < childDuration) {
         return { error: RepeatError.IntervalTooShort };
       }
     } else if (duration !== null) {
@@ -316,7 +318,7 @@ export class RepeatProps implements Serializable {
         fullDuration += interval - childDuration;
       }
       repetitions = Math.floor(fullDuration / interval);
-      if (repetitions < 2) {
+      if (repetitions < 1) {
         return { error: RepeatError.DurationTooShort };
       }
     } else {

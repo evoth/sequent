@@ -104,8 +104,8 @@
   <button
     class="menu-button"
     slot="button"
-    let:openDropdown
-    on:click={openDropdown}
+    let:toggleDropdown
+    on:click={toggleDropdown}
     title="File options">File</button
   >
   <svelte:fragment slot="buttons">

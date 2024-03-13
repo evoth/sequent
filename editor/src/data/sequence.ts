@@ -19,8 +19,6 @@ export enum SequenceError {
 
 export class Sequence extends Manageable<Sequence> implements Repeatable {
   layers: Layer[];
-  // Undefined if root sequence
-  // For right now, we don't support mixed layer types, so rootTimestamp is required
   offset: number;
   scale: number;
   scroll: number;
@@ -119,7 +117,7 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
     if (validation.start === undefined || validation.end === undefined) {
       duration = undefined;
     } else {
-      duration = validation.end - validation.start;
+      duration = validation.end;
     }
     return duration;
   }
@@ -283,7 +281,7 @@ export class Layer implements Serializable {
     if (validation.start === undefined || validation.end === undefined) {
       duration = undefined;
     } else {
-      duration = validation.end - validation.start;
+      duration = validation.end;
     }
     return [validation.error, duration];
   }
