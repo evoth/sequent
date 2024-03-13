@@ -37,6 +37,7 @@ This will be a web-based editor for composing sequences using actions and parame
   - Actually, we don't need infinity in *either* direction for MVP, so maybe let's not allow it for now?
 - Simplify draggable class to only have separate element when actually dragging, and only update info as needed (right now we keep it so that it can track mousemove events and stuff)
 - Simplify string indices from weird formatted string -> array
+- Add info hints (little circles with i or ? to explain things)
 
 ## Plan: FOCUS ON MVP!!
 

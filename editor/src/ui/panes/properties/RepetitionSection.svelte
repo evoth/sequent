@@ -4,6 +4,7 @@
     RepeatProps,
     validConstraints,
     type RepeatConstraints,
+    type RepeatValidation,
   } from "../../../data/repeat";
   import { Component, Sequence } from "../../../data/sequence";
   import {
@@ -60,7 +61,6 @@
     if (validationCheck.error !== RepeatError.None) {
       props.constraints[constraint] = prevValue;
       target.value = String(prevValue);
-      console.log(validationCheck.error);
       return;
     }
     if (validationCheck.solved !== undefined) {
@@ -92,10 +92,81 @@
       }
     }
   }
+
+  function testBoolean(
+    key: "trailingInterval" | "includeChildDuration",
+    newValue: boolean
+  ): RepeatValidation | undefined {
+    if (component === undefined || props === undefined) return undefined;
+    const childDuration = component.child.getDuration();
+    if (childDuration === undefined) return undefined;
+
+    // Tricking Svelte into not realizing I'm updating this object :)))
+    const secretPropsRef = props;
+    const prevValue = secretPropsRef[key];
+    secretPropsRef[key] = newValue;
+    const validationCheck = secretPropsRef.validate(childDuration);
+    secretPropsRef[key] = prevValue;
+    return validationCheck;
+  }
+
+  function updateBoolean(
+    event: Event,
+    key: "trailingInterval" | "includeChildDuration"
+  ) {
+    if (component === undefined || props === undefined) return undefined;
+    const target = event.target as HTMLInputElement;
+    const validationCheck = testBoolean(key, target.checked);
+    if (validationCheck === undefined || validationCheck.solved === undefined) {
+      target.checked = !target.checked;
+    } else {
+      props[key] = target.checked;
+      props.constraints = validationCheck.solved;
+    }
+    component.props = props;
+    $updateIndex++;
+  }
 </script>
 
 <PaneSection title="Repetition" name={"properties-repitition"}>
   {#if component !== undefined && props !== undefined}
+    {#each Object.entries(props.constraints) as [constraint, value]}
+      <label class="horizontal">
+        {constraint[0].toUpperCase() + constraint.substring(1)}:
+        <input
+          type="number"
+          step="any"
+          min="0"
+          {value}
+          on:change={(event) => updateConstraint(event, constraint)}
+          disabled={!selectedConstraints.includes(constraint)}
+        />
+      </label>
+    {/each}
+    <div class="boolean-options">
+      <label class="horizontal">
+        <input
+          type="checkbox"
+          checked={props.includeChildDuration}
+          on:change={(event) => updateBoolean(event, "includeChildDuration")}
+          disabled={testBoolean(
+            "includeChildDuration",
+            !props.includeChildDuration
+          )?.error !== RepeatError.None}
+        />
+        Interval includes child duration
+      </label>
+      <label class="horizontal">
+        <input
+          type="checkbox"
+          checked={props.trailingInterval}
+          on:change={(event) => updateBoolean(event, "trailingInterval")}
+          disabled={testBoolean("trailingInterval", !props.includeChildDuration)
+            ?.error !== RepeatError.None}
+        />
+        Include trailing interval
+      </label>
+    </div>
     {#each { length: 3 } as _, i ([i, selectedConstraints])}
       <div class="constraint-menu">
         <div>Constraint {i + 1}:</div>
@@ -136,19 +207,6 @@
         </Dropdown>
       </div>
     {/each}
-    {#each Object.entries(props.constraints) as [constraint, value]}
-      <label class="horizontal">
-        {constraint[0].toUpperCase() + constraint.substring(1)}:
-        <input
-          type="number"
-          step="any"
-          min="0"
-          {value}
-          on:change={(event) => updateConstraint(event, constraint)}
-          disabled={!selectedConstraints.includes(constraint)}
-        />
-      </label>
-    {/each}
   {/if}
 </PaneSection>
 
@@ -166,5 +224,16 @@
     gap: 0.4rem;
     width: 100%;
     justify-content: space-between;
+  }
+
+  .boolean-options {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 1rem;
+    gap: 1rem;
+  }
+  .boolean-options > label {
+    flex: 1;
+    white-space: nowrap;
   }
 </style>
