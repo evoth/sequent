@@ -1,14 +1,13 @@
 <script lang="ts">
-  export let title: string;
+  import { Svroller } from "svrollbar";
+
+  export let fullWidth = false;
 </script>
 
-<div class="container">
-  <div class="title">
-    <h2>{title}</h2>
-  </div>
-  <div class="sections">
+<div class="container" style:width={fullWidth ? "100%" : undefined}>
+  <Svroller width="100%" height="100%">
     <slot />
-  </div>
+  </Svroller>
 </div>
 
 <style>
@@ -16,14 +15,6 @@
     background-color: var(--gray-90);
     width: 360px;
     height: 100%;
-  }
-
-  .title {
-    background-color: var(--gray-90);
-    padding: 0.8rem;
-  }
-
-  .title > h2 {
-    font-size: 1.3rem;
+    border-bottom: var(--border-style);
   }
 </style>

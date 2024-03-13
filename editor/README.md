@@ -34,6 +34,7 @@ This will be a web-based editor for composing sequences using actions and parame
       - Then that sequence will be a "ghost" that reappears when the sequence has a positive duration again (not desired behavior, to be clear)
   - Sequence tabs are in reverse order of dependency due to serialization stuff--maybe we'll leave it like this until we support tab reordering? But it would make sense to have them reversed of how they are right now
 - Disable infinity in negative direction for now? (still code defensively for it but don't specifically build features to support it, and don't allow it to be selected by user)
+  - Actually, we don't need infinity in *either* direction for MVP, so maybe let's not allow it for now?
 - Simplify draggable class to only have separate element when actually dragging, and only update info as needed (right now we keep it so that it can track mousemove events and stuff)
 
 ## Plan: FOCUS ON MVP!!

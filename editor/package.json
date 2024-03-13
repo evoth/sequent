@@ -28,6 +28,7 @@
   "dependencies": {
     "svelte-dnd-action": "github:evoth/svelte-dnd-action#dragAxis",
     "svelte-modals": "^1.3.0",
-    "svelte-portal": "^2.2.1"
+    "svelte-portal": "^2.2.1",
+    "svrollbar": "^0.12.0"
   }
 }

@@ -55,7 +55,7 @@
     display: flex;
     flex-direction: column;
     background-color: var(--gray-90);
-    width: 360px;
+    width: 100%;
     height: 100%;
   }
   .heading {

@@ -1,39 +1,23 @@
 <script lang="ts">
-  import { project } from "./data/stores";
-  import Pane from "./ui/panes/Pane.svelte";
-  import PaneSection from "./ui/panes/PaneSection.svelte";
-  import ComponentsSection from "./ui/panes/components/ComponentsSection.svelte";
-  import SequenceTabs from "./ui/tabs/SequenceTabs.svelte";
-  import Timeline from "./ui/timeline/Timeline.svelte";
+  import { Svroller } from "svrollbar";
+  import PanesLayout from "./ui/panes/PanesLayout.svelte";
   import TitleBar from "./ui/titleBar/TitleBar.svelte";
+  import { BREAKPOINT_LG } from "./ui/utilities/breakpoints";
+
+  let width = 0;
 </script>
 
-<main>
+<main bind:clientWidth={width}>
   <TitleBar />
-  <div class="panes">
-    <Pane title="New components">
-      <ComponentsSection
-        title="Actions"
-        name="components-actions"
-        bind:manager={$project.actionSet.actionManager}
-      />
-      <ComponentsSection
-        title="Sequences"
-        name="components-sequences"
-        bind:manager={$project.sequenceManager}
-      />
-    </Pane>
-    <div class="timeline">
-      <SequenceTabs />
-      {#if $project.openedSequence !== undefined}
-        <Timeline bind:sequence={$project.openedSequence} />
-      {/if}
+  {#if width < BREAKPOINT_LG}
+    <div class="scrollContainer">
+      <Svroller width="100%" height="100%">
+        <PanesLayout {width} />
+      </Svroller>
     </div>
-    <Pane title="Properties">
-      <PaneSection title="Parameters" name="properties-parameters" />
-      <PaneSection title="Repitition" name="properties-repitition" />
-    </Pane>
-  </div>
+  {:else}
+    <PanesLayout {width} />
+  {/if}
 </main>
 
 <style>
@@ -45,17 +29,8 @@
     flex-direction: column;
   }
 
-  .panes {
+  .scrollContainer {
     flex: 1;
-    display: flex;
-  }
-
-  .timeline {
-    padding-top: 1rem;
-    flex: 1;
-    border-left: var(--border-style);
-    border-right: var(--border-style);
-    display: flex;
-    flex-direction: column;
+    min-height: 0;
   }
 </style>
