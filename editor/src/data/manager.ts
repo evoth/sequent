@@ -53,6 +53,7 @@ export class Manager<T extends Manageable<any>> implements Serializable {
     return String(this.idCounter++);
   }
 
+  // TODO: Figure out why this hangs when data is messed up somehow
   findChildDependants(): Map<
     IdType,
     { dependencies: number; dependants: Set<IdType> }

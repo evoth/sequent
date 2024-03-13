@@ -16,7 +16,11 @@
   class:highlight
   style:background-color={`hsl(${child.hue}deg var(--component-saturation) var(--component-lightness))`}
 >
-  <p>{child.name}</p>
+  <div class="spacer"></div>
+  <div class="label">
+    {child.name}
+  </div>
+  <div class="spacer"></div>
 </div>
 
 <style>
@@ -24,10 +28,12 @@
     position: absolute;
     width: 100%;
     border-radius: 1rem;
-    padding: 1rem;
+    padding: 1rem 0;
     cursor: pointer;
     height: 90%;
     top: 5%;
+    overflow: hidden;
+    display: flex;
   }
 
   .disabled {
@@ -43,5 +49,9 @@
 
   .highlight {
     border: 1px solid var(--gray-35);
+  }
+
+  .spacer {
+    width: 1rem;
   }
 </style>

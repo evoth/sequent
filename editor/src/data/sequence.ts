@@ -23,7 +23,9 @@ export enum SequenceError {
 export class Sequence extends Manageable<Sequence> implements Repeatable {
   layers: Layer[];
   // Undefined if root sequence
-  rootTimestamp?: Timestamp;
+  // For right now, we don't support mixed layer types, so rootTimestamp is required
+  rootTimestamp: Timestamp;
+  isAbsolute: boolean;
   offset: number;
   scale: number;
   scroll: number;
@@ -34,7 +36,8 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
     name: string,
     description: string,
     layers: Layer[] = [],
-    rootTimestamp?: Timestamp,
+    rootTimestamp: Timestamp,
+    isAbsolute: boolean = false,
     offset: number = 0,
     scale: number = 10,
     scroll: number = 75,
@@ -45,6 +48,7 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
     super(manager, name, description, id, hue);
     this.layers = layers;
     this.rootTimestamp = rootTimestamp;
+    this.isAbsolute = isAbsolute;
     this.offset = offset;
     this.scale = scale;
     this.scroll = scroll;
@@ -56,6 +60,7 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
       ...this.manageableJSON(),
       layers: this.layers,
       rootTimestamp: this.rootTimestamp?.id,
+      isAbsolute: this.isAbsolute,
       offset: this.offset,
       scale: this.scale,
       scroll: this.scroll,
@@ -72,7 +77,8 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
       json.name,
       json.description,
       json.layers.map((layerJson: any) => Layer.fromJSON(layerJson, managers)),
-      managers.timestampManager.children.get(json.rootTimestamp),
+      managers.timestampManager.children.get(json.rootTimestamp)!,
+      json.isAbsolute,
       json.offset,
       json.scale,
       json.scroll,
