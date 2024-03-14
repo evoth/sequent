@@ -1,5 +1,6 @@
 import { ActionState } from "./action";
 import { Manageable, Manager, type IdType } from "./manager";
+import { Render } from "./render";
 import { Repeat, RepeatError, RepeatProps } from "./repeat";
 
 import type { Repeatable } from "./repeat";
@@ -136,6 +137,15 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
 
   getManageableChild(): Manageable<Sequence> {
     return this;
+  }
+
+  render(): Render {
+    const render = new Render();
+    for (const layer of this.layers) {
+      render.add(layer.render());
+      render.baseLayer = render.maxLayer + 1;
+    }
+    return render;
   }
 }
 
@@ -284,5 +294,13 @@ export class Layer implements Serializable {
       duration = validation.end;
     }
     return [validation.error, duration];
+  }
+
+  render(): Render {
+    const render = new Render();
+    for (const child of this.children) {
+      render.add(child.render());
+    }
+    return render;
   }
 }

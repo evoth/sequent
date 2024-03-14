@@ -38,7 +38,6 @@
     const validation = state.parameter.validate(value);
     if (validation.error === ParameterError.None) {
       state.value = value;
-      console.log(value);
       $updateIndex++;
     } else {
       if (event === undefined) return;

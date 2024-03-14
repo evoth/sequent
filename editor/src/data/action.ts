@@ -1,8 +1,14 @@
 import { Manageable, Manager } from "./manager";
 import { NestedParameter, Parameter, ParameterState } from "./parameter";
-import type { CustomJSON, EntityManagers, Serializable } from "./serialization";
+import {
+  toFixedJSON,
+  type CustomJSON,
+  type EntityManagers,
+  type Serializable,
+} from "./serialization";
 
 import type { IdType } from "./manager";
+import { Render } from "./render";
 import type { Repeatable } from "./repeat";
 
 export type ActionDurationParam = {
@@ -191,5 +197,17 @@ export class ActionState implements Repeatable, Serializable {
 
   getManageableChild(): Manageable<Action> {
     return this.action;
+  }
+
+  render(): Render {
+    const duration = this.getDuration();
+    const render = new Render();
+    render.children.push({
+      start: 0,
+      end: duration,
+      layer: render.baseLayer,
+      data: toFixedJSON(this.toJSON()),
+    });
+    return render;
   }
 }

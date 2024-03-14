@@ -190,8 +190,12 @@ export class ParameterState<T extends Parameter<U>, U extends ParameterType>
     this.value = value ?? this.parameter.defaultValue;
   }
 
-  toJSON(): { parameter: IdType; value: U } {
-    return { parameter: this.parameter.id, value: this.value };
+  toJSON(): { parameter: IdType; value: U; renderValue: ParameterType } {
+    return {
+      parameter: this.parameter.id,
+      value: this.value,
+      renderValue: this.parameter.renderAliases?.get(this.value) ?? this.value,
+    };
   }
 
   static fromJSON(

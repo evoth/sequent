@@ -227,7 +227,9 @@ export function getEsp32ActionSet(): ActionSet {
         { param: bulbParam, paramOffset: 2 },
       ],
     },
-    [modeParam]
+    [modeParam],
+    "photo",
+    220
   );
   return actionSet;
 }

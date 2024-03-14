@@ -2,12 +2,14 @@ import type { IdType, Manageable } from "./manager";
 import type { CustomJSON, EntityManagers, Serializable } from "./serialization";
 
 import { ActionState } from "./action";
+import { Render } from "./render";
 import { Sequence } from "./sequence";
 
 export interface Repeatable {
   // An undefined duration means infinite
   getDuration(): number | undefined;
   getManageableChild(): Manageable<any>;
+  render(): Render;
 }
 
 export class Repeat implements Serializable {
@@ -51,6 +53,34 @@ export class Repeat implements Serializable {
 
     const { error, solved } = this.props.validate(childDuration);
     return [error, solved?.duration];
+  }
+
+  render(): Render {
+    const render = new Render();
+    const validation = this.validate();
+    const duration = this.child.getDuration();
+    if (
+      validation.error !== RepeatError.None ||
+      validation.solved === undefined ||
+      duration === undefined
+    )
+      return render;
+
+    let interval = validation.solved.interval;
+    if (!this.props.includeChildDuration) {
+      interval += duration;
+    }
+
+    const childRender = this.child.render();
+    for (
+      let offset = validation.solved.start!;
+      offset < validation.solved.end!;
+      offset += interval
+    ) {
+      render.add(childRender, offset);
+    }
+
+    return render;
   }
 }
 
