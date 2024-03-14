@@ -7,7 +7,7 @@ import type {
   TypeofResult,
 } from "./serialization";
 
-type ParameterType = number | string | boolean;
+export type ParameterType = number | string | boolean;
 
 type ParameterJSON<T> = CustomJSON<Manageable<any>> & {
   defaultValue: T;

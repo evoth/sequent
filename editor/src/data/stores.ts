@@ -1,5 +1,11 @@
 import { readable, writable } from "svelte/store";
-import { NestedParameter, NumberParameter, StringParameter } from "./parameter";
+import {
+  EnumParameter,
+  NestedParameter,
+  NumberParameter,
+  Parameter,
+  StringParameter,
+} from "./parameter";
 import { Component, Sequence } from "./sequence";
 
 import { Action } from "./action";
@@ -12,27 +18,27 @@ import { toFixedJSON } from "./serialization";
 const actionSet = new ActionSet("Test");
 const param0 = new NumberParameter<number>(
   actionSet.parameterManager,
-  "Test param",
+  "Test param 0",
   "",
   7,
+  -13,
   undefined,
   undefined,
-  undefined,
-  undefined,
+  "seconds",
   "3"
 );
 const param1 = new StringParameter<string>(
   actionSet.parameterManager,
-  "Test param",
+  "Test param 1 ",
   "",
   "defgecd",
-  undefined,
-  undefined,
+  1,
+  7,
   "2"
 );
 const param2 = new NestedParameter<string>(
   actionSet.parameterManager,
-  "Test param",
+  "Test param 2",
   "",
   "beanz",
   new Map(Object.entries({ beanz: [param0], tim: [param1, param0], ".": [] })),
@@ -40,18 +46,34 @@ const param2 = new NestedParameter<string>(
 );
 const param3 = new NestedParameter<string>(
   actionSet.parameterManager,
-  "Test param",
+  "Test param 3",
   "",
   "beanz",
   new Map(Object.entries({ beanz: [param2], tim: [param0], ".": [] })),
   "0"
 );
+const param4 = new Parameter<boolean>(
+  actionSet.parameterManager,
+  "Tim beeg?",
+  "",
+  true
+);
+const param5 = new EnumParameter(
+  actionSet.parameterManager,
+  "Exist?",
+  "",
+  "maybe",
+  ["yes", "maybe"]
+);
 new Action(
   actionSet.actionManager,
   "Photo",
   "Trigger shutter with given settings",
-  { defaultDuration: 1, durationParam: param0 },
-  [param0, param2, param1, param3]
+  {
+    defaultDuration: 1,
+    durationParam: param0,
+  },
+  [param0, param2, param1, param3, param4, param5]
 );
 export const project = writable(new Project("New project", "", actionSet));
 export const fileHandle = writable<FileSystemFileHandle | undefined>();

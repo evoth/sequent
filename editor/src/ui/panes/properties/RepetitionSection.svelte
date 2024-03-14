@@ -56,7 +56,11 @@
 
     const prevValue = props.constraints[constraint];
     const target = event.target as HTMLInputElement;
-    props.constraints[constraint] = parseInt(target.value);
+    if (target.value === "") {
+      target.value = String(prevValue);
+      return;
+    }
+    props.constraints[constraint] = Number(target.value);
     const validationCheck = props.validate(childDuration);
     if (validationCheck.error !== RepeatError.None) {
       props.constraints[constraint] = prevValue;
@@ -142,7 +146,11 @@
           {value}
           on:change={(event) => updateConstraint(event, constraint)}
           disabled={!selectedConstraints.includes(constraint)}
+          placeholder={constraint === "repetitions"
+            ? "Number of repetitions"
+            : `${capitalize(constraint)}${constraint === "start" || constraint === "end" ? " time" : ""} in seconds`}
         />
+        {constraint !== "repetitions" ? "seconds" : ""}
       </label>
     {/each}
     <div class="boolean-options">
@@ -170,15 +178,16 @@
       </label>
     </div>
     {#each { length: 3 } as _, i ([i, selectedConstraints])}
-      <div class="constraint-menu">
-        <div>Constraint {i + 1}:</div>
+      <!-- TODO: pull this element out into its own component since it's also used almost verbatim in ParameterField -->
+      <div class="constraint-dropdown">
+        Constraint {i + 1}:
         <Dropdown fullWidth lighter>
           <button
             slot="button"
             let:toggleDropdown
             on:click={toggleDropdown}
             title={`Constraint ${i + 1} options`}
-            class="constraint-button"
+            class="constraint-dropdown-button"
             disabled={getConstraintOptions(i).length <= 1}
           >
             {capitalize(selectedConstraints[i])}
@@ -213,13 +222,13 @@
 </PaneSection>
 
 <style>
-  .constraint-menu {
+  .constraint-dropdown {
     display: flex;
     align-items: center;
     gap: 0.5rem;
   }
 
-  .constraint-button {
+  .constraint-dropdown-button {
     background-color: var(--gray-85);
     padding: 0.6rem;
     display: flex;

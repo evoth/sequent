@@ -4,8 +4,8 @@
   import Timeline from "../timeline/Timeline.svelte";
   import { BREAKPOINT_LG, BREAKPOINT_XL } from "../utilities/breakpoints";
   import Pane from "./Pane.svelte";
-  import PaneSection from "./PaneSection.svelte";
   import ComponentsSection from "./components/ComponentsSection.svelte";
+  import ParametersSection from "./properties/ParametersSection.svelte";
   import RepetitionSection from "./properties/RepetitionSection.svelte";
 
   export let width: number;
@@ -26,7 +26,7 @@
           bind:manager={$project.sequenceManager}
         />
         {#if width < BREAKPOINT_XL}
-          <PaneSection title="Parameters" name="properties-parameters" />
+          <ParametersSection />
           <RepetitionSection />
         {/if}
       </Pane>
@@ -40,7 +40,7 @@
   </div>
   {#if width >= BREAKPOINT_XL}
     <Pane>
-      <PaneSection title="Parameters" name="properties-parameters" />
+      <ParametersSection />
       <RepetitionSection />
     </Pane>
   {/if}
@@ -58,7 +58,7 @@
         name="components-sequences"
         bind:manager={$project.sequenceManager}
       />
-      <PaneSection title="Parameters" name="properties-parameters" />
+      <ParametersSection />
       <RepetitionSection />
     </Pane>
   </div>

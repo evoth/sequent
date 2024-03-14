@@ -272,6 +272,10 @@
 
     // TODO: Should probably have error handling here
     if (!outsideBounds && !previewNoSnap) {
+      if (dragging.props.selectedConstraints.includes("end")) {
+        dragging.props.constraints.end! +=
+          previewOffset - dragging.props.constraints.start!;
+      }
       dragging.props.constraints.start! = previewOffset;
       sequence.layers[previewLayer].children.add(dragging);
     }

@@ -164,9 +164,10 @@ export class ActionState implements Repeatable, Serializable {
     )?.value;
     if (durationParamValue === undefined) return durationProps.defaultDuration;
 
-    return (
+    return Math.max(
+      0,
       (durationProps.durationParamOffset ?? 0) +
-      durationParamValue * (durationProps.durationParamMultiplier ?? 1)
+        durationParamValue * (durationProps.durationParamMultiplier ?? 1)
     );
   }
 
