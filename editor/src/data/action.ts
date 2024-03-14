@@ -5,15 +5,20 @@ import type { CustomJSON, EntityManagers, Serializable } from "./serialization";
 import type { IdType } from "./manager";
 import type { Repeatable } from "./repeat";
 
-export type ActionDurationProps = {
-  // Duration when durationParam doesn't exist or has no value
-  readonly defaultDuration: number;
+export type ActionDurationParam = {
   // If durationParam exists and has a value, its value is multiplied by
   // durationParamMultiplier, added to durationParamOffset, and used as the
   // duration value
-  readonly durationParam?: Parameter<number>;
-  readonly durationParamOffset?: number;
-  readonly durationParamMultiplier?: number;
+  readonly param: Parameter<number>;
+  readonly paramOffset?: number;
+  readonly paramMultiplier?: number;
+};
+
+export type ActionDurationProps = {
+  // Duration when durationParam doesn't exist or has no value
+  readonly defaultDuration: number;
+  // First param which results in greater than 0 duration is used to calculate duration
+  readonly durationParams: ActionDurationParam[];
 };
 
 // Represents the general description of an action/command
@@ -34,14 +39,13 @@ export class Action extends Manageable<Action> {
     super(manager, name, description, id, hue);
     this.parameters = parameters;
     this.descendants = this.getDescendants();
-    if (
-      durationProps.durationParam !== undefined &&
-      !this.descendants.has(durationProps.durationParam)
-    ) {
-      throw new Error(
-        `Parameter with ID ${durationProps.durationParam.id} cannot be used as durationParam ` +
-          `for Action with ID ${this.id} because it is not a descendant parameter.`
-      );
+    for (const durationParam of durationProps.durationParams) {
+      if (!this.descendants.has(durationParam.param)) {
+        throw new Error(
+          `Parameter with ID ${durationParam.param.id} cannot be used as durationParam ` +
+            `for Action with ID ${this.id} because it is not a descendant parameter.`
+        );
+      }
     }
     this.durationProps = durationProps;
   }
@@ -52,9 +56,15 @@ export class Action extends Manageable<Action> {
       parameters: this.parameters.map((parameter) => parameter.id),
       durationProps: {
         defaultDuration: this.durationProps.defaultDuration,
-        durationParam: this.durationProps.durationParam?.id,
-        durationParamOffset: this.durationProps.durationParamOffset,
-        durationParamMultiplier: this.durationProps.durationParamMultiplier,
+        durationParams: this.durationProps.durationParams.map(
+          (durationParam) => {
+            return {
+              param: durationParam.param.id,
+              paramOffset: durationParam.paramOffset,
+              paramMultiplier: durationParam.paramMultiplier,
+            };
+          }
+        ),
       },
     };
   }
@@ -69,11 +79,15 @@ export class Action extends Manageable<Action> {
       json.description,
       {
         defaultDuration: json.durationProps.defaultDuration,
-        durationParam: managers.parameterManager.children.get(
-          json.durationProps.durationParam
+        durationParams: json.durationProps.durationParams.map(
+          (paramJson: any) => {
+            return {
+              param: managers.parameterManager.children.get(paramJson.param),
+              paramOffset: paramJson.paramOffset,
+              paramMultiplier: paramJson.paramMultiplier,
+            };
+          }
         ),
-        durationParamOffset: json.durationProps.durationParamOffset,
-        durationParamMultiplier: json.durationProps.durationParamMultiplier,
       },
       json.parameters.map(
         (id: IdType) => managers.parameterManager.children.get(id),
@@ -156,19 +170,23 @@ export class ActionState implements Repeatable, Serializable {
   // Represents duration of action; see ActionDurationProps type
   getDuration(): number {
     const durationProps = this.action.durationProps;
-    if (durationProps.durationParam === undefined)
-      return durationProps.defaultDuration;
+    for (const durationParam of this.action.durationProps.durationParams) {
+      const durationParamValue = this.parameterStates.get(
+        durationParam.param.id
+      )?.value;
 
-    const durationParamValue = this.parameterStates.get(
-      durationProps.durationParam.id
-    )?.value;
-    if (durationParamValue === undefined) return durationProps.defaultDuration;
+      if (durationParamValue === undefined)
+        return durationProps.defaultDuration;
 
-    return Math.max(
-      0,
-      (durationProps.durationParamOffset ?? 0) +
-        durationParamValue * (durationProps.durationParamMultiplier ?? 1)
-    );
+      const duration =
+        (durationParam.paramOffset ?? 0) +
+        durationParamValue * (durationParam.paramMultiplier ?? 1);
+      if (duration > 0) {
+        return duration;
+      }
+    }
+
+    return durationProps.defaultDuration;
   }
 
   getManageableChild(): Manageable<Action> {

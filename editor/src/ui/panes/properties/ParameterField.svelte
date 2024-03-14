@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { ActionState } from "../../../data/action";
   import {
-    EnumParameter,
     NestedParameter,
     NumberParameter,
     ParameterError,
@@ -22,13 +21,7 @@
 
   let parameter = parameterState.parameter;
 
-  function getNested<T extends ParameterType>(
-    parameter: NestedParameter<T>,
-    value: T
-  ) {
-    return parameter.nested.get(value) ?? [];
-  }
-
+  // TODO: check repeat validation as well because parameter can affect duration
   function updateValue<T extends ParameterType>(
     state: ParameterState<Parameter<T>, T>,
     value?: T,
@@ -45,6 +38,7 @@
     const validation = state.parameter.validate(value);
     if (validation.error === ParameterError.None) {
       state.value = value;
+      console.log(value);
       $updateIndex++;
     } else {
       if (event === undefined) return;
@@ -61,7 +55,7 @@
 </script>
 
 <div class="container">
-  {#if parameter instanceof EnumParameter || parameter instanceof NestedParameter}
+  {#if parameter instanceof NestedParameter}
     <div class="parameter-dropdown">
       {parameter.name}:
       <Dropdown fullWidth lighter>
@@ -72,7 +66,7 @@
           title={`Options for ${parameter.name}`}
           class="parameter-dropdown-button"
         >
-          {parameterState.value}
+          {parameterState.parameter.getDisplayValue(parameterState.value)}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="1.3em"
@@ -86,33 +80,18 @@
           >
         </button>
         <svelte:fragment slot="buttons" let:toggleDropdown>
-          {#if parameter instanceof EnumParameter && parameter.options.length > 1}
-            {#each parameter.options as option}
-              {#if parameterState.value !== option}
-                <button
-                  on:click={() => {
-                    updateValue(parameterState, option);
-                    toggleDropdown();
-                  }}
-                >
-                  {option}
-                </button>
-              {/if}
-            {/each}
-          {:else if parameter instanceof NestedParameter && parameter.nested.size > 1}
-            {#each parameter.nested.keys() as option}
-              {#if parameterState.value !== option}
-                <button
-                  on:click={() => {
-                    updateValue(parameterState, option);
-                    toggleDropdown();
-                  }}
-                >
-                  {option}
-                </button>
-              {/if}
-            {/each}
-          {/if}
+          {#each parameter.nested.keys() as option}
+            {#if parameterState.value !== option}
+              <button
+                on:click={() => {
+                  updateValue(parameterState, option);
+                  toggleDropdown();
+                }}
+              >
+                {parameter.getDisplayValue(option)}
+              </button>
+            {/if}
+          {/each}
         </svelte:fragment>
       </Dropdown>
     </div>

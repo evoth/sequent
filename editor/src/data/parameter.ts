@@ -11,6 +11,8 @@ export type ParameterType = number | string | boolean;
 
 type ParameterJSON<T> = CustomJSON<Manageable<any>> & {
   defaultValue: T;
+  displayAliases?: Map<T, ParameterType>;
+  renderAliases?: Map<T, ParameterType>;
   type: string;
   valueType: TypeofResult;
 };
@@ -20,16 +22,22 @@ export class Parameter<T extends ParameterType> extends Manageable<
   Parameter<any>
 > {
   readonly defaultValue: T;
+  readonly displayAliases?: Map<T, ParameterType>;
+  readonly renderAliases?: Map<T, ParameterType>;
 
   constructor(
     manager: Manager<Parameter<any>>,
     name: string,
     description: string,
     defaultValue: T,
+    displayAliases?: Map<T, ParameterType>,
+    renderAliases?: Map<T, ParameterType>,
     id?: IdType
   ) {
     super(manager, name, description, id);
     this.defaultValue = defaultValue;
+    this.displayAliases = displayAliases;
+    this.renderAliases = renderAliases;
   }
 
   toJSON(): ParameterJSON<T> {
@@ -40,6 +48,8 @@ export class Parameter<T extends ParameterType> extends Manageable<
     return {
       ...this.manageableJSON(),
       type: "Parameter",
+      displayAliases: this.displayAliases,
+      renderAliases: this.renderAliases,
       valueType: typeof this.defaultValue,
       defaultValue: this.defaultValue,
     };
@@ -55,13 +65,14 @@ export class Parameter<T extends ParameterType> extends Manageable<
       json.description,
       json.defaultValue,
     ] as const;
+    const lastParams = [json.displayAliases, json.renderAliases, json.id];
     if (json.type === "Parameter") {
       if (json.valueType === "number") {
-        return new Parameter<number>(...firstParams, json.id);
+        return new Parameter<number>(...firstParams, ...lastParams);
       } else if (json.valueType === "string") {
-        return new Parameter<string>(...firstParams, json.id);
+        return new Parameter<string>(...firstParams, ...lastParams);
       } else if (json.valueType === "boolean") {
-        return new Parameter<boolean>(...firstParams, json.id);
+        return new Parameter<boolean>(...firstParams, ...lastParams);
       } else {
         throw Error(
           "Unexpected value for 'valueType' when deserializing Parameter."
@@ -77,7 +88,7 @@ export class Parameter<T extends ParameterType> extends Manageable<
         numJson.max,
         numJson.step,
         numJson.unit,
-        json.id
+        ...lastParams
       );
     } else if (json.type === "StringParameter") {
       const stringJson = json as ReturnType<
@@ -87,35 +98,8 @@ export class Parameter<T extends ParameterType> extends Manageable<
         ...firstParams,
         stringJson.minLength,
         stringJson.maxLength,
-        json.id
+        ...lastParams
       );
-    } else if (json.type === "EnumParameter") {
-      const enumJson = json as ReturnType<
-        typeof EnumParameter.prototype.toJSON
-      >;
-      if (enumJson.valueType === "number") {
-        return new EnumParameter<number>(
-          ...firstParams,
-          enumJson.options,
-          json.id
-        );
-      } else if (json.valueType === "string") {
-        return new EnumParameter<string>(
-          ...firstParams,
-          enumJson.options,
-          json.id
-        );
-      } else if (json.valueType === "boolean") {
-        return new EnumParameter<boolean>(
-          ...firstParams,
-          enumJson.options,
-          json.id
-        );
-      } else {
-        throw Error(
-          "Unexpected value for 'valueType' when deserializing EnumParameter."
-        );
-      }
     } else if (json.type === "NestedParameter") {
       const nestedJson = json as ReturnType<
         typeof NestedParameter.prototype.toJSON
@@ -134,19 +118,19 @@ export class Parameter<T extends ParameterType> extends Manageable<
         return new NestedParameter<number>(
           ...firstParams,
           getMap(Number),
-          json.id
+          ...lastParams
         );
       } else if (json.valueType === "string") {
         return new NestedParameter<string>(
           ...firstParams,
           getMap(String),
-          json.id
+          ...lastParams
         );
       } else if (json.valueType === "boolean") {
         return new NestedParameter<boolean>(
           ...firstParams,
           getMap((value: string) => value === "true"),
-          json.id
+          ...lastParams
         );
       } else {
         throw Error(
@@ -183,6 +167,14 @@ export class Parameter<T extends ParameterType> extends Manageable<
 
   getChildIds(): IdType[] {
     return [];
+  }
+
+  getDisplayValue(value: T): ParameterType {
+    return this.displayAliases?.get(value) ?? value;
+  }
+
+  getRenderValue(value: T): ParameterType {
+    return this.renderAliases?.get(value) ?? value;
   }
 }
 
@@ -246,9 +238,19 @@ export class NumberParameter<T extends number> extends Parameter<T> {
     max?: T,
     step?: T,
     unit?: string,
+    displayAliases?: Map<T, ParameterType>,
+    renderAliases?: Map<T, ParameterType>,
     id?: IdType
   ) {
-    super(manager, name, description, defaultValue, id);
+    super(
+      manager,
+      name,
+      description,
+      defaultValue,
+      displayAliases,
+      renderAliases,
+      id
+    );
     this.min = min;
     this.max = max;
     this.step = step;
@@ -301,9 +303,19 @@ export class StringParameter<T extends string> extends Parameter<T> {
     defaultValue: T,
     minLength?: number,
     maxLength?: number,
+    displayAliases?: Map<T, ParameterType>,
+    renderAliases?: Map<T, ParameterType>,
     id?: IdType
   ) {
-    super(manager, name, description, defaultValue, id);
+    super(
+      manager,
+      name,
+      description,
+      defaultValue,
+      displayAliases,
+      renderAliases,
+      id
+    );
     this.minLength = minLength;
     this.maxLength = maxLength;
     this.checkDefault();
@@ -332,44 +344,6 @@ export class StringParameter<T extends string> extends Parameter<T> {
   }
 }
 
-// Provides validation for enumerations (sets of allowed values)
-export class EnumParameter<T extends ParameterType> extends Parameter<T> {
-  readonly options: T[];
-
-  constructor(
-    manager: Manager<Parameter<any>>,
-    name: string,
-    description: string,
-    defaultValue: T,
-    options: T[],
-    id?: IdType
-  ) {
-    super(manager, name, description, defaultValue, id);
-    if (options.length === 0) {
-      throw new Error(
-        `EnumParameter with ID ${this.id} has empty options array.`
-      );
-    }
-    this.options = options;
-    this.checkDefault();
-  }
-
-  toJSON(): ParameterJSON<T> & { options: T[] } {
-    return {
-      ...this.parameterJson(),
-      type: "EnumParameter",
-      options: this.options,
-    };
-  }
-
-  validate(value: T): ParameterValidation<T> {
-    if (!this.options.includes(value)) {
-      return { error: ParameterError.BadEnumOption };
-    }
-    return { error: ParameterError.None };
-  }
-}
-
 // Provides validation for nested parameters (values that map to sets of sub-parameters)
 export class NestedParameter<T extends ParameterType> extends Parameter<T> {
   readonly nested: Map<T, Parameter<any>[]>;
@@ -381,9 +355,19 @@ export class NestedParameter<T extends ParameterType> extends Parameter<T> {
     description: string,
     defaultValue: T,
     nested: Map<T, Parameter<any>[]>,
+    displayAliases?: Map<T, ParameterType>,
+    renderAliases?: Map<T, ParameterType>,
     id?: IdType
   ) {
-    super(manager, name, description, defaultValue, id);
+    super(
+      manager,
+      name,
+      description,
+      defaultValue,
+      displayAliases,
+      renderAliases,
+      id
+    );
     if (nested.size === 0) {
       throw new Error(
         `NestedParameter with ID ${this.id} has empty nested parameter map.`
@@ -446,5 +430,30 @@ export class NestedParameter<T extends ParameterType> extends Parameter<T> {
       childIds = [...childIds, ...childList.map((childParam) => childParam.id)];
     }
     return childIds;
+  }
+}
+
+// Provides validation for enumerations (sets of allowed values)
+export class EnumParameter<T extends ParameterType> extends NestedParameter<T> {
+  constructor(
+    manager: Manager<Parameter<any>>,
+    name: string,
+    description: string,
+    defaultValue: T,
+    options: T[],
+    displayAliases?: Map<T, ParameterType>,
+    renderAliases?: Map<T, ParameterType>,
+    id?: IdType
+  ) {
+    super(
+      manager,
+      name,
+      description,
+      defaultValue,
+      new Map(options.map((option) => [option, []])),
+      displayAliases,
+      renderAliases,
+      id
+    );
   }
 }
