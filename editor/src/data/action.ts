@@ -1,7 +1,6 @@
 import { Manageable, Manager } from "./manager";
 import { NestedParameter, Parameter, ParameterState } from "./parameter";
 import {
-  toFixedJSON,
   type CustomJSON,
   type EntityManagers,
   type Serializable,
@@ -206,8 +205,15 @@ export class ActionState implements Repeatable, Serializable {
       start: 0,
       end: duration,
       layer: render.baseLayer,
-      // TODO: Shrink this (only include necessary data)
-      data: toFixedJSON(this.toJSON()),
+      data: {
+        action: this.action.id,
+        states: Object.fromEntries(
+          [...this.parameterStates.entries()].map(([id, state]) => [
+            id,
+            state.parameter.getRenderValue(state.value),
+          ])
+        ),
+      },
     });
     return render;
   }
