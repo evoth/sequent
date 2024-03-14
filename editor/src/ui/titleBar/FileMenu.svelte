@@ -81,10 +81,40 @@
       ],
     };
     try {
-      // TODO: try persisting across sessions using IndexedDB (see https://stackoverflow.com/a/65326027)
       $fileHandle = await (window as any).showSaveFilePicker(opts);
     } catch {}
     await save();
+    modalOpen = false;
+  }
+
+  // TODO: Change file extension (.seq is used by Siril on my computer)
+  async function exportSequence() {
+    if ($project.openedSequence === undefined) return;
+
+    showOptions = false;
+    modalTitle = "Select file location...";
+    modalDescription =
+      "Choose where to save the sequence file using the popup window.";
+    modalOpen = true;
+    const opts = {
+      id: "project",
+      suggestedName: `${$project.openedSequence.name}.seq`,
+      types: [
+        {
+          description: "Sequent sequence file",
+          accept: { "application/json": [".seq"] },
+        },
+      ],
+    };
+    try {
+      $fileHandle = await (window as any).showSaveFilePicker(opts);
+    } catch {}
+
+    // TODO: show loading wheel and checkmark to indicate progress/completion?
+    if (!$fileHandle) throw Error("File handle is undefined.");
+    const writable = await $fileHandle.createWritable();
+    await writable.write(toJSONString($project.openedSequence.render()));
+    await writable.close();
     modalOpen = false;
   }
 
@@ -95,6 +125,21 @@
       new Blob([toJSONString($project)], { type: "application/json" })
     );
     a.download = `${$project.name}.sqp`;
+    a.click();
+    showOptions = false;
+  }
+
+  // Used as fallback for browsers like Firefox that don't support File System Access API
+  function downloadSequence() {
+    if ($project.openedSequence === undefined) return;
+
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(
+      new Blob([toJSONString($project.openedSequence.render())], {
+        type: "application/json",
+      })
+    );
+    a.download = `${$project.openedSequence.name}.seq`;
     a.click();
     showOptions = false;
   }
@@ -113,8 +158,14 @@
     {#if "showSaveFilePicker" in window}
       <button on:click={save} disabled={!$fileHandle}>Save</button>
       <button on:click={saveAs}>Save as...</button>
+      {#if $project.openedSequence !== undefined}
+        <button on:click={exportSequence}>Export sequence...</button>
+      {/if}
     {:else}
       <button on:click={download}>Download</button>
+      {#if $project.openedSequence !== undefined}
+        <button on:click={downloadSequence}>Export sequence</button>
+      {/if}
     {/if}
   </svelte:fragment>
   <input

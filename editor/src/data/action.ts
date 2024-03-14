@@ -206,6 +206,7 @@ export class ActionState implements Repeatable, Serializable {
       start: 0,
       end: duration,
       layer: render.baseLayer,
+      // TODO: Shrink this (only include necessary data)
       data: toFixedJSON(this.toJSON()),
     });
     return render;

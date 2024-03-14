@@ -11,8 +11,8 @@ export type ParameterType = number | string | boolean;
 
 type ParameterJSON<T> = CustomJSON<Manageable<any>> & {
   defaultValue: T;
-  displayAliases?: Map<T, ParameterType>;
-  renderAliases?: Map<T, ParameterType>;
+  displayAliases?: [T, ParameterType][];
+  renderAliases?: [T, ParameterType][];
   type: string;
   valueType: TypeofResult;
 };
@@ -48,8 +48,14 @@ export class Parameter<T extends ParameterType> extends Manageable<
     return {
       ...this.manageableJSON(),
       type: "Parameter",
-      displayAliases: this.displayAliases,
-      renderAliases: this.renderAliases,
+      displayAliases:
+        this.displayAliases === undefined
+          ? undefined
+          : [...this.displayAliases?.entries()],
+      renderAliases:
+        this.renderAliases === undefined
+          ? undefined
+          : [...this.renderAliases?.entries()],
       valueType: typeof this.defaultValue,
       defaultValue: this.defaultValue,
     };
@@ -65,7 +71,15 @@ export class Parameter<T extends ParameterType> extends Manageable<
       json.description,
       json.defaultValue,
     ] as const;
-    const lastParams = [json.displayAliases, json.renderAliases, json.id];
+    const lastParams = [
+      json.displayAliases === undefined
+        ? undefined
+        : new Map(json.displayAliases),
+      json.renderAliases === undefined
+        ? undefined
+        : new Map(json.renderAliases),
+      json.id,
+    ];
     if (json.type === "Parameter") {
       if (json.valueType === "number") {
         return new Parameter<number>(...firstParams, ...lastParams);
@@ -382,6 +396,7 @@ export class NestedParameter<T extends ParameterType> extends Parameter<T> {
     this.checkDefault();
   }
 
+  // TODO: Fix order of options
   toJSON(): ParameterJSON<T> & { nested: Map<string, IdType[]> } {
     const nestedIds = new Map<string, IdType[]>();
     for (const [key, parameters] of this.nested.entries()) {

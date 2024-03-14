@@ -284,6 +284,7 @@
 
     dragging = undefined;
     isDragging = false;
+    addRemoveExtraLayer(isDragging);
   }
 </script>
 

@@ -38,6 +38,7 @@ This will be a web-based editor for composing sequences using actions and parame
 - Simplify draggable class to only have separate element when actually dragging, and only update info as needed (right now we keep it so that it can track mousemove events and stuff)
 - Simplify string indices from weird formatted string -> array
 - Add info hints (little circles with i or ? to explain things)
+- **FIX FIREFOX (BUGGY DB BEHAVIOR; MAKE IT BETTER)**
 
 ## Plan: FOCUS ON MVP!!
 

@@ -66,6 +66,8 @@ export class Repeat implements Serializable {
     )
       return render;
 
+    // TODO: If layer mode is override, place a "null" action to signal backend to disregard actions below
+
     let interval = validation.solved.interval;
     if (!this.props.includeChildDuration) {
       interval += duration;
