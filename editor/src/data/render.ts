@@ -23,4 +23,12 @@ export class Render {
     }
     this.children.sort((a, b) => a.start - b.start);
   }
+
+  export(): string {
+    return JSON.stringify({
+      numActions: this.children.length,
+      maxLayer: this.maxLayer,
+      actions: this.children,
+    });
+  }
 }

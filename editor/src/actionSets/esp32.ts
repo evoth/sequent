@@ -20,7 +20,10 @@ export function getEsp32ActionSet(): ActionSet {
     1,
     undefined,
     undefined,
-    "seconds"
+    "seconds",
+    undefined,
+    undefined,
+    "bulb"
   );
   const shutterOptions = [
     "1/4000",
@@ -106,7 +109,8 @@ export function getEsp32ActionSet(): ActionSet {
     ),
     new Map(
       shutterOptions.map((shutter) => [parseExpSetting(shutter), shutter])
-    )
+    ),
+    "tv"
   );
   const isoParam = new EnumParameter<string>(
     actionSet.parameterManager,
@@ -140,7 +144,10 @@ export function getEsp32ActionSet(): ActionSet {
       "16000",
       "20000",
       "25600",
-    ]
+    ],
+    undefined,
+    undefined,
+    "iso"
   );
   const apertureParam = new EnumParameter<string>(
     actionSet.parameterManager,
@@ -165,7 +172,10 @@ export function getEsp32ActionSet(): ActionSet {
       "f18",
       "f20",
       "f22",
-    ]
+    ],
+    undefined,
+    undefined,
+    "av"
   );
   const evOptions = [
     "-3.0",
@@ -199,7 +209,9 @@ export function getEsp32ActionSet(): ActionSet {
         option,
         option.replace("_", " ")!.replace(".0", "")!.replace("0 ", "")!,
       ])
-    )
+    ),
+    undefined,
+    "ev"
   );
   const modeParam = new NestedParameter<string>(
     actionSet.parameterManager,
@@ -214,7 +226,10 @@ export function getEsp32ActionSet(): ActionSet {
         "Program (P)": [isoParam, evParam],
         Auto: [],
       })
-    )
+    ),
+    undefined,
+    undefined,
+    "mode"
   );
   new Action(
     actionSet.actionManager,

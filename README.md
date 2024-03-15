@@ -4,9 +4,9 @@ A flexible tool for composing and programmatically executing complex sequences o
 
 ## Plan
 
-The will be a web-based sequence editor to design a sequence for a given system (backend). Then, each system will have a "backend" program that parses the output of the web editor and executes the specified actions.
+The will be a web-based sequence editor to design a sequence for a given system (driver). Then, each system will have a "driver" program that parses the output of the web editor and executes the specified actions.
 
-For each backend, there will be predefined "actions", the behavior of which can be modified based on given "parameters". The backend will have functions that translate the (probably JSON) serialized output of the web editor into the desired actions. The backend will also parse the timing and layering information present in the sequence data.
+For each driver, there will be predefined "actions", the behavior of which can be modified based on given "parameters". The driver will have functions that translate the (probably JSON) serialized output of the web editor into the desired actions. The driver will also parse the timing and layering information present in the sequence data.
 
 ## Timing
 
