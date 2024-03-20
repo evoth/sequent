@@ -113,7 +113,11 @@
     // TODO: show loading wheel and checkmark to indicate progress/completion?
     if (!$fileHandle) throw Error("File handle is undefined.");
     const writable = await $fileHandle.createWritable();
-    await writable.write($project.openedSequence.render().export());
+    await writable.write(
+      $project.openedSequence
+        .render()
+        .export($project.openedSequence.isAbsolute)
+    );
     await writable.close();
     modalOpen = false;
   }
@@ -135,9 +139,16 @@
 
     var a = document.createElement("a");
     a.href = URL.createObjectURL(
-      new Blob([$project.openedSequence.render().export()], {
-        type: "application/json",
-      })
+      new Blob(
+        [
+          $project.openedSequence
+            .render()
+            .export($project.openedSequence.isAbsolute),
+        ],
+        {
+          type: "application/json",
+        }
+      )
     );
     a.download = `${$project.openedSequence.name}.seq`;
     a.click();

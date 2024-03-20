@@ -1,5 +1,10 @@
 import type { IdType, Manageable } from "./manager";
-import type { CustomJSON, EntityManagers, Serializable } from "./serialization";
+import {
+  serializeRound,
+  type CustomJSON,
+  type EntityManagers,
+  type Serializable,
+} from "./serialization";
 
 import { ActionState } from "./action";
 import { Render } from "./render";
@@ -143,6 +148,16 @@ export const validConstraints: {
   },
 ];
 
+export type RepeatRelativeUnitType =
+  | "seconds"
+  | "minutes"
+  | "hours"
+  | "HH:MM:SS";
+
+export type RepeatAbsoluteUnitType = "YYYY-MM-DD HH:MM:SS" | "unix time";
+
+export type RepeatUnitType = RepeatRelativeUnitType | RepeatAbsoluteUnitType;
+
 // Describes how a repeatable object is to be repeated and provides in-depth
 // validations of properties
 export class RepeatProps implements Serializable {
@@ -151,19 +166,25 @@ export class RepeatProps implements Serializable {
   includeChildDuration: boolean;
   trailingInterval: boolean;
   keepLeading: boolean;
+  unit: RepeatUnitType;
+  durationUnit: RepeatRelativeUnitType;
 
   constructor(
     constraints: RepeatConstraints,
     selectedConstraints: (keyof RepeatConstraints | undefined)[],
     includeChildDuration: boolean = false,
     trailingInterval: boolean = false,
-    keepLeading: boolean = false
+    keepLeading: boolean = false,
+    unit: RepeatUnitType = "seconds",
+    durationUnit: RepeatRelativeUnitType = "seconds"
   ) {
     this.constraints = constraints;
     this.selectedConstraints = selectedConstraints;
     this.includeChildDuration = includeChildDuration;
     this.trailingInterval = trailingInterval;
     this.keepLeading = keepLeading;
+    this.unit = unit;
+    this.durationUnit = durationUnit;
   }
 
   toJSON(): CustomJSON<RepeatProps> {
@@ -179,6 +200,8 @@ export class RepeatProps implements Serializable {
       includeChildDuration: this.includeChildDuration,
       trailingInterval: this.trailingInterval,
       keepLeading: this.keepLeading,
+      unit: this.unit,
+      durationUnit: this.durationUnit,
     };
   }
 
@@ -197,7 +220,9 @@ export class RepeatProps implements Serializable {
       json.selectedConstraints,
       json.includeChildDuration,
       json.trailingInterval,
-      json.keepLeading
+      json.keepLeading,
+      json.unit,
+      json.durationUnit
     );
   }
 
@@ -381,5 +406,102 @@ export class RepeatProps implements Serializable {
         interval,
       },
     };
+  }
+
+  toUnitString(
+    offset: number | undefined,
+    constraint: keyof RepeatConstraints
+  ): string {
+    if (offset === undefined) return "";
+    if (constraint === "repetitions") return offset.toString();
+
+    const pad = (num: number) => `${num < 10 ? "0" : ""}${num}`;
+    const serialize = (num: number) => serializeRound(num).toString();
+
+    const unit = this.constraintUnit(constraint);
+
+    if (unit === "seconds" || unit === "unix time") {
+      return serialize(offset);
+    } else if (unit === "minutes") {
+      return serialize(offset / 60);
+    } else if (unit === "hours") {
+      return serialize(offset / 3600);
+    } else if (unit === "HH:MM:SS") {
+      const hrs = pad(Math.floor(offset / 3600));
+      const min = pad(Math.floor((offset % 3600) / 60));
+      const sec = pad(serializeRound(offset) % 60);
+
+      return `${hrs}:${min}:${sec}`;
+    } else if (unit === "YYYY-MM-DD HH:MM:SS") {
+      const date = new Date(offset * 1000);
+      return (
+        [
+          date.getFullYear(),
+          pad(date.getMonth() + 1),
+          pad(date.getDate()),
+        ].join("-") +
+        " " +
+        [
+          pad(date.getHours()),
+          pad(date.getMinutes()),
+          pad(date.getSeconds()),
+        ].join(":")
+      );
+    }
+
+    return serialize(offset);
+  }
+
+  fromUnitString(
+    str: string,
+    constraint: keyof RepeatConstraints
+  ): number | undefined {
+    if (constraint === "repetitions")
+      return Number.isNaN(Number(str)) ? undefined : Number(str);
+    const unit = this.constraintUnit(constraint);
+
+    let returnVal = undefined;
+    if (["seconds", "unix time", "minutes", "hours"].includes(unit)) {
+      const num = Number(str);
+
+      if (unit === "seconds" || unit === "unix time") {
+        returnVal = num;
+      } else if (unit === "minutes") {
+        returnVal = num * 60;
+      } else if (unit === "hours") {
+        returnVal = num * 3600;
+      }
+    } else if (unit === "HH:MM:SS") {
+      let parts = str.split(":");
+      let result = 0;
+      let multiplier = 1;
+
+      while (parts.length > 0) {
+        let num = Number(parts.pop());
+
+        result += num * multiplier;
+        multiplier *= 60;
+      }
+
+      returnVal = result;
+    } else if (unit === "YYYY-MM-DD HH:MM:SS") {
+      returnVal = Date.parse(str) / 1000;
+    }
+
+    return returnVal === undefined || Number.isNaN(returnVal)
+      ? undefined
+      : returnVal;
+  }
+
+  constraintUnit(constraint: keyof RepeatConstraints) {
+    return constraint === "start" || constraint === "end"
+      ? this.unit
+      : this.durationUnit;
+  }
+
+  isUnitNumeric(constraint: keyof RepeatConstraints): boolean {
+    if (constraint === "repetitions") return true;
+    const unit = this.constraintUnit(constraint);
+    return ["seconds", "minutes", "hours", "unix time"].includes(unit);
   }
 }

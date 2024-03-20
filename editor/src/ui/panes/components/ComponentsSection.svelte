@@ -22,7 +22,11 @@
         repetitions: 1,
         interval: 5,
       },
-      ["start", "repetitions", "interval"]
+      ["start", "repetitions", "interval"],
+      undefined,
+      undefined,
+      undefined,
+      $project.openedSequence.isAbsolute ? "YYYY-MM-DD HH:MM:SS" : "seconds"
     );
 
     if (component instanceof Action) {

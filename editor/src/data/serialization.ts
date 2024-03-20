@@ -49,3 +49,13 @@ export function toJSONString(json: object) {
     value instanceof Map ? Object.fromEntries(value) : value
   );
 }
+
+const SERIALIZATION_ROUND_DIGITS = 6;
+
+export function serializeRound(num: number) {
+  // https://stackoverflow.com/a/11832950
+  return (
+    Math.round((num + Number.EPSILON) * 10 ** SERIALIZATION_ROUND_DIGITS) /
+    10 ** SERIALIZATION_ROUND_DIGITS
+  );
+}

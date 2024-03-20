@@ -1,19 +1,11 @@
+import { serializeRound } from "./serialization";
+
 export type RenderChild = {
   start: number;
   end: number;
   layer: number;
   data: any;
 };
-
-const EXPORT_ROUND_DIGITS = 6;
-
-function exportRound(num: number) {
-  // https://stackoverflow.com/a/11832950
-  return (
-    Math.round((num + Number.EPSILON) * 10 ** EXPORT_ROUND_DIGITS) /
-    10 ** EXPORT_ROUND_DIGITS
-  );
-}
 
 export class Render {
   baseLayer: number = 0;
@@ -23,8 +15,8 @@ export class Render {
   add(newRender: Render, offset: number = 0) {
     for (const child of newRender.children) {
       const newChild: RenderChild = {
-        start: exportRound(child.start + offset),
-        end: exportRound(child.end + offset),
+        start: serializeRound(child.start + offset),
+        end: serializeRound(child.end + offset),
         layer: child.layer + this.baseLayer,
         data: child.data,
       };
@@ -34,10 +26,11 @@ export class Render {
     this.children.sort((a, b) => a.start - b.start);
   }
 
-  export(): string {
+  export(isAbsolute: boolean): string {
     return JSON.stringify({
       numActions: this.children.length,
       maxLayer: this.maxLayer,
+      isAbsolute: isAbsolute,
       actions: this.children,
     });
   }

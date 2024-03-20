@@ -4,6 +4,8 @@
     RepeatProps,
     validConstraints,
     type RepeatConstraints,
+    type RepeatRelativeUnitType,
+    type RepeatUnitType,
     type RepeatValidation,
   } from "../../../data/repeat";
   import { Component, Sequence } from "../../../data/sequence";
@@ -46,7 +48,9 @@
       newSelectedConstraints,
       newComponent.props.includeChildDuration,
       newComponent.props.trailingInterval,
-      newComponent.props.keepLeading
+      newComponent.props.keepLeading,
+      newComponent.props.unit,
+      newComponent.props.durationUnit
     );
   }
 
@@ -57,11 +61,12 @@
 
     const prevValue = props.constraints[constraint];
     const target = event.target as HTMLInputElement;
-    if (target.value === "") {
+    const convertedValue = props.fromUnitString(target.value, constraint);
+    if (target.value === "" || convertedValue === undefined) {
       target.value = String(prevValue);
       return;
     }
-    props.constraints[constraint] = Number(target.value);
+    props.constraints[constraint] = convertedValue;
     const validationCheck = props.validate(childDuration);
     if (validationCheck.error !== RepeatError.None) {
       props.constraints[constraint] = prevValue;
@@ -133,6 +138,41 @@
   }
 
   const capitalize = (s: string) => s[0].toUpperCase() + s.substring(1);
+
+  function getUnitOptions(): RepeatUnitType[] {
+    if ($project.openedSequence === undefined) return [];
+    return $project.openedSequence.isAbsolute
+      ? ["YYYY-MM-DD HH:MM:SS", "unix time"]
+      : ["seconds", "minutes", "hours", "HH:MM:SS"];
+  }
+
+  function getDurationUnitOptions(): RepeatRelativeUnitType[] {
+    return ["seconds", "minutes", "hours", "HH:MM:SS"];
+  }
+
+  function selectUnit(newUnit: RepeatUnitType) {
+    if (component === undefined || props === undefined) return;
+    props.unit = newUnit;
+    component.props = props;
+  }
+
+  function selectDurationUnit(newUnit: RepeatRelativeUnitType) {
+    if (component === undefined || props === undefined) return;
+    props.durationUnit = newUnit;
+    component.props = props;
+  }
+
+  function getConstraintUnit(
+    constraint: keyof RepeatConstraints,
+    full: boolean = false
+  ) {
+    if (component === undefined) return "";
+    if (constraint === "repetitions") return "";
+    const unit = component.props.constraintUnit(constraint);
+    return (unit === "YYYY-MM-DD HH:MM:SS" || unit === "HH:MM:SS") && !full
+      ? ""
+      : unit;
+  }
 </script>
 
 <PaneSection title="Repetition" name={"properties-repitition"}>
@@ -141,17 +181,17 @@
       <label class="horizontal">
         {capitalize(constraint)}:
         <input
-          type="number"
-          step="any"
-          min="0"
-          {value}
+          type={component.props.isUnitNumeric(constraint) ? "number" : "text"}
+          step={component.props.isUnitNumeric(constraint) ? "any" : undefined}
+          min={component.props.isUnitNumeric(constraint) ? 0 : undefined}
+          value={component.props.toUnitString(value, constraint)}
           on:change={(event) => updateConstraint(event, constraint)}
           disabled={!selectedConstraints.includes(constraint)}
           placeholder={constraint === "repetitions"
             ? "Number of repetitions"
-            : `${capitalize(constraint)}${constraint === "start" || constraint === "end" ? " time" : ""} in seconds`}
+            : `${capitalize(constraint)}${constraint === "start" || constraint === "end" ? " time" : ""} in ${getConstraintUnit(constraint, true)}`}
         />
-        {constraint !== "repetitions" ? "seconds" : ""}
+        {getConstraintUnit(constraint)}
       </label>
     {/each}
     <div class="boolean-options">
@@ -211,6 +251,42 @@
         </svelte:fragment>
       </SelectDropdown>
     {/each}
+    <SelectDropdown
+      label={`Time unit`}
+      buttonTitle={`Time unit options`}
+      dropdownText={component.props.unit}
+    >
+      <svelte:fragment slot="buttons" let:toggleDropdown>
+        {#each getUnitOptions() as option}
+          {#if component.props.unit !== option}
+            <button
+              on:click={() => {
+                selectUnit(option);
+                toggleDropdown();
+              }}>{option}</button
+            >
+          {/if}
+        {/each}
+      </svelte:fragment>
+    </SelectDropdown>
+    <SelectDropdown
+      label={`Duration unit`}
+      buttonTitle={`Duration unit options`}
+      dropdownText={component.props.durationUnit}
+    >
+      <svelte:fragment slot="buttons" let:toggleDropdown>
+        {#each getDurationUnitOptions() as option}
+          {#if component.props.durationUnit !== option}
+            <button
+              on:click={() => {
+                selectDurationUnit(option);
+                toggleDropdown();
+              }}>{option}</button
+            >
+          {/if}
+        {/each}
+      </svelte:fragment>
+    </SelectDropdown>
   {/if}
 </PaneSection>
 
