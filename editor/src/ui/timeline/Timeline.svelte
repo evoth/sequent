@@ -5,7 +5,11 @@
   import TimelineTile from "./TimelineTile.svelte";
   import TimescaleLabel from "./TimescaleLabel.svelte";
   import TimescaleTile from "./TimescaleTile.svelte";
-  import { LABEL_TIMESCALE_PX, RelativeTimescales } from "./timescale";
+  import {
+    AbsoluteTimescales,
+    LABEL_TIMESCALE_PX,
+    RelativeTimescales,
+  } from "./timescale";
 
   export let sequence: Sequence;
 
@@ -20,17 +24,23 @@
   $: start = sequence.offset;
   $: end = start + width / sequence.scale;
 
-  $: timescale = RelativeTimescales.bestTimescale(
-    LABEL_TIMESCALE_PX,
-    sequence.scale
-  );
+  $: timescaleSet = sequence.isAbsolute
+    ? AbsoluteTimescales
+    : RelativeTimescales;
+  $: timescale = timescaleSet.bestTimescale(LABEL_TIMESCALE_PX, sequence.scale);
   $: titleIntervals = timescale.getTitleIntervals(start, end);
   $: timelineTileIntervals = timescale.getTileIntervals(start, end);
-  $: tilesEnd =
-    timelineTileIntervals.length === 0
-      ? 0
-      : timelineTileIntervals[timelineTileIntervals.length - 1][0] +
-        timescale.tileInterval;
+  $: tilesEnd = getTilesEnd(timelineTileIntervals);
+
+  function getTilesEnd(newTimelineTileIntervals: [number, number, number][]) {
+    if (newTimelineTileIntervals.length === 0) {
+      return 0;
+    } else {
+      const lastInterval =
+        newTimelineTileIntervals[newTimelineTileIntervals.length - 1];
+      return lastInterval[0] + lastInterval[2];
+    }
+  }
 
   function clampOffset(containerWidth: number) {
     if (containerWidth === 0) return;
@@ -78,6 +88,19 @@
       clampScroll(height, sequence.layerHeight, sequence.layers.length);
     }
   }
+
+  function getTitleTileDuration(
+    tileOffset: number,
+    tileDuration: number | undefined
+  ) {
+    const newOffset = Math.max(start, tileOffset);
+    const tempDuration = tileDuration ?? Number.MAX_VALUE;
+    return Math.min(
+      end - Math.max(start, newOffset),
+      tempDuration,
+      tileOffset + tempDuration - newOffset
+    );
+  }
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -100,11 +123,11 @@
     style:transform={`translateY(${sequence.scroll}px)`}
     style:height={`${sequence.layerHeight}px`}
   >
-    {#each timelineTileIntervals.toReversed() as [tileOffset, _], tileIndex (`${tileOffset} ${timescale.tileInterval} ${$updateIndex} ${sequence.id}`)}
-      <Tile offset={tileOffset} duration={timescale.tileInterval} {sequence}>
+    {#each timelineTileIntervals.toReversed() as [tileOffset, _, duration], tileIndex (`${tileOffset} ${timescale.tileInterval} ${$updateIndex} ${sequence.id}`)}
+      <Tile offset={tileOffset} {duration} {sequence}>
         <TimelineTile
           offset={tileOffset}
-          duration={timescale.tileInterval}
+          {duration}
           bind:sequence
           tileIndex={timelineTileIntervals.length - tileIndex - 1}
           {tilesEnd}
@@ -114,26 +137,32 @@
   </div>
   <div class="timescaleBg"></div>
   <div class="titleTiles">
-    {#each titleIntervals as [tileOffset, title] (`${tileOffset} ${timescale.titleInterval}`)}
+    {#each titleIntervals as [tileOffset, title, duration] (`${tileOffset} ${timescale.titleInterval}`)}
       <Tile
         offset={Math.max(start, tileOffset)}
-        duration={Math.min(
-          end - Math.max(start, tileOffset),
-          timescale.titleInterval ?? Number.MAX_VALUE
-        )}
+        duration={getTitleTileDuration(tileOffset, duration)}
         {sequence}
       >
-        <TimescaleLabel label={title} offset={tileOffset} />
+        <TimescaleLabel
+          label={title}
+          offset={tileOffset}
+          {tileOffset}
+          tileDuration={getTitleTileDuration(tileOffset, duration)}
+          align={getTitleTileDuration(tileOffset, duration) < end - start
+            ? "left"
+            : "center"}
+        />
       </Tile>
     {/each}
   </div>
   <div class="timescaleTiles">
-    {#each timelineTileIntervals as [tileOffset, index] (`${tileOffset} ${timescale.tileInterval}`)}
-      <Tile offset={tileOffset} duration={timescale.tileInterval} {sequence}>
+    {#each timelineTileIntervals as [tileOffset, index, duration] (`${tileOffset} ${timescale.tileInterval}`)}
+      <Tile offset={tileOffset} {duration} {sequence}>
         <TimescaleTile
           offset={tileOffset}
-          duration={timescale.tileInterval}
+          {duration}
           {timescale}
+          {timescaleSet}
         />
       </Tile>
     {/each}

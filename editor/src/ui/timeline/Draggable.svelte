@@ -3,7 +3,11 @@
   import { Component, Layer, LayerError, Sequence } from "../../data/sequence";
   import { selectedComponents, updateIndex } from "../../data/stores";
   import ComponentBody from "./ComponentBody.svelte";
-  import { LABEL_TIMESCALE_PX, RelativeTimescales } from "./timescale";
+  import {
+    AbsoluteTimescales,
+    LABEL_TIMESCALE_PX,
+    RelativeTimescales,
+  } from "./timescale";
 
   export let getComponent: () => Component | undefined;
   export let hideChildOnDrag = false;
@@ -30,6 +34,10 @@
   let isDragging: boolean;
   $: addRemoveExtraLayer(isDragging);
 
+  const timescaleSet = sequence?.isAbsolute
+    ? AbsoluteTimescales
+    : RelativeTimescales;
+
   const ENDPOINT_SNAP_PX = 25;
   const TICK_SNAP_PX = 0;
   const MIN_DRAG_DELTA = 10;
@@ -44,8 +52,8 @@
     const timelineEnd = sequence.offset + timelineBox.width / sequence.scale;
     const offsetValid = (offset: number) =>
       offset + draggingDuration > timelineStart && offset < timelineEnd;
-    const tickTimescale = RelativeTimescales.shiftIndex(
-      RelativeTimescales.bestTimescale(LABEL_TIMESCALE_PX, sequence.scale),
+    const tickTimescale = timescaleSet.shiftIndex(
+      timescaleSet.bestTimescale(LABEL_TIMESCALE_PX, sequence.scale),
       2
     );
     const tickSnaps = (

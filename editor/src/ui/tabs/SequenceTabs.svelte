@@ -10,12 +10,15 @@
     description: "",
   };
 
+  // TODO: add field for isAbsolute
   function newSequence() {
     const newSequence = new Sequence(
       $project.sequenceManager,
       sequenceData.name,
       sequenceData.description,
-      []
+      [],
+      true,
+      new Date().getTime() / 1000
     );
     $project.sequenceManager.children = $project.sequenceManager.children;
     $project.openedSequence = newSequence;

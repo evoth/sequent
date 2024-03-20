@@ -23,8 +23,6 @@
 <style>
   main {
     height: 100%;
-    --border-style: 1px solid var(--gray-65);
-    --border-style-dim: 1px solid var(--gray-85);
     display: flex;
     flex-direction: column;
   }
