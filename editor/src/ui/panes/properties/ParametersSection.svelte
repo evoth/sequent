@@ -32,31 +32,21 @@
 </script>
 
 <PaneSection title="Parameters" name={"properties-parameters"}>
-  <div class="container">
-    {#if component !== undefined}
-      {#if component.child instanceof Sequence}
-        Sequence has no parameters.
-      {:else if component.child instanceof ActionState}
-        {#if component.child.action.parameters.length === 0}
-          Action has no parameters.
-        {:else}
-          {#each component.child.action.parameters as parameter}
-            <ParameterField
-              actionState={component.child}
-              parameterState={getParameterState(component.child, parameter)}
-              {getParameterState}
-            />
-          {/each}
-        {/if}
+  {#if component !== undefined}
+    {#if component.child instanceof Sequence}
+      Sequence has no parameters.
+    {:else if component.child instanceof ActionState}
+      {#if component.child.action.parameters.length === 0}
+        Action has no parameters.
+      {:else}
+        {#each component.child.action.parameters as parameter}
+          <ParameterField
+            actionState={component.child}
+            parameterState={getParameterState(component.child, parameter)}
+            {getParameterState}
+          />
+        {/each}
       {/if}
     {/if}
-  </div>
+  {/if}
 </PaneSection>
-
-<style>
-  .container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-</style>

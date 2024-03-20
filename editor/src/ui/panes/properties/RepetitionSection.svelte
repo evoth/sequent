@@ -63,14 +63,14 @@
     const target = event.target as HTMLInputElement;
     const convertedValue = props.fromUnitString(target.value, constraint);
     if (target.value === "" || convertedValue === undefined) {
-      target.value = String(prevValue);
+      target.value = props.toUnitString(prevValue, constraint);
       return;
     }
     props.constraints[constraint] = convertedValue;
     const validationCheck = props.validate(childDuration);
     if (validationCheck.error !== RepeatError.None) {
       props.constraints[constraint] = prevValue;
-      target.value = String(prevValue);
+      target.value = props.toUnitString(prevValue, constraint);
       return;
     }
     if (validationCheck.solved !== undefined) {

@@ -128,8 +128,8 @@
       {/if}
     </label>
   {/if}
-  <div class="nested">
-    {#if parameter instanceof NestedParameter}
+  {#if parameter instanceof NestedParameter && (parameter.nested.get(parameterState.value) ?? []).length > 0}
+    <div class="nested">
       {#each parameter.nested.get(parameterState.value) ?? [] as nestedParameter (nestedParameter.id)}
         <svelte:self
           {actionState}
@@ -137,19 +137,22 @@
           {getParameterState}
         />
       {/each}
-    {/if}
-  </div>
+    </div>
+  {/if}
 </div>
 
 <style>
   .container {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.8rem;
   }
 
   .nested {
     margin-left: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
   }
 
   .label {

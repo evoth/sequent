@@ -39,6 +39,8 @@ This will be a web-based editor for composing sequences using actions and parame
 - Add info hints (little circles with i or ? to explain things)
 - **FIX FIREFOX (BUGGY DB BEHAVIOR; MAKE IT BETTER)**
 - Adjust component saturation/lightness (brighter? better contrast on light mode)
+- Add date display settings (MM/DD vs DD/MM for example)
+- Manual timezone support (right now everything is local timezone)
 
 ## Plan: FOCUS ON MVP!!
 
