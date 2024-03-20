@@ -1,19 +1,18 @@
 <script lang="ts">
   import { slide } from "svelte/transition";
   import { Sequence } from "../../data/sequence";
-  import { project } from "../../data/stores";
+  import { project, updateIndex } from "../../data/stores";
   import Dropdown from "../utilities/Dropdown.svelte";
   import Modal from "../utilities/Modal.svelte";
-  import SequenceEditModal from "./SequenceEditModal.svelte";
+  import SequenceEditModal, {
+    type SequenceData,
+  } from "./SequenceEditModal.svelte";
 
   export let sequence: Sequence;
 
   let deleteModalOpen = false;
   let editModalOpen = false;
-  let sequenceData = {
-    name: "",
-    description: "",
-  };
+  let sequenceData = populateSequenceData();
 
   function openSequence() {
     $project.openedSequence = sequence;
@@ -34,18 +33,25 @@
     }
   }
 
-  function openEditModal() {
-    sequenceData = {
+  function populateSequenceData(): SequenceData {
+    return {
       name: sequence.name ?? "",
       description: sequence.description ?? "",
+      hue: sequence.hue,
     };
+  }
+
+  function openEditModal() {
+    sequenceData = populateSequenceData();
     editModalOpen = true;
   }
 
   function editSequence() {
     sequence.name = sequenceData.name;
     sequence.description = sequenceData.description;
+    sequence.hue = sequenceData.hue;
     $project.sequenceManager.children = $project.sequenceManager.children;
+    $updateIndex++;
   }
 </script>
 
@@ -59,6 +65,24 @@
     title="Open {sequence.name} sequence"
     class="chip-button open"
   >
+    {#if sequence.isAbsolute}
+      <div class="clock-icon-container">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="1em"
+          height="1em"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          ><circle cx="12" cy="12" r="10"></circle><polyline
+            points="12 6 12 12 16 14"
+          ></polyline></svg
+        >
+      </div>
+    {/if}
     <div>
       {sequence.name}
     </div>
@@ -71,7 +95,7 @@
       title="Sequence options"
       class="chip-button options"
     >
-      <div class="icon-container">
+      <div class="options-icon-container">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="1em"
@@ -103,8 +127,7 @@
     title={"Edit sequence"}
     onSubmit={editSequence}
     bind:isOpen={editModalOpen}
-    bind:name={sequenceData.name}
-    bind:description={sequenceData.description}
+    bind:data={sequenceData}
   />
 </div>
 
@@ -154,6 +177,9 @@
   .chip-button {
     font-size: 1.3rem;
     padding: var(--outer-padding);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
   }
   .chip-button:hover {
     background-color: transparent;
@@ -165,7 +191,7 @@
     padding: 0;
   }
 
-  .icon-container {
+  .options-icon-container {
     display: flex;
     align-items: center;
     padding: calc(var(--outer-padding) / 2) 0;
@@ -176,7 +202,13 @@
       background-color 0.2s,
       color 0.2s;
   }
-  .chip-button:hover > .icon-container {
+  .chip-button:hover > .options-icon-container {
     background-color: var(--gray-75);
+  }
+
+  .clock-icon-container {
+    color: var(--gray-35);
+    display: flex;
+    align-items: center;
   }
 </style>

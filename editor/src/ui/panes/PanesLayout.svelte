@@ -9,6 +9,8 @@
   import RepetitionSection from "./properties/RepetitionSection.svelte";
 
   export let width: number;
+
+  let timelineWidth = 0;
 </script>
 
 <div class="panes" style:height={width < BREAKPOINT_LG ? "60vh" : undefined}>
@@ -33,9 +35,12 @@
     </div>
   {/if}
   <div class="timeline">
-    <SequenceTabs />
+    <SequenceTabs {timelineWidth} />
     {#if $project.openedSequence !== undefined}
-      <Timeline bind:sequence={$project.openedSequence} />
+      <Timeline
+        bind:sequence={$project.openedSequence}
+        bind:width={timelineWidth}
+      />
     {/if}
   </div>
   {#if width >= BREAKPOINT_XL}

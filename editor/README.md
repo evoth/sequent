@@ -39,6 +39,7 @@ This will be a web-based editor for composing sequences using actions and parame
 - Simplify string indices from weird formatted string -> array
 - Add info hints (little circles with i or ? to explain things)
 - **FIX FIREFOX (BUGGY DB BEHAVIOR; MAKE IT BETTER)**
+- Adjust component saturation/lightness (brighter? better contrast on light mode)
 
 ## Plan: FOCUS ON MVP!!
 

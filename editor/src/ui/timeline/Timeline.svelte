@@ -12,10 +12,10 @@
   } from "./timescale";
 
   export let sequence: Sequence;
+  export let width = 0;
 
   let timelineElement: HTMLElement;
 
-  let width = 0;
   let height = 0;
 
   $: sequence, clampOffset(width);

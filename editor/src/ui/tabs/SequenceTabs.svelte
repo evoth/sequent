@@ -2,30 +2,47 @@
   import { Sequence } from "../../data/sequence";
   import { project } from "../../data/stores";
   import SequenceChip from "./SequenceChip.svelte";
-  import SequenceEditModal from "./SequenceEditModal.svelte";
+  import SequenceEditModal, {
+    type SequenceData,
+  } from "./SequenceEditModal.svelte";
+
+  export let timelineWidth = 0;
 
   let modalOpen = false;
-  let sequenceData = {
-    name: "",
-    description: "",
-  };
+  let sequenceData = populateSequenceData();
 
   // TODO: add field for isAbsolute
   function newSequence() {
+    const defaultScale = 10;
     const newSequence = new Sequence(
       $project.sequenceManager,
       sequenceData.name,
       sequenceData.description,
       [],
-      true,
-      new Date().getTime() / 1000
+      sequenceData.isAbsolute,
+      (sequenceData.isAbsolute ? new Date().getTime() / 1000 : 0) -
+        (0.5 * timelineWidth) / defaultScale,
+      defaultScale,
+      undefined,
+      undefined,
+      undefined,
+      sequenceData.hue
     );
     $project.sequenceManager.children = $project.sequenceManager.children;
     $project.openedSequence = newSequence;
   }
 
+  function populateSequenceData(): SequenceData {
+    return {
+      name: "",
+      description: "",
+      isAbsolute: false,
+      hue: Math.floor(Math.random() * 360),
+    };
+  }
+
   function openNewSequenceModal() {
-    sequenceData = { name: "", description: "" };
+    sequenceData = populateSequenceData();
     modalOpen = true;
   }
 </script>
@@ -67,8 +84,8 @@
     title={"New sequence"}
     onSubmit={newSequence}
     bind:isOpen={modalOpen}
-    bind:name={sequenceData.name}
-    bind:description={sequenceData.description}
+    bind:data={sequenceData}
+    isNew
   />
 </div>
 

@@ -1,34 +1,44 @@
+<script context="module" lang="ts">
+  export type SequenceData = {
+    name: string;
+    description: string;
+    isAbsolute?: boolean;
+    hue: number;
+  };
+</script>
+
 <script lang="ts">
   import { slide } from "svelte/transition";
+  import ColorSlider from "../utilities/ColorSlider.svelte";
   import Modal from "../utilities/Modal.svelte";
 
   export let isOpen: boolean;
   export let title: string;
-  export let name = "";
-  export let description = "";
+  export let data: SequenceData;
   export let onSubmit = () => {};
   export let onClose = () => {};
+  export let isNew = false;
 
   let showError = false;
   // Resets showError when opened
   $: showError = !isOpen;
 </script>
 
-<Modal bind:isOpen {title} {onSubmit} {onClose} canSubmit={name !== ""}>
+<Modal bind:isOpen {title} {onSubmit} {onClose} canSubmit={data.name !== ""}>
   <div>
     <label>
       Name:
       <input
-        bind:value={name}
+        bind:value={data.name}
         type="text"
         placeholder="Sequence name"
         required
         class:error={showError}
         on:blur={() => {
-          name = name.trim();
-          showError = name === "";
+          data.name = data.name.trim();
+          showError = data.name === "";
         }}
-        on:input={() => (showError = name === "" && showError)}
+        on:input={() => (showError = data.name === "" && showError)}
       />
     </label>
     {#if showError}
@@ -40,15 +50,31 @@
   <label>
     Description:
     <textarea
-      bind:value={description}
+      bind:value={data.description}
       rows="6"
       placeholder="Sequence description"
     />
   </label>
+  {#if isNew}
+    <label class="horizontal">
+      <input type="checkbox" bind:checked={data.isAbsolute} />
+      Use absolute time?
+    </label>
+  {/if}
+  <div class="color-input">
+    <div>Color:</div>
+    <ColorSlider bind:hue={data.hue} />
+  </div>
 </Modal>
 
 <style>
   .error {
     margin-top: 0.5rem;
+  }
+
+  .color-input {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 </style>
