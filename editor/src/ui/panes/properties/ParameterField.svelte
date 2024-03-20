@@ -10,7 +10,7 @@
     type ParameterType,
   } from "../../../data/parameter";
   import { updateIndex } from "../../../data/stores";
-  import Dropdown from "../../utilities/Dropdown.svelte";
+  import SelectDropdown from "../../utilities/SelectDropdown.svelte";
 
   export let actionState: ActionState;
   export let parameterState: ParameterState<Parameter<any>, any>;
@@ -55,45 +55,28 @@
 
 <div class="container">
   {#if parameter instanceof NestedParameter}
-    <div class="parameter-dropdown">
-      {parameter.name}:
-      <Dropdown fullWidth lighter>
-        <button
-          slot="button"
-          let:toggleDropdown
-          on:click={toggleDropdown}
-          title={`Options for ${parameter.name}`}
-          class="parameter-dropdown-button"
-        >
-          {parameterState.parameter.getDisplayValue(parameterState.value)}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="1.3em"
-            height="1.3em"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg
-          >
-        </button>
-        <svelte:fragment slot="buttons" let:toggleDropdown>
-          {#each parameter.nested.keys() as option}
-            {#if parameterState.value !== option}
-              <button
-                on:click={() => {
-                  updateValue(parameterState, option);
-                  toggleDropdown();
-                }}
-              >
-                {parameter.getDisplayValue(option)}
-              </button>
-            {/if}
-          {/each}
-        </svelte:fragment>
-      </Dropdown>
-    </div>
+    <SelectDropdown
+      label={parameter.name}
+      buttonTitle={`Options for ${parameter.name}`}
+      dropdownText={parameterState.parameter
+        .getDisplayValue(parameterState.value)
+        .toString()}
+    >
+      <svelte:fragment slot="buttons" let:toggleDropdown>
+        {#each parameter.nested.keys() as option}
+          {#if parameterState.value !== option}
+            <button
+              on:click={() => {
+                updateValue(parameterState, option);
+                toggleDropdown();
+              }}
+            >
+              {parameter.getDisplayValue(option)}
+            </button>
+          {/if}
+        {/each}
+      </svelte:fragment>
+    </SelectDropdown>
   {:else}
     <label class="horizontal">
       <div class="label">{parameter.name}:</div>
@@ -171,19 +154,5 @@
 
   .label {
     flex-shrink: 0;
-  }
-  .parameter-dropdown {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .parameter-dropdown-button {
-    background-color: var(--gray-85);
-    padding: 0.6rem;
-    display: flex;
-    gap: 0.4rem;
-    width: 100%;
-    justify-content: space-between;
   }
 </style>

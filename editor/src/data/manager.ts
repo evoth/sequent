@@ -161,8 +161,14 @@ export abstract class Manageable<T extends Manageable<T>>
   abstract getChildIds(): IdType[];
 
   getDependants(): T[] {
-    return [...this.manager.findChildDependants().get(this.id)!.dependants].map(
-      (id) => this.manager.children.get(id)!
-    );
+    let dependants = [
+      ...this.manager.findChildDependants().get(this.id)!.dependants,
+    ].map((id) => this.manager.children.get(id)!);
+
+    for (const descendant of [...dependants]) {
+      dependants = dependants.concat(descendant.getDependants());
+    }
+
+    return dependants;
   }
 }

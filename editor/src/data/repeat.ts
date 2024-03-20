@@ -7,7 +7,7 @@ import { Sequence } from "./sequence";
 
 export interface Repeatable {
   // An undefined duration means infinite
-  getDuration(): number | undefined;
+  getDuration(keepLeading: boolean): number | undefined;
   getManageableChild(): Manageable<any>;
   render(): Render;
 }
@@ -41,14 +41,14 @@ export class Repeat implements Serializable {
   }
 
   validate(): RepeatValidation {
-    const childDuration = this.child.getDuration();
+    const childDuration = this.child.getDuration(this.props.keepLeading);
     if (childDuration === undefined)
       return { error: RepeatError.ChildDurationInfinite };
     return this.props.validate(childDuration);
   }
 
   getDuration(): [error: RepeatError, duration?: number] {
-    const childDuration = this.child.getDuration();
+    const childDuration = this.child.getDuration(this.props.keepLeading);
     if (childDuration === undefined) return [RepeatError.ChildDurationInfinite];
 
     const { error, solved } = this.props.validate(childDuration);
@@ -58,7 +58,7 @@ export class Repeat implements Serializable {
   render(): Render {
     const render = new Render();
     const validation = this.validate();
-    const duration = this.child.getDuration();
+    const duration = this.child.getDuration(this.props.keepLeading);
     if (
       validation.error !== RepeatError.None ||
       validation.solved === undefined ||
@@ -74,12 +74,16 @@ export class Repeat implements Serializable {
     }
 
     const childRender = this.child.render();
+    let offsetAdjust = 0;
+    if (this.child instanceof Sequence && !this.props.keepLeading) {
+      offsetAdjust = this.child.validate().start ?? 0;
+    }
     for (
       let offset = validation.solved.start!;
       offset < validation.solved.end!;
       offset += interval
     ) {
-      render.add(childRender, offset);
+      render.add(childRender, offset - offsetAdjust);
     }
 
     return render;
@@ -146,17 +150,20 @@ export class RepeatProps implements Serializable {
   selectedConstraints: (keyof RepeatConstraints | undefined)[];
   includeChildDuration: boolean;
   trailingInterval: boolean;
+  keepLeading: boolean;
 
   constructor(
     constraints: RepeatConstraints,
     selectedConstraints: (keyof RepeatConstraints | undefined)[],
     includeChildDuration: boolean = false,
-    trailingInterval: boolean = false
+    trailingInterval: boolean = false,
+    keepLeading: boolean = false
   ) {
     this.constraints = constraints;
     this.selectedConstraints = selectedConstraints;
     this.includeChildDuration = includeChildDuration;
     this.trailingInterval = trailingInterval;
+    this.keepLeading = keepLeading;
   }
 
   toJSON(): CustomJSON<RepeatProps> {
@@ -171,6 +178,7 @@ export class RepeatProps implements Serializable {
       selectedConstraints: this.selectedConstraints,
       includeChildDuration: this.includeChildDuration,
       trailingInterval: this.trailingInterval,
+      keepLeading: this.keepLeading,
     };
   }
 
@@ -188,7 +196,8 @@ export class RepeatProps implements Serializable {
       },
       json.selectedConstraints,
       json.includeChildDuration,
-      json.trailingInterval
+      json.trailingInterval,
+      json.keepLeading
     );
   }
 

@@ -40,7 +40,7 @@
 <PaneSection {title} {name}>
   {#each manager.children.entries() as [id, component] (id)}
     <!-- TODO: disallow any sequences which depend on current sequence -->
-    {#if !(component instanceof Sequence && (component === $project.openedSequence || dependants.includes(component) || (component.getDuration() ?? 0) === 0))}
+    {#if !(component instanceof Sequence && (component === $project.openedSequence || dependants.includes(component) || (component.getDuration(false) ?? 0) === 0))}
       <Draggable
         getComponent={() => getComponent(component)}
         bind:sequence={$project.openedSequence}

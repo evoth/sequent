@@ -12,7 +12,7 @@
     selectedComponents,
     updateIndex,
   } from "../../../data/stores";
-  import Dropdown from "../../utilities/Dropdown.svelte";
+  import SelectDropdown from "../../utilities/SelectDropdown.svelte";
   import PaneSection from "../PaneSection.svelte";
 
   let component: Component | undefined;
@@ -45,13 +45,14 @@
       validation.solved,
       newSelectedConstraints,
       newComponent.props.includeChildDuration,
-      newComponent.props.trailingInterval
+      newComponent.props.trailingInterval,
+      newComponent.props.keepLeading
     );
   }
 
   function updateConstraint(event: Event, constraint: keyof RepeatConstraints) {
     if (component === undefined || props === undefined) return;
-    const childDuration = component.child.getDuration();
+    const childDuration = component.child.getDuration(props.keepLeading);
     if (childDuration === undefined) return;
 
     const prevValue = props.constraints[constraint];
@@ -98,11 +99,11 @@
   }
 
   function testBoolean(
-    key: "trailingInterval" | "includeChildDuration",
+    key: "trailingInterval" | "includeChildDuration" | "keepLeading",
     newValue: boolean
   ): RepeatValidation | undefined {
     if (component === undefined || props === undefined) return undefined;
-    const childDuration = component.child.getDuration();
+    const childDuration = component.child.getDuration(false);
     if (childDuration === undefined) return undefined;
 
     // Tricking Svelte into not realizing I'm updating this object :)))
@@ -116,7 +117,7 @@
 
   function updateBoolean(
     event: Event,
-    key: "trailingInterval" | "includeChildDuration"
+    key: "trailingInterval" | "includeChildDuration" | "keepLeading"
   ) {
     if (component === undefined || props === undefined) return undefined;
     const target = event.target as HTMLInputElement;
@@ -176,67 +177,44 @@
         />
         Include trailing interval
       </label>
+      {#if component.child instanceof Sequence}
+        <label class="horizontal">
+          <input
+            type="checkbox"
+            checked={props.keepLeading}
+            on:change={(event) => updateBoolean(event, "keepLeading")}
+            disabled={testBoolean("keepLeading", !props.keepLeading)?.error !==
+              RepeatError.None}
+          />
+          Keep leading space
+        </label>
+      {/if}
     </div>
     {#each { length: 3 } as _, i ([i, selectedConstraints])}
-      <!-- TODO: pull this element out into its own component since it's also used almost verbatim in ParameterField -->
-      <div class="constraint-dropdown">
-        Constraint {i + 1}:
-        <Dropdown fullWidth lighter>
-          <button
-            slot="button"
-            let:toggleDropdown
-            on:click={toggleDropdown}
-            title={`Constraint ${i + 1} options`}
-            class="constraint-dropdown-button"
-            disabled={getConstraintOptions(i).length <= 1}
-          >
-            {capitalize(selectedConstraints[i])}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="1.3em"
-              height="1.3em"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg
-            >
-          </button>
-          <svelte:fragment slot="buttons" let:toggleDropdown>
-            {#each getConstraintOptions(i) as option ([option, selectedConstraints])}
-              {#if selectedConstraints[i] !== option}
-                <button
-                  on:click={() => {
-                    selectConstraint(option, i);
-                    toggleDropdown();
-                  }}>{capitalize(option)}</button
-                >
-              {/if}
-            {/each}
-          </svelte:fragment>
-        </Dropdown>
-      </div>
+      <SelectDropdown
+        label={`Constraint ${i + 1}`}
+        buttonTitle={`Constraint ${i + 1} options`}
+        dropdownText={capitalize(selectedConstraints[i])}
+        disabled={getConstraintOptions(i).length <= 1}
+      >
+        <svelte:fragment slot="buttons" let:toggleDropdown>
+          {#each getConstraintOptions(i) as option ([option, selectedConstraints])}
+            {#if selectedConstraints[i] !== option}
+              <button
+                on:click={() => {
+                  selectConstraint(option, i);
+                  toggleDropdown();
+                }}>{capitalize(option)}</button
+              >
+            {/if}
+          {/each}
+        </svelte:fragment>
+      </SelectDropdown>
     {/each}
   {/if}
 </PaneSection>
 
 <style>
-  .constraint-dropdown {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .constraint-dropdown-button {
-    background-color: var(--gray-85);
-    padding: 0.6rem;
-    display: flex;
-    gap: 0.4rem;
-    width: 100%;
-    justify-content: space-between;
-  }
-
   .boolean-options {
     display: flex;
     flex-wrap: wrap;

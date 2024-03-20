@@ -117,13 +117,15 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
   }
 
   // Duration is undefined if sequence scope is infinite or if there are errors
-  getDuration(): number | undefined {
+  getDuration(keepLeading: boolean): number | undefined {
     const validation = this.validate();
     let duration;
     if (validation.start === undefined || validation.end === undefined) {
       duration = undefined;
     } else {
-      duration = validation.end;
+      duration = keepLeading
+        ? validation.end
+        : validation.end - validation.start;
     }
     return duration;
   }
