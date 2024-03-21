@@ -7,11 +7,10 @@ using namespace std;
 const char* Logger::LOG_FILE = "/logs.txt";
 const char* Logger::ERROR_FILE = "/errors.txt";
 
-// TODO: wrap printf with vprintf
 void Logger::generalLog(const char* format,
                         va_list args,
                         const char* filename,
-                        vector<tuple<time_t, char*>> logs) {
+                        vector<tuple<time_t, const char*>> logs) {
   char msgBuffer[256];
   vsnprintf(msgBuffer, sizeof(msgBuffer), format, args);
 
@@ -31,11 +30,11 @@ void Logger::generalLog(const char* format,
   logFile.close();
 }
 
-JsonArray Logger::getRecent(vector<tuple<time_t, char*>> logs) {
+JsonArray Logger::getRecent(vector<tuple<time_t, const char*>> logs) {
   JsonDocument doc;
   JsonArray messages = doc.to<JsonArray>();
 
-  for (tuple<time_t, char*> messageInfo : logs) {
+  for (tuple<time_t, const char*> messageInfo : logs) {
     JsonDocument message;
     message["time"] = get<0>(messageInfo);
     message["message"] = get<1>(messageInfo);

@@ -5,7 +5,7 @@
 #include <SPI.h>
 #include "camera.h"
 #include "logger.h"
-#include "server.h"
+#include "sequentServer.h"
 
 // Time until next shot in milliseconds (clamped at 0)
 unsigned long Sequence::timeUntilNext() {
@@ -26,8 +26,8 @@ void Sequence::readAction() {
   if (file.peek() == ',')
     file.find(",");
   if (file.peek() == ']') {
-    isRunning = false;
     logger.log("Sequence '%s' completed.", filePath);
+    stop();
     return;
   };
 
@@ -40,13 +40,7 @@ void Sequence::readAction() {
   file.close();
 }
 
-void Sequence::start(char* sequenceFilePath) {
-  if (!SD.begin()) {
-    Serial.println("SD card mount failed!");
-    return;
-  }
-  logger.log("SD card mounted.", filePath);
-
+void Sequence::start(const char* sequenceFilePath) {
   filePath = sequenceFilePath;
   File file = SD.open(filePath, FILE_READ);
   if (!file) {
@@ -69,19 +63,18 @@ void Sequence::start(char* sequenceFilePath) {
 }
 
 void Sequence::stop() {
-  logger.log("Sequence '%s' stopped.", filePath);
   isRunning = false;
-  SD.end();
+  logger.log("Sequence '%s' stopped.", filePath);
 }
 
 // Run in main loop
-void Sequence::loop() {
+bool Sequence::loop() {
   if (!isRunning || timeUntilNext() > 0)
-    return;
+    return false;
   logger.log("Starting action %d", actionIndex);
   setExposure(action["data"]["states"]["tv"].as<String>().c_str(),
               action["data"]["states"]["iso"].as<String>().c_str());
   triggerShutter();
   readAction();
-  sendStatus();
+  return true;
 }

@@ -11,7 +11,7 @@ using namespace std;
 
 class Logger {
  public:
-  Logger(char* name) : name(name) {}
+  Logger(const char* name) : name(name) {}
 
   static const char* LOG_FILE;
   static const char* ERROR_FILE;
@@ -31,19 +31,19 @@ class Logger {
   }
   JsonArray getRecentLogs() { return getRecent(recentLogs); }
   JsonArray getRecentErrors() { return getRecent(recentErrors); }
-  char* getMostRecent() { return get<1>(recentLogs.back()); }
+  const char* getMostRecent() { return get<1>(recentLogs.back()); }
 
  private:
   static const int NUM_RECENT = 10;
-  char* name;
-  vector<tuple<time_t, char*>> recentLogs;
-  vector<tuple<time_t, char*>> recentErrors;
+  const char* name;
+  vector<tuple<time_t, const char*>> recentLogs;
+  vector<tuple<time_t, const char*>> recentErrors;
 
   void generalLog(const char* format,
                   va_list args,
                   const char* filename,
-                  vector<tuple<time_t, char*>> logs);
-  JsonArray getRecent(vector<tuple<time_t, char*>> logs);
+                  vector<tuple<time_t, const char*>> logs);
+  JsonArray getRecent(vector<tuple<time_t, const char*>> logs);
 };
 
 #endif

@@ -1,30 +1,17 @@
-#include "server.h"
-#include <ArduinoJson.h>
-#include <ESPAsyncWebServer.h>
-#include <WebSocketsServer.h>
+#include "sequentServer.h"
+#include <WiFi.h>
 #include "camera.h"
 #include "resources.h"
-#include "sequence.h"
 #include "status.h"
 
-AsyncWebServer server(80);
-WebSocketsServer webSocket = WebSocketsServer(81);
-JsonDocument msg;
-bool newMsg = false;
-Sequence sequence;
-
-void initAP() {
-  const char* ssid = "ESP32_AP";
-  const char* password = "defgecd7";
-
-  Serial.print("Starting soft-AP... ");
+void SequentServer::initAP(const char* ssid, const char* password) {
+  logger.log("Starting soft-AP... ");
   WiFi.softAP(ssid, password);
 
-  Serial.print("Soft-AP IP address: ");
-  Serial.println(WiFi.softAPIP());
+  logger.log("Soft-AP IP address: %s", WiFi.softAPIP().toString());
 }
 
-void initWebServer() {
+void SequentServer::initWebServer() {
   server.on("/", HTTP_GET, [](AsyncWebServerRequest* req) {
     req->send_P(200, "text/html", indexHtml);
   });
@@ -53,7 +40,14 @@ void initWebServer() {
   server.begin();
 }
 
-void sendStatus() {
+void SequentServer::initWebSocketServer() {
+  webSocket.begin();
+  webSocket.onEvent(bind(&SequentServer::webSocketEvent, this,
+                         std::placeholders::_1, std::placeholders::_2,
+                         std::placeholders::_3, std::placeholders::_4));
+}
+
+void SequentServer::sendStatus() {
   JsonDocument status;
   status["statusCode"] = statusCode;
   status["statusMsg"] = statusMsg;
@@ -68,18 +62,18 @@ void sendStatus() {
   webSocket.broadcastTXT(statusText);
 }
 
-void webSocketEvent(uint8_t num,
-                    WStype_t type,
-                    uint8_t* payload,
-                    size_t length) {
+void SequentServer::webSocketEvent(uint8_t num,
+                                   WStype_t type,
+                                   uint8_t* payload,
+                                   size_t length) {
   switch (type) {
     case WStype_DISCONNECTED:
-      Serial.printf("[%u] Disconnected!\n", num);
+      logger.log("[%u] Disconnected!\n", num);
       break;
     case WStype_CONNECTED: {
       IPAddress ip = webSocket.remoteIP(num);
-      Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0],
-                    ip[1], ip[2], ip[3], payload);
+      logger.log("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1],
+                 ip[2], ip[3], payload);
       sendStatus();
     } break;
     case WStype_TEXT:
@@ -91,20 +85,10 @@ void webSocketEvent(uint8_t num,
   }
 }
 
-void initWebSocketServer() {
-  webSocket.begin();
-  webSocket.onEvent(webSocketEvent);
-}
-
-void initServer() {
-  initAP();
-  initWebServer();
-  initWebSocketServer();
-}
-
 // Execute command based on most recent WebSocket message
-void loopServer() {
-  sequence.loop();
+void SequentServer::loop() {
+  if (sequence.loop())
+    sendStatus();
 
   webSocket.loop();
   if (!newMsg)

@@ -14,16 +14,16 @@ class Sequence {
 
   unsigned long timeUntilNext();
   void readAction();
-  void start(char* sequenceFilePath);
+  void start(const char* sequenceFilePath);
   void stop();
-  void loop();
+  bool loop();
 
  private:
   unsigned long startTime = 0;
   unsigned long nextTime = 0;
   JsonDocument action;
   Logger logger;
-  char* filePath;
+  const char* filePath;
   unsigned long filePos;
 };
 
