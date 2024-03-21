@@ -59,40 +59,6 @@ export class Repeat implements Serializable {
     const { error, solved } = this.props.validate(childDuration);
     return [error, solved?.duration];
   }
-
-  render(): Render {
-    const render = new Render();
-    const validation = this.validate();
-    const duration = this.child.getDuration(this.props.keepLeading);
-    if (
-      validation.error !== RepeatError.None ||
-      validation.solved === undefined ||
-      duration === undefined
-    )
-      return render;
-
-    // TODO: If layer mode is override, place a "null" action to signal backend to disregard actions below
-
-    let interval = validation.solved.interval;
-    if (!this.props.includeChildDuration) {
-      interval += duration;
-    }
-
-    const childRender = this.child.render();
-    let offsetAdjust = 0;
-    if (this.child instanceof Sequence && !this.props.keepLeading) {
-      offsetAdjust = this.child.validate().start ?? 0;
-    }
-    for (
-      let offset = validation.solved.start!;
-      offset < validation.solved.end!;
-      offset += interval
-    ) {
-      render.add(childRender, offset - offsetAdjust);
-    }
-
-    return render;
-  }
 }
 
 export type RepeatValidation = {

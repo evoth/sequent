@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Component } from "../../data/sequence";
+  import { Component, LayerMode } from "../../data/sequence";
 
   export let component: Component;
   export let disabled = false;
@@ -10,6 +10,9 @@
   let isRepeating = (component.validate().solved?.repetitions ?? 0) > 1;
 </script>
 
+{#if component.layerMode === LayerMode.Override && !shadow}
+  <div class="override-shadow"></div>
+{/if}
 <div
   class="container"
   class:disabled
@@ -52,6 +55,17 @@
     overflow: hidden;
     display: flex;
     align-items: start;
+  }
+
+  .override-shadow {
+    position: absolute;
+    content: "";
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 100vh;
+    background-color: color-mix(in srgb, var(--black) 15%, transparent);
+    pointer-events: none;
   }
 
   .disabled {

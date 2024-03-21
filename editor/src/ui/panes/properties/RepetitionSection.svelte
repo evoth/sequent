@@ -8,7 +8,7 @@
     type RepeatUnitType,
     type RepeatValidation,
   } from "../../../data/repeat";
-  import { Component, Sequence } from "../../../data/sequence";
+  import { Component, LayerMode, Sequence } from "../../../data/sequence";
   import {
     project,
     selectedComponents,
@@ -282,6 +282,26 @@
                 selectDurationUnit(option);
                 toggleDropdown();
               }}>{option}</button
+            >
+          {/if}
+        {/each}
+      </svelte:fragment>
+    </SelectDropdown>
+    <SelectDropdown
+      label={`Layering mode`}
+      buttonTitle={`Layering mode options`}
+      dropdownText={LayerMode[component.layerMode]}
+    >
+      <svelte:fragment slot="buttons" let:toggleDropdown>
+        {#each [LayerMode.Override, LayerMode.Coincide] as option}
+          {#if component.layerMode !== option}
+            <button
+              on:click={() => {
+                if (component === undefined) return;
+                component.layerMode = option;
+                $updateIndex++;
+                toggleDropdown();
+              }}>{LayerMode[option]}</button
             >
           {/if}
         {/each}

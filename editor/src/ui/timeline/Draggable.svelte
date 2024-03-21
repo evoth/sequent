@@ -298,7 +298,7 @@
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="dragParent" on:mousedown={(event) => dragStart(event)}>
-  {#if !(hideChildOnDrag && dragging !== undefined)}
+  {#if !(hideChildOnDrag && isDragging)}
     <slot />
   {/if}
 </div>
@@ -307,31 +307,33 @@
   <Portal target="body">
     <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div class="dragArea" on:mousemove={dragMove} on:mouseup={dragEnd}>
-      {#if !outsideBounds && !previewNoSnap}
+      {#if isDragging}
+        {#if !outsideBounds && !previewNoSnap}
+          <div
+            class="previewContainer"
+            style:left={`${previewBox.left}px`}
+            style:top={`${previewBox.top}px`}
+            style:width={`${previewBox.width}px`}
+            style:height={`${previewBox.height}px`}
+          >
+            <ComponentBody component={dragging} />
+          </div>
+        {/if}
         <div
-          class="previewContainer"
-          style:left={`${previewBox.left}px`}
-          style:top={`${previewBox.top}px`}
-          style:width={`${previewBox.width}px`}
-          style:height={`${previewBox.height}px`}
+          class="dragContainer"
+          style:left={`${draggingBox.left}px`}
+          style:top={`${draggingBox.top}px`}
+          style:width={`${draggingBox.width}px`}
+          style:height={`${draggingBox.height}px`}
         >
-          <ComponentBody component={dragging} />
+          <ComponentBody
+            component={dragging}
+            disabled={outsideBounds || previewNoSnap}
+            shadow={isDragging}
+            highlight
+          />
         </div>
       {/if}
-      <div
-        class="dragContainer"
-        style:left={`${draggingBox.left}px`}
-        style:top={`${draggingBox.top}px`}
-        style:width={`${draggingBox.width}px`}
-        style:height={`${draggingBox.height}px`}
-      >
-        <ComponentBody
-          component={dragging}
-          disabled={outsideBounds || previewNoSnap}
-          shadow={isDragging}
-          highlight
-        />
-      </div>
     </div>
   </Portal>
 {/if}
@@ -343,6 +345,7 @@
     bottom: 0;
     right: 0;
     left: 0;
+    overflow: hidden;
   }
 
   .dragContainer {

@@ -157,8 +157,8 @@ export class Sequence extends Manageable<Sequence> implements Repeatable {
 }
 
 export enum LayerMode {
-  Coincide,
-  Override,
+  Coincide = "Coincide",
+  Override = "Override",
 }
 
 export type LayerValidation = {
@@ -221,6 +221,49 @@ export class Component extends Repeat implements Serializable {
       LayerMode[json.layerMode as keyof typeof LayerMode],
       json.customName
     );
+  }
+
+  render(): Render {
+    const render = new Render();
+    const validation = this.validate();
+    const duration = this.child.getDuration(this.props.keepLeading);
+    if (
+      validation.error !== RepeatError.None ||
+      validation.solved === undefined ||
+      duration === undefined
+    )
+      return render;
+
+    // TODO: This breaks when (if?) we allow infinite durations
+    if (this.layerMode === LayerMode.Override) {
+      render.children.push({
+        start: validation.solved.start!,
+        end: validation.solved.end!,
+        layer: render.baseLayer,
+        data: null,
+      });
+      render.baseLayer++;
+    }
+
+    let interval = validation.solved.interval;
+    if (!this.props.includeChildDuration) {
+      interval += duration;
+    }
+
+    const childRender = this.child.render();
+    let offsetAdjust = 0;
+    if (this.child instanceof Sequence && !this.props.keepLeading) {
+      offsetAdjust = this.child.validate().start ?? 0;
+    }
+    for (
+      let offset = validation.solved.start!;
+      offset < validation.solved.end!;
+      offset += interval
+    ) {
+      render.add(childRender, offset - offsetAdjust);
+    }
+
+    return render;
   }
 }
 

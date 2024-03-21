@@ -18,7 +18,9 @@
 
     const repeatProps = new RepeatProps(
       {
-        start: 0,
+        start: $project.openedSequence.isAbsolute
+          ? new Date().getTime() / 1000
+          : 0,
         repetitions: 1,
         interval: 5,
       },
