@@ -1,15 +1,30 @@
-#ifndef ESP_INT_INTERVALOMETER_H
-#define ESP_INT_INTERVALOMETER_H
+#ifndef SEQUENT_SEQUENCE_H
+#define SEQUENT_SEQUENCE_H
 
 #include <ArduinoJson.h>
+#include "logger.h"
 
-extern int actionIndex;
-extern int totalActions;
-extern bool isRunning;
+class Sequence {
+ public:
+  Sequence() : logger("Sequence") {}
 
-extern unsigned long timeUntilNext();
-extern void startSequence();
-extern void stopSequence();
-extern void loopSequence();
+  int actionIndex = 0;
+  int totalActions = 0;
+  bool isRunning = false;
+
+  unsigned long timeUntilNext();
+  void readAction();
+  void start(char* sequenceFilePath);
+  void stop();
+  void loop();
+
+ private:
+  unsigned long startTime = 0;
+  unsigned long nextTime = 0;
+  JsonDocument action;
+  Logger logger;
+  char* filePath;
+  unsigned long filePos;
+};
 
 #endif

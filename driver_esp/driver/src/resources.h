@@ -1,5 +1,5 @@
-#ifndef ESP_INT_RESOURCES_H
-#define ESP_INT_RESOURCES_H
+#ifndef SEQUENT_RESOURCES_H
+#define SEQUENT_RESOURCES_H
 
 #include <pgmspace.h>
 

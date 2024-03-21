@@ -3,15 +3,44 @@ import {
   NestedParameter,
   NumberParameter,
   Parameter,
+  StringParameter,
 } from "../data/parameter";
 
 import { Action } from "../data/action";
 import { ActionSet } from "../data/actionSet";
 
-// TODO: add mapped parameter type so enumerated params can still be used as durationParam
-
 export function getEsp32ActionSet(): ActionSet {
-  const actionSet = new ActionSet("Test");
+  const actionSet = new ActionSet("ESP32");
+
+  new Action(
+    actionSet.actionManager,
+    "Connect camera",
+    "Connect to a Canon camera over WiFi",
+    { defaultDuration: 5, durationParams: [] },
+    [
+      new StringParameter<string>(
+        actionSet.parameterManager,
+        "IP address",
+        "Camera IP address",
+        "192.168.4.7",
+        7,
+        15,
+        undefined,
+        undefined,
+        "ip"
+      ),
+      new EnumParameter<string>(
+        actionSet.parameterManager,
+        "Protocol",
+        "Method used to connect to camera",
+        "CCAPI",
+        ["CCAPI", "PTP/IP"]
+      ),
+    ],
+    "connect",
+    130
+  );
+
   const bulbParam = new NumberParameter<number>(
     actionSet.parameterManager,
     "Bulb exposure",
@@ -220,7 +249,7 @@ export function getEsp32ActionSet(): ActionSet {
     "Aperture priority (Av)",
     new Map(
       Object.entries({
-        "Manual (M)": [apertureParam, isoParam, shutterParam],
+        "Manual (M)": [isoParam, apertureParam, shutterParam],
         "Aperture priority (Av)": [isoParam, apertureParam, evParam],
         "Shutter priority (Tv)": [isoParam, shutterParam, evParam],
         "Program (P)": [isoParam, evParam],
@@ -231,6 +260,7 @@ export function getEsp32ActionSet(): ActionSet {
     undefined,
     "mode"
   );
+
   new Action(
     actionSet.actionManager,
     "Photo",
@@ -238,13 +268,14 @@ export function getEsp32ActionSet(): ActionSet {
     {
       defaultDuration: 1,
       durationParams: [
-        { param: shutterParam, paramOffset: 1 },
-        { param: bulbParam, paramOffset: 2 },
+        { param: shutterParam, paramOffset: 1.5 },
+        { param: bulbParam, paramOffset: 3 },
       ],
     },
     [modeParam],
     "photo",
     220
   );
+
   return actionSet;
 }

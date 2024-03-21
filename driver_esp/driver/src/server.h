@@ -1,5 +1,5 @@
-#ifndef ESP_INT_SERVER_H
-#define ESP_INT_SERVER_H
+#ifndef SEQUENT_SERVER_H
+#define SEQUENT_SERVER_H
 
 extern void initServer();
 extern void loopServer();

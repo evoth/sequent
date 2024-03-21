@@ -1,72 +1,86 @@
 #include "sequence.h"
-#include "camera.h"
-#include "server.h"
-#include "status.h"
-#include <ArduinoJson.h>
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <SD.h>
 #include <SPI.h>
-
-int actionIndex;
-int totalActions;
-bool isRunning = false;
-unsigned long nextTime = 0;
-unsigned long startTime = 0;
-File file;
-JsonDocument action;
-
-char sequenceFilePath[] = "/run.seq";
+#include "camera.h"
+#include "logger.h"
+#include "server.h"
 
 // Time until next shot in milliseconds (clamped at 0)
-unsigned long timeUntilNext() {
+unsigned long Sequence::timeUntilNext() {
   unsigned long currentTime = millis() - startTime;
-  if (currentTime >= nextTime) return 0;
+  if (currentTime >= nextTime)
+    return 0;
   return nextTime - currentTime;
 }
 
-void readAction() {
+void Sequence::readAction() {
+  File file = SD.open(filePath, FILE_READ);
+  if (!file) {
+    logger.error("Failed to open file '%s' for reading.", filePath);
+    return;
+  }
+  file.seek(filePos);
+
+  if (file.peek() == ',')
+    file.find(",");
+  if (file.peek() == ']') {
+    isRunning = false;
+    logger.log("Sequence '%s' completed.", filePath);
+    return;
+  };
+
   deserializeJson(action, file);
-  isRunning = file.findUntil(",","]");
   float actionStart = action["start"];
   nextTime = actionStart * 1000;
   actionIndex++;
+
+  filePos = file.position();
+  file.close();
 }
 
-void startSequence() {
+void Sequence::start(char* sequenceFilePath) {
   if (!SD.begin()) {
-        Serial.println("SD card mount failed!");
-        return;
+    Serial.println("SD card mount failed!");
+    return;
   }
-  Serial.println("SD card mount done.");
+  logger.log("SD card mounted.", filePath);
 
-  file = SD.open(sequenceFilePath, FILE_READ);
+  filePath = sequenceFilePath;
+  File file = SD.open(filePath, FILE_READ);
   if (!file) {
-      Serial.println("Failed to open file for reading");
-      return;
+    logger.error("Failed to open file '%s' for reading.", filePath);
+    return;
   }
 
   file.find("\"numActions\":");
   totalActions = file.parseInt();
   file.find("\"actions\":[");
+  filePos = file.position();
+  file.close();
+
   actionIndex = -1;
   readAction();
 
   isRunning = true;
   startTime = millis();
-  snprintf(statusMsg, sizeof(statusMsg), "Sequence started successfully.");
+  logger.log("Sequence '%s' started.", filePath);
 }
 
-void stopSequence() {
-  if (file) file.close();
-  SD.end();
+void Sequence::stop() {
+  logger.log("Sequence '%s' stopped.", filePath);
   isRunning = false;
-  snprintf(statusMsg, sizeof(statusMsg), "Sequence stopped successfully.");
+  SD.end();
 }
 
 // Run in main loop
-void loopSequence() {
-  if (!isRunning || timeUntilNext() > 0) return;
-  setExposure(action["data"]["states"]["tv"].as<String>().c_str(), action["data"]["states"]["iso"].as<String>().c_str());
+void Sequence::loop() {
+  if (!isRunning || timeUntilNext() > 0)
+    return;
+  logger.log("Starting action %d", actionIndex);
+  setExposure(action["data"]["states"]["tv"].as<String>().c_str(),
+              action["data"]["states"]["iso"].as<String>().c_str());
   triggerShutter();
   readAction();
   sendStatus();
