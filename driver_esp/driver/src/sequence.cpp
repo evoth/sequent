@@ -3,7 +3,7 @@
 #include <ArduinoJson.h>
 #include <SD.h>
 #include <SPI.h>
-#include "camera.h"
+#include "cameraCCAPI.h"
 #include "logger.h"
 #include "sequentServer.h"
 
@@ -72,9 +72,9 @@ bool Sequence::loop() {
   if (!isRunning || timeUntilNext() > 0)
     return false;
   logger.log("Starting action %d", actionIndex);
-  setExposure(action["data"]["states"]["tv"].as<String>().c_str(),
-              action["data"]["states"]["iso"].as<String>().c_str());
-  triggerShutter();
+  cameraCCAPI.setExposure(action["data"]["states"]["tv"],
+                          action["data"]["states"]["iso"]);
+  cameraCCAPI.triggerShutter();
   readAction();
   return true;
 }

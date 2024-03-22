@@ -2,9 +2,11 @@ import { readable, writable } from "svelte/store";
 
 export const isConnected = writable(false);
 export const espIP = writable("192.168.4.1");
+// TODO: separate status of different components
 export const state = writable({
-  statusCode: 0,
-  statusMsg: "Page loaded.",
+  serverLogs: [],
+  sequenceLogs: [],
+  cameraLogs: [],
   cameraConnected: false,
   isRunning: false,
   cameraIP: "192.168.4.7",

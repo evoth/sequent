@@ -1,8 +1,7 @@
 #include "sequentServer.h"
 #include <WiFi.h>
-#include "camera.h"
+#include "cameraCCAPI.h"
 #include "resources.h"
-#include "status.h"
 
 void SequentServer::initAP(const char* ssid, const char* password) {
   logger.log("Starting soft-AP... ");
@@ -38,26 +37,32 @@ void SequentServer::initWebServer() {
       "Access-Control-Request-Headers");
 
   server.begin();
+  logger.log("Started web server.");
 }
 
 void SequentServer::initWebSocketServer() {
   webSocket.begin();
-  webSocket.onEvent(bind(&SequentServer::webSocketEvent, this,
-                         std::placeholders::_1, std::placeholders::_2,
-                         std::placeholders::_3, std::placeholders::_4));
+  webSocket.onEvent(
+      [this](uint8_t num, WStype_t type, uint8_t* payload, size_t length) {
+        webSocketEvent(num, type, payload, length);
+      });
+  logger.log("Started WebSocket server.");
 }
 
+// TODO: separate status of different components
 void SequentServer::sendStatus() {
   JsonDocument status;
-  status["statusCode"] = statusCode;
-  status["statusMsg"] = statusMsg;
-  status["cameraConnected"] = cameraConnected;
-  status["cameraIP"] = cameraIP;
+  logger.getRecentLogs(status["serverLogs"].to<JsonArray>());
+  sequence.logger.getRecentLogs(status["sequenceLogs"].to<JsonArray>());
+  sequence.cameraCCAPI.logger.getRecentLogs(
+      status["cameraLogs"].to<JsonArray>());
+  status["cameraConnected"] = sequence.cameraCCAPI.cameraConnected;
+  status["cameraIP"] = sequence.cameraCCAPI.cameraIP;
   status["isRunning"] = sequence.isRunning;
   status["actionIndex"] = sequence.actionIndex;
   status["totalActions"] = sequence.totalActions;
   status["timeUntilNext"] = sequence.timeUntilNext();
-  String statusText;
+  char statusText[4096];
   serializeJson(status, statusText);
   webSocket.broadcastTXT(statusText);
 }
@@ -68,11 +73,11 @@ void SequentServer::webSocketEvent(uint8_t num,
                                    size_t length) {
   switch (type) {
     case WStype_DISCONNECTED:
-      logger.log("[%u] Disconnected!\n", num);
+      logger.log("[%u] Disconnected!", num);
       break;
     case WStype_CONNECTED: {
       IPAddress ip = webSocket.remoteIP(num);
-      logger.log("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1],
+      logger.log("[%u] Connected from %d.%d.%d.%d url: %s", num, ip[0], ip[1],
                  ip[2], ip[3], payload);
       sendStatus();
     } break;
@@ -97,14 +102,13 @@ void SequentServer::loop() {
   String command = msg["command"];
 
   if (command == "connect") {
-    cameraConnect(msg);
+    sequence.cameraCCAPI.connect(msg["cameraIP"]);
   } else if (command == "start") {
     sequence.start("/run.seq");
   } else if (command == "stop") {
     sequence.stop();
   } else {
-    statusCode = 0;
-    snprintf(statusMsg, sizeof(statusMsg), "Unknown command.");
+    logger.error("Unknown command: %s.", command);
   }
 
   sendStatus();

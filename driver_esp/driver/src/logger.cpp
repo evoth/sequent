@@ -7,14 +7,16 @@ using namespace std;
 const char* Logger::LOG_FILE = "/logs.txt";
 const char* Logger::ERROR_FILE = "/errors.txt";
 
-void Logger::generalLog(const char* format,
+void Logger::generalLog(int statusCode,
+                        const char* format,
                         va_list args,
                         const char* filename,
-                        vector<tuple<time_t, const char*>> logs) {
+                        vector<Log>& logs,
+                        bool isError) {
   char msgBuffer[256];
   vsnprintf(msgBuffer, sizeof(msgBuffer), format, args);
 
-  logs.push_back(make_tuple(now(), msgBuffer));
+  logs.push_back(Log(now(), msgBuffer, isError, statusCode));
   if (logs.size() > NUM_RECENT) {
     logs.erase(logs.begin());
   }
@@ -25,21 +27,20 @@ void Logger::generalLog(const char* format,
     return;
   }
 
-  Serial.printf("[%d] %s: %s\n", now(), name, msgBuffer);
-  logFile.printf("[%d] %s: %s\n", now(), name, msgBuffer);
+  Serial.printf("[%d, %d, %d] %s: %s\n", now(), statusCode, isError, name,
+                msgBuffer);
+  logFile.printf("[%d, %d, %d] %s: %s\n", now(), statusCode, isError, name,
+                 msgBuffer);
   logFile.close();
 }
 
-JsonArray Logger::getRecent(vector<tuple<time_t, const char*>> logs) {
-  JsonDocument doc;
-  JsonArray messages = doc.to<JsonArray>();
-
-  for (tuple<time_t, const char*> messageInfo : logs) {
+void Logger::getRecent(const vector<Log>& logs, const JsonArray& logsArray) {
+  for (auto messageInfo : logs) {
     JsonDocument message;
-    message["time"] = get<0>(messageInfo);
-    message["message"] = get<1>(messageInfo);
-    messages.add(message);
+    message["time"] = messageInfo.time;
+    message["message"] = messageInfo.message;
+    message["isError"] = messageInfo.isError;
+    message["statusCode"] = messageInfo.statusCode;
+    logsArray.add(message);
   }
-
-  return messages;
 }

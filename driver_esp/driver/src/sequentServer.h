@@ -6,10 +6,6 @@
 #include <WebSocketsServer.h>
 #include "sequence.h"
 
-// extern void initServer();
-// extern void loopServer();
-// extern void sendStatus();
-
 class SequentServer {
  public:
   SequentServer() : server(80), webSocket(81), logger("SequentServer") {}

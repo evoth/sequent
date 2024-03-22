@@ -9,6 +9,17 @@
 
 using namespace std;
 
+struct Log {
+  Log(time_t time, const char* message, bool isError, int statusCode = 0)
+      : time(time), isError(isError), statusCode(statusCode) {
+    strncpy(this->message, message, sizeof(this->message));
+  }
+  time_t time;
+  char message[256];
+  bool isError;
+  int statusCode;
+};
+
 class Logger {
  public:
   Logger(const char* name) : name(name) {}
@@ -19,31 +30,49 @@ class Logger {
   void log(const char* format, ...) {
     va_list args;
     va_start(args, format);
-    generalLog(format, args, LOG_FILE, recentLogs);
+    generalLog(0, format, args, LOG_FILE, recentLogs, false);
     va_end(args);
   }
   void error(const char* format, ...) {
     va_list args;
     va_start(args, format);
-    generalLog(format, args, ERROR_FILE, recentErrors);
-    generalLog(format, args, LOG_FILE, recentLogs);
+    generalLog(-1, format, args, ERROR_FILE, recentErrors, true);
+    generalLog(-1, format, args, LOG_FILE, recentLogs, true);
     va_end(args);
   }
-  JsonArray getRecentLogs() { return getRecent(recentLogs); }
-  JsonArray getRecentErrors() { return getRecent(recentErrors); }
-  const char* getMostRecent() { return get<1>(recentLogs.back()); }
+  void log(int statusCode, const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    generalLog(statusCode, format, args, LOG_FILE, recentLogs, false);
+    va_end(args);
+  }
+  void error(int statusCode, const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    generalLog(statusCode, format, args, ERROR_FILE, recentErrors, true);
+    generalLog(statusCode, format, args, LOG_FILE, recentLogs, true);
+    va_end(args);
+  }
+  void getRecentLogs(const JsonArray& logsArray) {
+    getRecent(recentLogs, logsArray);
+  }
+  void getRecentErrors(const JsonArray& errorsArray) {
+    getRecent(recentErrors, errorsArray);
+  }
 
  private:
   static const int NUM_RECENT = 10;
   const char* name;
-  vector<tuple<time_t, const char*>> recentLogs;
-  vector<tuple<time_t, const char*>> recentErrors;
+  vector<Log> recentLogs;
+  vector<Log> recentErrors;
 
-  void generalLog(const char* format,
+  void generalLog(int statusCode,
+                  const char* format,
                   va_list args,
                   const char* filename,
-                  vector<tuple<time_t, const char*>> logs);
-  JsonArray getRecent(vector<tuple<time_t, const char*>> logs);
+                  vector<Log>& logs,
+                  bool isError);
+  void getRecent(const vector<Log>& logs, const JsonArray& logsArray);
 };
 
 #endif
