@@ -3,7 +3,6 @@
 
 #include <ArduinoJson.h>
 #include <TimeLib.h>
-#include <string>
 #include <tuple>
 #include <vector>
 
@@ -61,18 +60,18 @@ class Logger {
   }
 
  private:
-  static const int NUM_RECENT = 10;
+  static const int NUM_RECENT = 1;
   const char* name;
-  vector<Log> recentLogs;
-  vector<Log> recentErrors;
+  vector<Log*> recentLogs;
+  vector<Log*> recentErrors;
 
   void generalLog(int statusCode,
                   const char* format,
                   va_list args,
                   const char* filename,
-                  vector<Log>& logs,
+                  vector<Log*>& logs,
                   bool isError);
-  void getRecent(const vector<Log>& logs, const JsonArray& logsArray);
+  void getRecent(const vector<Log*>& logs, const JsonArray& logsArray);
 };
 
 #endif

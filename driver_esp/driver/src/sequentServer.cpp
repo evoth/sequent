@@ -54,10 +54,7 @@ void SequentServer::sendStatus() {
   JsonDocument status;
   logger.getRecentLogs(status["serverLogs"].to<JsonArray>());
   sequence.logger.getRecentLogs(status["sequenceLogs"].to<JsonArray>());
-  sequence.cameraCCAPI.logger.getRecentLogs(
-      status["cameraLogs"].to<JsonArray>());
-  status["cameraConnected"] = sequence.cameraCCAPI.cameraConnected;
-  status["cameraIP"] = sequence.cameraCCAPI.cameraIP;
+  sequence.getCamerasStatus(status["cameras"].to<JsonArray>());
   status["isRunning"] = sequence.isRunning;
   status["actionIndex"] = sequence.actionIndex;
   status["totalActions"] = sequence.totalActions;
@@ -101,9 +98,7 @@ void SequentServer::loop() {
 
   String command = msg["command"];
 
-  if (command == "connect") {
-    sequence.cameraCCAPI.connect(msg["cameraIP"]);
-  } else if (command == "start") {
+  if (command == "start") {
     sequence.start("/run.seq");
   } else if (command == "stop") {
     sequence.stop();

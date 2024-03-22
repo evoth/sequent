@@ -46,8 +46,7 @@ void CameraCCAPI::request(const char* url,
 }
 
 // Sends a GET request to base CCAPI URL to establish connection
-void CameraCCAPI::connect(const char* ipAddress) {
-  snprintf(cameraIP, sizeof(cameraIP), ipAddress);
+void CameraCCAPI::connect() {
   snprintf(apiUrl, sizeof(apiUrl), apiUrlTemplate, cameraIP);
 
   request(
@@ -79,38 +78,23 @@ void CameraCCAPI::triggerShutter() {
       });
 }
 
-// Set camera exposure to previous setting
-void CameraCCAPI::setExposure(const char* tv, const char* iso) {
-  int numSuccess = 0;
+void CameraCCAPI::setValueAPI(const char* path,
+                              const char* name,
+                              const char* val) {
   char endpointUrl[128];
 
-  snprintf(endpointUrl, sizeof(endpointUrl), "%s/ver100/shooting/settings/tv",
-           apiUrl);
+  snprintf(endpointUrl, sizeof(endpointUrl), "%s%s", apiUrl, path);
   request(
       endpointUrl,
-      [this, tv]() {
+      [this, val]() {
         JsonDocument body;
-        body["value"] = tv;
+        body["value"] = val;
         String bodyText;
         serializeJson(body, bodyText);
         return http.PUT(bodyText);
       },
-      [&numSuccess](int statusCode) { numSuccess++; }, [](int statusCode) {});
-
-  snprintf(endpointUrl, sizeof(endpointUrl), "%s/ver100/shooting/settings/iso",
-           apiUrl);
-  request(
-      endpointUrl,
-      [this, iso]() {
-        JsonDocument body;
-        body["value"] = iso;
-        String bodyText;
-        serializeJson(body, bodyText);
-        return http.PUT(bodyText);
+      [this, name, val](int statusCode) {
+        logger.log("Set %s to %s", name, val);
       },
-      [&numSuccess](int statusCode) { numSuccess++; }, [](int statusCode) {});
-
-  if (numSuccess == 2) {
-    logger.log("Set exposure (tv=%s, iso=%s)", tv, iso);
-  }
+      [](int statusCode) {});
 }

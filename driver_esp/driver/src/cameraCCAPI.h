@@ -1,24 +1,29 @@
-#ifndef SEQUENT_CAMERA_H
-#define SEQUENT_CAMERA_H
+#ifndef SEQUENT_CAMERA_CCAPI_H
+#define SEQUENT_CAMERA_CCAPI_H
 
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 #include <WiFi.h>
+#include "camera.h"
 #include "logger.h"
 
 // TODO: Manage status and state
 // TODO: make logger private
-class CameraCCAPI {
+class CameraCCAPI : public Camera {
  public:
-  CameraCCAPI() : logger("CCAPI") {}
+  CameraCCAPI(const char* ipAddress) : Camera(ipAddress, "CCAPI", "CCAPI") {}
 
-  char cameraIP[32];
-  bool cameraConnected = false;
-  Logger logger;
-
-  void connect(const char* ipAddress);
+  void connect();
   void triggerShutter();
-  void setExposure(const char* tv, const char* iso);
+  void setIso(const char* iso) {
+    setValueAPI("/ver100/shooting/settings/iso", "ISO", iso);
+  }
+  void setAv(const char* av) {
+    setValueAPI("/ver100/shooting/settings/av", "aperture", av);
+  }
+  void setTv(const char* tv) {
+    setValueAPI("/ver100/shooting/settings/tv", "shutter speed", tv);
+  }
 
  private:
   char apiUrl[64];
@@ -31,6 +36,7 @@ class CameraCCAPI {
                std::function<int()> action,
                std::function<void(int statusCode)> success,
                std::function<void(int statusCode)> failure);
+  void setValueAPI(const char* path, const char* name, const char* val);
 };
 
 #endif

@@ -2,6 +2,7 @@
 #define SEQUENT_SEQUENCE_H
 
 #include <ArduinoJson.h>
+#include <map>
 #include "cameraCCAPI.h"
 #include "logger.h"
 
@@ -15,7 +16,7 @@ class Sequence {
   int actionIndex = 0;
   int totalActions = 0;
   bool isRunning = false;
-  CameraCCAPI cameraCCAPI;
+  std::map<String, Camera*> cameras;
   Logger logger;
 
   unsigned long timeUntilNext();
@@ -23,6 +24,7 @@ class Sequence {
   void start(const char* sequenceFilePath);
   void stop();
   bool loop();
+  void getCamerasStatus(const JsonArray& camerasArray);
 
  private:
   unsigned long startTime = 0;

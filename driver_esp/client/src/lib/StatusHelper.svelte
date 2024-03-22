@@ -1,10 +1,10 @@
 <script>
-    export let name;
+    export let title;
     export let logs;
 </script>
 
 <div>
-    <strong>{name} logs:</strong>
+    <strong>{title}:</strong>
     {#each logs as log}
         <p
         class:success={log.statusCode == 200}

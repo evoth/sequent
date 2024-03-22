@@ -1,10 +1,9 @@
 <script>
   import ThemeToggle from "./lib/ThemeToggle.svelte";
-  import ConnectCamera from "./lib/ConnectCamera.svelte";
   import ConnectEsp from "./lib/ConnectEsp.svelte";
   import Intervalometer from "./lib/Sequence.svelte";
   import Status from "./lib/Status.svelte";
-  import { state, isConnected } from "./stores.js";
+  import { isConnected } from "./stores.js";
 </script>
 
 <main>
@@ -15,10 +14,7 @@
   <Status />
   <ConnectEsp />
   {#if $isConnected}
-    <ConnectCamera />
-    {#if $state.cameraConnected}
-      <Intervalometer />
-    {/if}
+    <Intervalometer />
   {/if}
 </main>
 

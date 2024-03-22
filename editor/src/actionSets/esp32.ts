@@ -12,29 +12,34 @@ import { ActionSet } from "../data/actionSet";
 export function getEsp32ActionSet(): ActionSet {
   const actionSet = new ActionSet("ESP32");
 
+  const ipParam = new StringParameter<string>(
+    actionSet.parameterManager,
+    "IP address",
+    "Camera IP address",
+    "192.168.4.7",
+    7,
+    15,
+    undefined,
+    undefined,
+    "ip"
+  );
+
   new Action(
     actionSet.actionManager,
     "Connect camera",
     "Connect to a Canon camera over WiFi",
     { defaultDuration: 5, durationParams: [] },
     [
-      new StringParameter<string>(
-        actionSet.parameterManager,
-        "IP address",
-        "Camera IP address",
-        "192.168.4.7",
-        7,
-        15,
-        undefined,
-        undefined,
-        "ip"
-      ),
+      ipParam,
       new EnumParameter<string>(
         actionSet.parameterManager,
         "Protocol",
         "Method used to connect to camera",
         "CCAPI",
-        ["CCAPI", "PTP/IP"]
+        ["CCAPI", "PTP/IP"],
+        undefined,
+        undefined,
+        "method"
       ),
     ],
     "connect",
@@ -257,7 +262,13 @@ export function getEsp32ActionSet(): ActionSet {
       })
     ),
     undefined,
-    undefined,
+    new Map([
+      ["Manual (M)", "m"],
+      ["Aperture priority (Av)", "av"],
+      ["Shutter priority (Tv)", "tv"],
+      ["Program (P)", "p"],
+      ["Auto", "auto"],
+    ]),
     "mode"
   );
 
@@ -272,7 +283,7 @@ export function getEsp32ActionSet(): ActionSet {
         { param: bulbParam, paramOffset: 3 },
       ],
     },
-    [modeParam],
+    [ipParam, modeParam],
     "photo",
     220
   );

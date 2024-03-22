@@ -72,9 +72,43 @@ bool Sequence::loop() {
   if (!isRunning || timeUntilNext() > 0)
     return false;
   logger.log("Starting action %d", actionIndex);
-  cameraCCAPI.setExposure(action["data"]["states"]["tv"],
-                          action["data"]["states"]["iso"]);
-  cameraCCAPI.triggerShutter();
+
+  String actionId = action["data"]["action"];
+
+  if (actionId == "connect") {
+    String ipString = action["data"]["states"]["ip"];
+    if (cameras.count(ipString) == 0) {
+      String method = action["data"]["states"]["method"];
+      if (method == "CCAPI") {
+        cameras[ipString] = new CameraCCAPI(ipString.c_str());
+      }
+    }
+    cameras[ipString]->connect();
+  } else if (actionId == "photo") {
+    String ipString = action["data"]["states"]["ip"];
+    if (cameras.count(ipString) == 0) {
+      logger.error("Camera with IP address %s has not been connected.",
+                   ipString.c_str());
+    } else {
+      Camera& camera = *cameras[ipString];
+      camera.setIso(action["data"]["states"]["iso"]);
+      camera.setAv(action["data"]["states"]["av"]);
+      camera.setTv(action["data"]["states"]["tv"]);
+      camera.triggerShutter();
+    }
+  }
+
   readAction();
   return true;
+}
+
+void Sequence::getCamerasStatus(const JsonArray& camerasArray) {
+  for (auto& [ip, camera] : cameras) {
+    JsonDocument cameraStatus;
+    camera->logger.getRecentLogs(cameraStatus["logs"].to<JsonArray>());
+    cameraStatus["cameraConnected"] = camera->cameraConnected;
+    cameraStatus["cameraIP"] = camera->cameraIP;
+    cameraStatus["method"] = camera->method;
+    camerasArray.add(cameraStatus);
+  }
 }

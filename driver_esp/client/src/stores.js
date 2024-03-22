@@ -6,8 +6,7 @@ export const espIP = writable("192.168.4.1");
 export const state = writable({
   serverLogs: [],
   sequenceLogs: [],
-  cameraLogs: [],
-  cameraConnected: false,
+  cameras: [],
   isRunning: false,
   cameraIP: "192.168.4.7",
   actionIndex: 0,
