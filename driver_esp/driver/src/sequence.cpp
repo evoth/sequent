@@ -41,6 +41,9 @@ void Sequence::readAction() {
 }
 
 void Sequence::start(const char* sequenceFilePath) {
+  if (isRunning)
+    stop();
+
   filePath = sequenceFilePath;
   File file = SD.open(filePath, FILE_READ);
   if (!file) {

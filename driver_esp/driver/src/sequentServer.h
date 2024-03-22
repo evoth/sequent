@@ -22,7 +22,6 @@ class SequentServer {
   WebSocketsServer webSocket;
   JsonDocument msg;
   bool newMsg = false;
-  // TODO: support arbitrary number of sequences
   Sequence sequence;
   Logger logger;
 

@@ -10,7 +10,7 @@
     isExpanded = true;
   }
 
-  const toggle = () => {
+  function toggle() {
     isExpanded = !isExpanded;
     if (name) {
       localStorage.setItem(storageKey, String(isExpanded));

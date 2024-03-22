@@ -5,7 +5,7 @@
       ? "dark"
       : "light");
 
-  const update = () => {
+  function update() {
     const classList = window.document.documentElement.classList;
     if (theme == "dark") {
       classList.add("dark");
@@ -14,7 +14,7 @@
     }
   };
 
-  const toggle = () => {
+  function toggle() {
     theme = theme == "light" ? "dark" : "light";
     localStorage.setItem("theme", theme);
     update();

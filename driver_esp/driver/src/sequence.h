@@ -16,6 +16,7 @@ class Sequence {
   int actionIndex = 0;
   int totalActions = 0;
   bool isRunning = false;
+  const char* filePath;
   std::map<String, Camera*> cameras;
   Logger logger;
 
@@ -30,7 +31,6 @@ class Sequence {
   unsigned long startTime = 0;
   unsigned long nextTime = 0;
   JsonDocument action;
-  const char* filePath;
   unsigned long filePos;
 };
 

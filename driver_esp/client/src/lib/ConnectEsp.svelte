@@ -4,7 +4,7 @@
   let espIPInput = $espIP,
     isConnecting;
 
-  const connect = () => {
+  function connect() {
     $espIP = espIPInput;
     $socket?.close();
     $socket = new WebSocket(`ws://${$espIP}:81`);
@@ -23,7 +23,7 @@
     isConnecting = true;
   };
 
-  const disconnect = () => {
+  function disconnect() {
     $socket?.close();
   };
 

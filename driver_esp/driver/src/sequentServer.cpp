@@ -1,4 +1,5 @@
 #include "sequentServer.h"
+#include <SD.h>
 #include <WiFi.h>
 #include "cameraCCAPI.h"
 #include "resources.h"
@@ -13,6 +14,24 @@ void SequentServer::initAP(const char* ssid, const char* password) {
 void SequentServer::initWebServer() {
   server.on("/", HTTP_GET, [](AsyncWebServerRequest* req) {
     req->send_P(200, "text/html", indexHtml);
+  });
+
+  server.on("/seq-files", HTTP_GET, [](AsyncWebServerRequest* req) {
+    JsonDocument seqFiles;
+    JsonArray filenames = seqFiles["files"].to<JsonArray>();
+    File root = SD.open("/");
+    while (true) {
+      File file = root.openNextFile();
+      if (!file)
+        break;
+      String filename = file.name();
+      if (filename.endsWith(".seq"))
+        filenames.add("/" + filename);
+      file.close();
+    }
+    char filenamesTxt[4096];
+    serializeJson(seqFiles, filenamesTxt);
+    req->send(200, "application/json", filenamesTxt);
   });
 
   server.onNotFound([](AsyncWebServerRequest* req) {
@@ -56,6 +75,7 @@ void SequentServer::sendStatus() {
   sequence.logger.getRecentLogs(status["sequenceLogs"].to<JsonArray>());
   sequence.getCamerasStatus(status["cameras"].to<JsonArray>());
   status["isRunning"] = sequence.isRunning;
+  status["sequenceFilename"] = sequence.filePath;
   status["actionIndex"] = sequence.actionIndex;
   status["totalActions"] = sequence.totalActions;
   status["timeUntilNext"] = sequence.timeUntilNext();
@@ -99,7 +119,7 @@ void SequentServer::loop() {
   String command = msg["command"];
 
   if (command == "start") {
-    sequence.start("/run.seq");
+    sequence.start(msg["filename"]);
   } else if (command == "stop") {
     sequence.stop();
   } else {

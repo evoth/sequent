@@ -8,6 +8,7 @@ export const state = writable({
   sequenceLogs: [],
   cameras: [],
   isRunning: false,
+  sequenceFilename: "",
   cameraIP: "192.168.4.7",
   actionIndex: 0,
   timeUntilNext: 0,

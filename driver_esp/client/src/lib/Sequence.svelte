@@ -1,11 +1,13 @@
 <script>
-  import { state, isLoading, socket } from "../stores.js";
+  import { state, isLoading, socket, espIP } from "../stores.js";
   import Section from "./Section.svelte";
   let intervalSec, isUpdating, bulbSec;
 
 let timeReceived;
 let timeUntilNext = "0";
 let interval;
+let seqFiles = [];
+
 state.subscribe((value) => {
   timeReceived = Date.now();
   clearInterval(interval);
@@ -23,26 +25,30 @@ state.subscribe((value) => {
 
   isLoading.subscribe((value) => (isUpdating = value && isUpdating));
 
-  const start = () => {
-    $socket.send(JSON.stringify({ command: "start" }));
+  function start(filename) {
+    $socket.send(JSON.stringify({ command: "start", filename }));
     isUpdating = $isLoading = true;
   };
 
-  const stop = () => {
+  function stop() {
     $socket.send(JSON.stringify({ command: "stop" }));
     isUpdating = $isLoading = true;
   };
+
+  async function refreshList() {
+    const response = await fetch(`http://${$espIP}/seq-files`);
+    seqFiles = (await response.json()).files;
+  }
 </script>
 
 <Section name="sequence">
   <h2 slot="heading">Sequence</h2>
   
-  {#if $state.isRunning}
-    <button on:click={stop}> Stop </button>
-  {:else}
-    <!-- TODO: Add some basic validation -->
-    <button on:click={start}> Start </button>
-  {/if}
+  <button on:click={refreshList}> Refresh </button>
+
+  {#each seqFiles as filename}
+  <button on:click={() => $state.isRunning && $state.sequenceFilename === filename ? stop() : start(filename)}>{filename.slice(1)}</button>
+  {/each}
 
   {#if isUpdating}
     <p>Loading...</p>
@@ -52,7 +58,7 @@ state.subscribe((value) => {
     <p>Sequence stopped.</p>
   {/if}
 
-  {#if $state.cameraConnected}
+  {#if $state.isRunning}
     <p>
       Action index: {$state.actionIndex} / {$state.totalActions}
       Time until next action: {timeUntilNext}
