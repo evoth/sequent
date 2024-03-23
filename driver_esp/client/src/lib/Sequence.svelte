@@ -7,6 +7,7 @@ let timeReceived;
 let timeUntilNext = "0";
 let interval;
 let seqFiles = [];
+refreshList();
 
 state.subscribe((value) => {
   timeReceived = Date.now();
@@ -47,7 +48,7 @@ state.subscribe((value) => {
   <button on:click={refreshList}> Refresh </button>
 
   {#each seqFiles as filename}
-  <button on:click={() => $state.isRunning && $state.sequenceFilename === filename ? stop() : start(filename)}>{filename.slice(1)}</button>
+  <button on:click={() => $state.isRunning && $state.sequenceFilename === filename ? stop() : start(filename)}>{filename}</button>
   {/each}
 
   {#if isUpdating}

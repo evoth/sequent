@@ -8,7 +8,7 @@
 
 class SequentServer {
  public:
-  SequentServer() : server(80), webSocket(81), logger("SequentServer") {}
+  SequentServer() : server(80), webSocket(81), logger("Server") {}
 
   void init(const char* ssid, const char* password) {
     initAP(ssid, password);

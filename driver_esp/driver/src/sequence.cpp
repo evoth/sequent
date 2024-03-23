@@ -105,13 +105,11 @@ bool Sequence::loop() {
   return true;
 }
 
-void Sequence::getCamerasStatus(const JsonArray& camerasArray) {
+void Sequence::getStates(const JsonArray& camerasArray) {
   for (auto& [ip, camera] : cameras) {
-    JsonDocument cameraStatus;
-    camera->logger.getRecentLogs(cameraStatus["logs"].to<JsonArray>());
-    cameraStatus["cameraConnected"] = camera->cameraConnected;
-    cameraStatus["cameraIP"] = camera->cameraIP;
-    cameraStatus["method"] = camera->method;
+    JsonDocument doc;
+    JsonObject cameraStatus = doc.to<JsonObject>();
+    camera->getState(cameraStatus);
     camerasArray.add(cameraStatus);
   }
 }

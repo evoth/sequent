@@ -11,7 +11,9 @@
 // TODO: make logger private
 class CameraCCAPI : public Camera {
  public:
-  CameraCCAPI(const char* ipAddress) : Camera(ipAddress, "CCAPI", "CCAPI") {}
+  CameraCCAPI(const char* ipAddress) : Camera(ipAddress) {
+    snprintf(logger.name, sizeof(logger.name), "CCAPI Camera @ %s", ipAddress);
+  }
 
   void connect();
   void triggerShutter();

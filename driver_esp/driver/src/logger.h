@@ -21,7 +21,9 @@ struct Log {
 
 class Logger {
  public:
-  Logger(const char* name) : name(name) {}
+  Logger(const char* name) { strncpy(this->name, name, sizeof(this->name)); }
+  Logger() {}
+  char name[32] = "\0";
 
   static const char* LOG_FILE;
   static const char* ERROR_FILE;
@@ -52,16 +54,15 @@ class Logger {
     generalLog(statusCode, format, args, LOG_FILE, recentLogs, true);
     va_end(args);
   }
-  void getRecentLogs(const JsonArray& logsArray) {
-    getRecent(recentLogs, logsArray);
+  void getRecentLogs(const JsonObject& logsObject) {
+    getRecent(recentLogs, logsObject);
   }
-  void getRecentErrors(const JsonArray& errorsArray) {
-    getRecent(recentErrors, errorsArray);
+  void getRecentErrors(const JsonObject& errorsObject) {
+    getRecent(recentErrors, errorsObject);
   }
 
  private:
   static const int NUM_RECENT = 1;
-  const char* name;
   vector<Log*> recentLogs;
   vector<Log*> recentErrors;
 
@@ -71,7 +72,7 @@ class Logger {
                   const char* filename,
                   vector<Log*>& logs,
                   bool isError);
-  void getRecent(const vector<Log*>& logs, const JsonArray& logsArray);
+  void getRecent(const vector<Log*>& logs, const JsonObject& logsObject);
 };
 
 #endif

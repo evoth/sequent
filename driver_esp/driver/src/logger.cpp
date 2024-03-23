@@ -34,7 +34,9 @@ void Logger::generalLog(int statusCode,
   logFile.close();
 }
 
-void Logger::getRecent(const vector<Log*>& logs, const JsonArray& logsArray) {
+void Logger::getRecent(const vector<Log*>& logs, const JsonObject& logsObject) {
+  logsObject["name"] = name;
+  JsonArray logsArray = logsObject["logs"].to<JsonArray>();
   for (const auto messageInfo : logs) {
     JsonDocument message;
     message["time"] = messageInfo->time;

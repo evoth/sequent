@@ -4,8 +4,7 @@ export const isConnected = writable(false);
 export const espIP = writable("192.168.4.1");
 // TODO: separate status of different components
 export const state = writable({
-  serverLogs: [],
-  sequenceLogs: [],
+  states: [],
   cameras: [],
   isRunning: false,
   sequenceFilename: "",

@@ -25,7 +25,7 @@ class Sequence {
   void start(const char* sequenceFilePath);
   void stop();
   bool loop();
-  void getCamerasStatus(const JsonArray& camerasArray);
+  void getStates(const JsonArray& camerasArray);
 
  private:
   unsigned long startTime = 0;

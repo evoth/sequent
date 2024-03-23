@@ -8,6 +8,7 @@ SequentServer server;
 void setup() {
   Serial.begin(115200);
   Serial.println();
+
   if (!SD.begin()) {
     Serial.println("SD card mount failed!");
     return;

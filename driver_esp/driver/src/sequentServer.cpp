@@ -71,9 +71,17 @@ void SequentServer::initWebSocketServer() {
 // TODO: separate status of different components
 void SequentServer::sendStatus() {
   JsonDocument status;
-  logger.getRecentLogs(status["serverLogs"].to<JsonArray>());
-  sequence.logger.getRecentLogs(status["sequenceLogs"].to<JsonArray>());
-  sequence.getCamerasStatus(status["cameras"].to<JsonArray>());
+  JsonArray states = status["states"].to<JsonArray>();
+  // TODO: Make this cleaner and standardize stuff
+  JsonDocument stateDoc;
+  JsonObject serverState = stateDoc.to<JsonObject>();
+  logger.getRecentLogs(serverState);
+  states.add(serverState);
+  JsonDocument sequenceDoc;
+  JsonObject sequenceState = sequenceDoc.to<JsonObject>();
+  sequence.logger.getRecentLogs(sequenceState);
+  states.add(sequenceState);
+  sequence.getStates(states);
   status["isRunning"] = sequence.isRunning;
   status["sequenceFilename"] = sequence.filePath;
   status["actionIndex"] = sequence.actionIndex;
