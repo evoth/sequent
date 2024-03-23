@@ -16,6 +16,10 @@ void SequentServer::initWebServer() {
     req->send_P(200, "text/html", indexHtml);
   });
 
+  server.on("/icon.svg", HTTP_GET, [](AsyncWebServerRequest* req) {
+    req->send_P(200, "image/svg+xml", iconSvg);
+  });
+
   server.on("/seq-files", HTTP_GET, [](AsyncWebServerRequest* req) {
     JsonDocument seqFiles;
     JsonArray filenames = seqFiles["files"].to<JsonArray>();
@@ -85,7 +89,9 @@ void SequentServer::sendStatus() {
   status["sequenceFilename"] = sequence.filePath;
   status["actionIndex"] = sequence.actionIndex;
   status["totalActions"] = sequence.totalActions;
-  status["timeUntilNext"] = sequence.timeUntilNext();
+  // TODO: Make nextTime private again, add data for endTime, put those in
+  // method in sequence
+  status["timeUntilNext"] = sequence.timeUntil(sequence.nextTime);
   char statusText[4096];
   serializeJson(status, statusText);
   webSocket.broadcastTXT(statusText);

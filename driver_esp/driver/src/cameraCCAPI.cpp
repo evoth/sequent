@@ -79,8 +79,8 @@ void CameraCCAPI::triggerShutter() {
 }
 
 void CameraCCAPI::setValueAPI(const char* path,
-                              const char* name,
-                              const char* val) {
+                              const char* val,
+                              const char* name) {
   char endpointUrl[128];
 
   snprintf(endpointUrl, sizeof(endpointUrl), "%s%s", apiUrl, path);
@@ -96,5 +96,24 @@ void CameraCCAPI::setValueAPI(const char* path,
       [this, name, val](int statusCode) {
         logger.log("Set %s to %s", name, val);
       },
+      [](int statusCode) {});
+}
+
+void CameraCCAPI::actionAPI(const char* path,
+                            const char* val,
+                            const char* message) {
+  char endpointUrl[128];
+
+  snprintf(endpointUrl, sizeof(endpointUrl), "%s%s", apiUrl, path);
+  request(
+      endpointUrl,
+      [this, val]() {
+        JsonDocument body;
+        body["action"] = val;
+        String bodyText;
+        serializeJson(body, bodyText);
+        return http.POST(bodyText);
+      },
+      [this, message, val](int statusCode) { logger.log(message); },
       [](int statusCode) {});
 }

@@ -4,5 +4,6 @@
 #include <pgmspace.h>
 
 extern const char indexHtml[] PROGMEM;
+extern const char iconSvg[] PROGMEM;
 
 #endif

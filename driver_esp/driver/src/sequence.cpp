@@ -3,16 +3,17 @@
 #include <ArduinoJson.h>
 #include <SD.h>
 #include <SPI.h>
+#include <optional>
 #include "cameraCCAPI.h"
 #include "logger.h"
 #include "sequentServer.h"
 
 // Time until next shot in milliseconds (clamped at 0)
-unsigned long Sequence::timeUntilNext() {
-  unsigned long currentTime = millis() - startTime;
-  if (currentTime >= nextTime)
+unsigned long Sequence::timeUntil(unsigned long testTime) {
+  unsigned long currentTime = millis() - sequenceStartTime;
+  if (currentTime >= testTime)
     return 0;
-  return nextTime - currentTime;
+  return testTime - currentTime;
 }
 
 void Sequence::readAction() {
@@ -25,9 +26,8 @@ void Sequence::readAction() {
 
   if (file.peek() == ',')
     file.find(",");
-  if (file.peek() == ']') {
-    logger.log("Sequence '%s' completed.", filePath);
-    stop();
+  if (file.peek() == ']' || actionIndex >= totalActions - 1) {
+    actionIndex++;
     return;
   };
 
@@ -44,7 +44,7 @@ void Sequence::start(const char* sequenceFilePath) {
   if (isRunning)
     stop();
 
-  filePath = sequenceFilePath;
+  strncpy(filePath, sequenceFilePath, sizeof(filePath));
   File file = SD.open(filePath, FILE_READ);
   if (!file) {
     logger.error("Failed to open file '%s' for reading.", filePath);
@@ -61,18 +61,41 @@ void Sequence::start(const char* sequenceFilePath) {
   readAction();
 
   isRunning = true;
-  startTime = millis();
+  sequenceStartTime = millis();
   logger.log("Sequence '%s' started.", filePath);
 }
 
 void Sequence::stop() {
+  vector<tuple<unsigned long, StateManagerInterface*, int>>::iterator it;
+  for (it = endQueue.begin(); it != endQueue.end(); it = endQueue.erase(it)) {
+    get<1>(*it)->removeState(get<2>(*it));
+  }
   isRunning = false;
   logger.log("Sequence '%s' stopped.", filePath);
 }
 
 // Run in main loop
+// TODO: Clean this up... I'm in a hurry :)
 bool Sequence::loop() {
-  if (!isRunning || timeUntilNext() > 0)
+  if (isRunning && endQueue.empty() && actionIndex >= totalActions) {
+    logger.log("Sequence '%s' completed.", filePath);
+    stop();
+    return true;
+  }
+
+  if (isRunning) {
+    vector<tuple<unsigned long, StateManagerInterface*, int>>::iterator it;
+    for (it = endQueue.begin(); it != endQueue.end();) {
+      if (timeUntil(get<0>(*it)) > 0) {
+        it++;
+      } else {
+        get<1>(*it)->removeState(get<2>(*it));
+        it = endQueue.erase(it);
+      }
+    }
+  }
+
+  if (!isRunning || timeUntil(nextTime) > 0 || actionIndex >= totalActions)
     return false;
   logger.log("Starting action %d", actionIndex);
 
@@ -87,14 +110,17 @@ bool Sequence::loop() {
       }
     }
     cameras[ipString]->connect();
-  } else if (actionId == "photo") {
+  } else if (actionId == "photo" || actionId == "video") {
     String ipString = action["data"]["states"]["ip"];
     if (cameras.count(ipString) == 0) {
       logger.error("Camera with IP address %s has not been connected.",
                    ipString.c_str());
     } else {
-      Camera& camera = *cameras[ipString];
-      camera.startAction(action["layer"], action["data"]);
+      Camera* camera = cameras[ipString];
+      camera->startAction(action["layer"], action["data"]);
+      float actionEnd = action["end"];
+      endQueue.push_back(make_tuple((unsigned long)actionEnd * 1000, camera,
+                                    action["layer"].as<int>()));
     }
   }
 

@@ -8,9 +8,13 @@ import {
 
 import { Action } from "../data/action";
 import { ActionSet } from "../data/actionSet";
+import { Manager } from "../data/manager";
 
-export function getEsp32ActionSet(): ActionSet {
-  const actionSet = new ActionSet("ESP32");
+export function getEsp32ActionSet(
+  parameterManager: Manager<Parameter<any>> = new Manager<Parameter<any>>(),
+  actionManager: Manager<Action> = new Manager<Action>()
+): ActionSet {
+  const actionSet = new ActionSet("ESP32", "", parameterManager, actionManager);
 
   const ipParam = new StringParameter<string>(
     actionSet.parameterManager,
@@ -286,6 +290,33 @@ export function getEsp32ActionSet(): ActionSet {
     [ipParam, modeParam],
     "photo",
     220
+  );
+
+  const durationParam = new NumberParameter<number>(
+    actionSet.parameterManager,
+    "Duration",
+    "",
+    10,
+    3,
+    undefined,
+    undefined,
+    "seconds",
+    undefined,
+    undefined,
+    "duration"
+  );
+
+  new Action(
+    actionSet.actionManager,
+    "Video",
+    "Record video for the given duration.",
+    {
+      defaultDuration: 0,
+      durationParams: [{ param: durationParam }],
+    },
+    [ipParam, durationParam],
+    "video",
+    263
   );
 
   return actionSet;

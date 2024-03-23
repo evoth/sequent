@@ -27,13 +27,17 @@ class Camera : public StateManager<CameraState> {
   char cameraIP[32];
   bool cameraConnected = false;
 
-  void actOnDiff(CameraState& oldState, CameraState& newState);
+  void actOnDiff(CameraState& oldState, CameraState& newState, bool fromDefault = false);
   CameraState stateFromAction(int layer, const JsonObject& actionData);
 
   virtual void triggerShutter() = 0;
   virtual void setIso(const char* iso) = 0;
   virtual void setAv(const char* av) = 0;
   virtual void setTv(const char* tv) = 0;
+  virtual void startRecording() = 0;
+  virtual void stopRecording() = 0;
+  virtual void movieModeOn() = 0;
+  virtual void movieModeOff() = 0;
 };
 
 #endif

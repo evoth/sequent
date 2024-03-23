@@ -1,5 +1,6 @@
 import { type CustomJSON, type Serializable } from "./serialization";
 
+import { getEsp32ActionSet } from "../actionSets/esp32";
 import { Action } from "./action";
 import { ActionSet } from "./actionSet";
 import { Manager } from "./manager";
@@ -49,7 +50,9 @@ export class Project implements Serializable {
     return new Project(
       json.name,
       json.description,
-      ActionSet.fromJSON(json.actionSet, managers),
+      // TODO: Add ability to select and upgrade action sets
+      //ActionSet.fromJSON(json.actionSet, managers),
+      getEsp32ActionSet(managers.parameterManager, managers.actionManager),
       Manager.fromJSON(
         json.sequenceManager,
         managers,

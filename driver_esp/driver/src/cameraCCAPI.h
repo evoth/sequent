@@ -16,13 +16,29 @@ class CameraCCAPI : public Camera {
   void connect();
   void triggerShutter();
   void setIso(const char* iso) {
-    setValueAPI("/ver100/shooting/settings/iso", "ISO", iso);
+    setValueAPI("/ver100/shooting/settings/iso", iso, "ISO");
   }
   void setAv(const char* av) {
-    setValueAPI("/ver100/shooting/settings/av", "aperture", av);
+    setValueAPI("/ver100/shooting/settings/av", av, "aperture");
   }
   void setTv(const char* tv) {
-    setValueAPI("/ver100/shooting/settings/tv", "shutter speed", tv);
+    setValueAPI("/ver100/shooting/settings/tv", tv, "shutter speed");
+  }
+  void startRecording() {
+    actionAPI("/ver100/shooting/control/recbutton", "start",
+              "Started recording.");
+  }
+  void stopRecording() {
+    actionAPI("/ver100/shooting/control/recbutton", "stop",
+              "Stopped recording.");
+  }
+  void movieModeOn() {
+    actionAPI("/ver100/shooting/control/moviemode", "on",
+              "Entered movie mode.");
+  }
+  void movieModeOff() {
+    actionAPI("/ver100/shooting/control/moviemode", "off",
+              "Exited movie mode.");
   }
 
  private:
@@ -36,7 +52,8 @@ class CameraCCAPI : public Camera {
                std::function<int()> action,
                std::function<void(int statusCode)> success,
                std::function<void(int statusCode)> failure);
-  void setValueAPI(const char* path, const char* name, const char* val);
+  void setValueAPI(const char* path, const char* val, const char* name);
+  void actionAPI(const char* path, const char* val, const char* message);
 };
 
 #endif

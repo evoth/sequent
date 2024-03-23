@@ -8,8 +8,13 @@
 #include "logger.h"
 using namespace std;
 
+class StateManagerInterface {
+ public:
+  virtual void removeState(int layer) = 0;
+};
+
 template <class T>
-class StateManager {
+class StateManager : public StateManagerInterface {
  public:
   void startAction(int layer, const JsonObject& actionData) {
     addState(layer, stateFromAction(layer, actionData));
@@ -19,7 +24,9 @@ class StateManager {
 
  protected:
   Logger logger;
-  virtual void actOnDiff(T& oldState, T& newState) = 0;
+  virtual void actOnDiff(T& oldState,
+                         T& newState,
+                         bool fromDefault = false) = 0;
   virtual T stateFromAction(int layer, const JsonObject& actionData) = 0;
   int getTopIndex() {
     int index = used.size() - 1;
@@ -36,7 +43,9 @@ class StateManager {
   void addState(int layer, T state) {
     int topIndex = getTopIndex();
     if (topIndex <= layer) {
-      actOnDiff(topIndex == -1 ? defaultState : stateLayers[topIndex], state);
+      bool fromDefault = topIndex == -1;
+      actOnDiff(fromDefault ? defaultState : stateLayers[topIndex], state,
+                fromDefault);
     }
     if (stateLayers.size() <= layer)
       stateLayers.resize(layer + 1);
