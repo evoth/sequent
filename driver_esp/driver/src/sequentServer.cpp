@@ -68,7 +68,6 @@ void SequentServer::initWebSocketServer() {
   logger.log("Started WebSocket server.");
 }
 
-// TODO: separate status of different components
 void SequentServer::sendStatus() {
   JsonDocument status;
   JsonArray states = status["states"].to<JsonArray>();

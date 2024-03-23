@@ -7,8 +7,6 @@
 #include "camera.h"
 #include "logger.h"
 
-// TODO: Manage status and state
-// TODO: make logger private
 class CameraCCAPI : public Camera {
  public:
   CameraCCAPI(const char* ipAddress) : Camera(ipAddress) {

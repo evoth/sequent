@@ -6,9 +6,7 @@
 #include "cameraCCAPI.h"
 #include "logger.h"
 
-// TODO: Make camera private
 // TODO: make logger private
-// Generalize for any number of cameras
 class Sequence {
  public:
   Sequence() : logger("Sequence") {}
@@ -17,7 +15,6 @@ class Sequence {
   int totalActions = 0;
   bool isRunning = false;
   const char* filePath;
-  std::map<String, Camera*> cameras;
   Logger logger;
 
   unsigned long timeUntilNext();
@@ -32,6 +29,7 @@ class Sequence {
   unsigned long nextTime = 0;
   JsonDocument action;
   unsigned long filePos;
+  std::map<String, Camera*> cameras;
 };
 
 #endif

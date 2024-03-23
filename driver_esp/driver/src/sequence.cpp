@@ -94,10 +94,7 @@ bool Sequence::loop() {
                    ipString.c_str());
     } else {
       Camera& camera = *cameras[ipString];
-      camera.setIso(action["data"]["states"]["iso"]);
-      camera.setAv(action["data"]["states"]["av"]);
-      camera.setTv(action["data"]["states"]["tv"]);
-      camera.triggerShutter();
+      camera.startAction(action["layer"], action["data"]);
     }
   }
 
