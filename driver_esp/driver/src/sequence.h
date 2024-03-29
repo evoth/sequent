@@ -3,6 +3,7 @@
 
 #include <ArduinoJson.h>
 #include <map>
+#include <memory>
 #include <tuple>
 #include <vector>
 #include "cameraCCAPI.h"
@@ -32,10 +33,10 @@ class Sequence {
  private:
   unsigned long sequenceStartTime = 0;
   unsigned long endTime = 0;
-  vector<tuple<unsigned long, StateManagerInterface*, int>> endQueue;
+  vector<tuple<unsigned long, shared_ptr<StateManagerInterface>, int>> endQueue;
   JsonDocument action;
   unsigned long filePos;
-  std::map<String, Camera*> cameras;
+  std::map<String, shared_ptr<Camera>> cameras;
 };
 
 #endif

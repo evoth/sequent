@@ -11,12 +11,13 @@ void Logger::generalLog(int statusCode,
                         const char* format,
                         va_list args,
                         const char* filename,
-                        vector<Log*>& logs,
+                        vector<shared_ptr<Log>>& logs,
                         bool isError) {
   char msgBuffer[256];
   vsnprintf(msgBuffer, sizeof(msgBuffer), format, args);
 
-  logs.push_back(new Log(now(), msgBuffer, isError, statusCode));
+  logs.push_back(
+      shared_ptr<Log>(new Log(now(), msgBuffer, isError, statusCode)));
   if (logs.size() > NUM_RECENT) {
     logs.erase(logs.begin());
   }
@@ -34,7 +35,8 @@ void Logger::generalLog(int statusCode,
   logFile.close();
 }
 
-void Logger::getRecent(const vector<Log*>& logs, const JsonObject& logsObject) {
+void Logger::getRecent(const vector<shared_ptr<Log>>& logs,
+                       const JsonObject& logsObject) {
   logsObject["name"] = name;
   JsonArray logsArray = logsObject["logs"].to<JsonArray>();
   for (const auto messageInfo : logs) {

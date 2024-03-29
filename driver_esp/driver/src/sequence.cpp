@@ -66,7 +66,8 @@ void Sequence::start(const char* sequenceFilePath) {
 }
 
 void Sequence::stop() {
-  vector<tuple<unsigned long, StateManagerInterface*, int>>::iterator it;
+  vector<tuple<unsigned long, shared_ptr<StateManagerInterface>, int>>::iterator
+      it;
   for (it = endQueue.begin(); it != endQueue.end(); it = endQueue.erase(it)) {
     get<1>(*it)->removeState(get<2>(*it));
   }
@@ -84,7 +85,8 @@ bool Sequence::loop() {
   }
 
   if (isRunning) {
-    vector<tuple<unsigned long, StateManagerInterface*, int>>::iterator it;
+    vector<tuple<unsigned long, shared_ptr<StateManagerInterface>,
+                 int>>::iterator it;
     for (it = endQueue.begin(); it != endQueue.end();) {
       if (timeUntil(get<0>(*it)) > 0) {
         it++;
@@ -98,6 +100,7 @@ bool Sequence::loop() {
   if (!isRunning || timeUntil(nextTime) > 0 || actionIndex >= totalActions)
     return false;
   logger.log("Starting action %d", actionIndex);
+  logger.log("Min free heap size: %d", esp_get_minimum_free_heap_size());
 
   String actionId = action["data"]["action"];
 
@@ -106,7 +109,8 @@ bool Sequence::loop() {
     if (cameras.count(ipString) == 0) {
       String method = action["data"]["states"]["method"];
       if (method == "CCAPI") {
-        cameras[ipString] = new CameraCCAPI(ipString.c_str());
+        cameras[ipString] =
+            shared_ptr<Camera>(new CameraCCAPI(ipString.c_str()));
       }
     }
     cameras[ipString]->connect();
@@ -116,7 +120,7 @@ bool Sequence::loop() {
       logger.error("Camera with IP address %s has not been connected.",
                    ipString.c_str());
     } else {
-      Camera* camera = cameras[ipString];
+      shared_ptr<Camera> camera = cameras[ipString];
       camera->startAction(action["layer"], action["data"]);
       float actionEnd = action["end"];
       endQueue.push_back(make_tuple((unsigned long)actionEnd * 1000, camera,
