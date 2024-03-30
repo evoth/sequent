@@ -7,9 +7,7 @@
     <strong>{title}:</strong>
     {#each logs as log}
         <p
-        class:success={log.statusCode == 200}
-        class:warning={log.statusCode == 0}
-        class:error={log.statusCode != 200 && log.statusCode != 0}
+        class={log.statusCode == 200 || log.statusCode == 0 ? "success" : "error"}
     >
         ({log.statusCode}) {log.message}
     </p>

@@ -1,7 +1,6 @@
 #ifndef SEQUENT_CAMERA_CCAPI_H
 #define SEQUENT_CAMERA_CCAPI_H
 
-#include <ArduinoJson.h>
 #include <HTTPClient.h>
 #include <WiFi.h>
 #include "camera.h"

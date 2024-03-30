@@ -1,4 +1,5 @@
 #include "cameraCCAPI.h"
+#include <ArduinoJson.h>
 #include <cstring>
 
 // Helper function that sets up HTTP connection before running the "action"
@@ -97,7 +98,11 @@ void CameraCCAPI::setValueAPI(const char* path,
       [this, name, val](int statusCode) {
         logger.log(statusCode, "Set %s to %s", name, val);
       },
-      [](int statusCode) {});
+      [this](int statusCode) {
+        if (statusCode < 0) {
+          cameraConnected = false;
+        }
+      });
 }
 
 // Endpoints expecting POST request of format {"action": ACTION_STRING}
@@ -117,5 +122,9 @@ void CameraCCAPI::actionAPI(const char* path,
         return http.POST(bodyText);
       },
       [this, message, val](int statusCode) { logger.log(statusCode, message); },
-      [](int statusCode) {});
+      [this](int statusCode) {
+        if (statusCode < 0) {
+          cameraConnected = false;
+        }
+      });
 }

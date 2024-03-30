@@ -21,13 +21,16 @@ class Camera : public StateManager<CameraState> {
     snprintf(logger.name, sizeof(logger.name), "Camera @ %s", ipAddress);
   }
 
+  // TODO: Retrieve camera name/model so it can be used in status/log messages
   virtual void connect() = 0;
 
  protected:
   char cameraIP[32];
   bool cameraConnected = false;
 
-  void actOnDiff(CameraState& oldState, CameraState& newState, bool fromDefault = false);
+  void actOnDiff(CameraState& oldState,
+                 CameraState& newState,
+                 bool fromDefault = false);
   CameraState stateFromAction(int layer, const JsonObject& actionData);
 
   virtual void triggerShutter() = 0;

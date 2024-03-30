@@ -36,6 +36,7 @@ CameraState Camera::stateFromAction(int layer, const JsonObject& actionData) {
   return state;
 }
 
+// TODO: Don't propagate state unless action is successful
 void Camera::actOnDiff(CameraState& oldState,
                        CameraState& newState,
                        bool fromDefault) {

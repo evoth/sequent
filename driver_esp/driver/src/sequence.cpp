@@ -5,6 +5,7 @@
 #include <SPI.h>
 #include <optional>
 #include "cameraCCAPI.h"
+#include "cameraPTPIP.h"
 #include "logger.h"
 #include "sequentServer.h"
 #include "timeMillis.h"
@@ -142,6 +143,9 @@ bool Sequence::loop() {
       if (method == "CCAPI") {
         cameras[ipString] =
             shared_ptr<Camera>(new CameraCCAPI(ipString.c_str()));
+      } else if (method == "PTP/IP") {
+        cameras[ipString] =
+            shared_ptr<Camera>(new CameraPTPIP(ipString.c_str()));
       }
     }
     cameras[ipString]->connect();
