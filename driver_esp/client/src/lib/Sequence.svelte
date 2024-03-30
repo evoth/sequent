@@ -36,6 +36,11 @@ state.subscribe((value) => {
     isUpdating = $isLoading = true;
   };
 
+  function setTime() {
+    $socket.send(JSON.stringify({ command: "setTime", time: new Date().getTime() }));
+    isUpdating = $isLoading = true;
+  };
+
   async function refreshList() {
     const response = await fetch(`http://${$espIP}/seq-files`);
     seqFiles = (await response.json()).files;
@@ -45,6 +50,7 @@ state.subscribe((value) => {
 <Section name="sequence">
   <h2 slot="heading">Sequence</h2>
   
+  <button on:click={setTime}> Set time </button>
   <button on:click={refreshList}> Refresh </button>
 
   {#each seqFiles as filename}

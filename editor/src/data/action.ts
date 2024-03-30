@@ -201,19 +201,14 @@ export class ActionState implements Repeatable, Serializable {
   render(): Render {
     const duration = this.getDuration();
     const render = new Render();
-    render.children.push({
-      start: 0,
-      end: duration,
-      layer: render.baseLayer,
-      data: {
-        action: this.action.id,
-        states: Object.fromEntries(
-          [...this.parameterStates.entries()].map(([id, state]) => [
-            id,
-            state.parameter.getRenderValue(state.value),
-          ])
-        ),
-      },
+    render.addChild(0, duration, render.baseLayer, {
+      action: this.action.id,
+      states: Object.fromEntries(
+        [...this.parameterStates.entries()].map(([id, state]) => [
+          id,
+          state.parameter.getRenderValue(state.value),
+        ])
+      ),
     });
     return render;
   }

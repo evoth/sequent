@@ -1,5 +1,3 @@
-import { serializeRound } from "./serialization";
-
 export type RenderChild = {
   start: number;
   end: number;
@@ -15,8 +13,8 @@ export class Render {
   add(newRender: Render, offset: number = 0) {
     for (const child of newRender.children) {
       const newChild: RenderChild = {
-        start: serializeRound(child.start + offset),
-        end: serializeRound(child.end + offset),
+        start: child.start + Math.round(offset * 1000),
+        end: child.end + Math.round(offset * 1000),
         layer: child.layer + this.baseLayer,
         data: child.data,
       };
@@ -24,6 +22,15 @@ export class Render {
       this.children.push(newChild);
     }
     this.children.sort((a, b) => a.start - b.start);
+  }
+
+  addChild(start: number, end: number, layer: number, data: any) {
+    this.children.push({
+      start: Math.round(start * 1000),
+      end: Math.round(end * 1000),
+      layer: layer,
+      data: data,
+    });
   }
 
   export(isAbsolute: boolean): string {

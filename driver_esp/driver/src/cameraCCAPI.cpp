@@ -78,6 +78,7 @@ void CameraCCAPI::triggerShutter() {
       });
 }
 
+// Endpoints expecting PUT request of format {"value": VALUE_STRING}
 void CameraCCAPI::setValueAPI(const char* path,
                               const char* val,
                               const char* name) {
@@ -94,11 +95,12 @@ void CameraCCAPI::setValueAPI(const char* path,
         return http.PUT(bodyText);
       },
       [this, name, val](int statusCode) {
-        logger.log("Set %s to %s", name, val);
+        logger.log(statusCode, "Set %s to %s", name, val);
       },
       [](int statusCode) {});
 }
 
+// Endpoints expecting POST request of format {"action": ACTION_STRING}
 void CameraCCAPI::actionAPI(const char* path,
                             const char* val,
                             const char* message) {
@@ -114,6 +116,6 @@ void CameraCCAPI::actionAPI(const char* path,
         serializeJson(body, bodyText);
         return http.POST(bodyText);
       },
-      [this, message, val](int statusCode) { logger.log(message); },
+      [this, message, val](int statusCode) { logger.log(statusCode, message); },
       [](int statusCode) {});
 }

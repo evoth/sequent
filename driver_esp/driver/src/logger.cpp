@@ -2,6 +2,7 @@
 #include <SD.h>
 #include <TimeLib.h>
 #include <tuple>
+#include "timeMillis.h"
 using namespace std;
 
 const char* Logger::LOG_FILE = "/logs.txt";
@@ -13,11 +14,14 @@ void Logger::generalLog(int statusCode,
                         const char* filename,
                         vector<shared_ptr<Log>>& logs,
                         bool isError) {
+  // Make format string based on va_list args captured from caller function
   char msgBuffer[256];
   vsnprintf(msgBuffer, sizeof(msgBuffer), format, args);
 
+  // We keep a vector of recent logs with max length of NUM_RECENT
+  unsigned long long currentTime = fullTimeMs();
   logs.push_back(
-      shared_ptr<Log>(new Log(now(), msgBuffer, isError, statusCode)));
+      shared_ptr<Log>(new Log(currentTime, msgBuffer, isError, statusCode)));
   if (logs.size() > NUM_RECENT) {
     logs.erase(logs.begin());
   }
@@ -28,10 +32,13 @@ void Logger::generalLog(int statusCode,
     return;
   }
 
-  Serial.printf("[%d, %d, %d] %s: %s\n", now(), statusCode, isError, name,
-                msgBuffer);
-  logFile.printf("[%d, %d, %d] %s: %s\n", now(), statusCode, isError, name,
-                 msgBuffer);
+  // TODO: Stop it from printing to serial twice on error
+  char logBuffer[256];
+  snprintf(logBuffer, sizeof(logBuffer), "[%llu, %d, %d] %s: %s\n", currentTime,
+           statusCode, isError, name, msgBuffer);
+  Serial.print(logBuffer);
+  logFile.print(logBuffer);
+
   logFile.close();
 }
 

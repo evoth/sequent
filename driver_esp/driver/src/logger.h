@@ -10,11 +10,14 @@
 using namespace std;
 
 struct Log {
-  Log(time_t time, const char* message, bool isError, int statusCode = 0)
+  Log(unsigned long long time,
+      const char* message,
+      bool isError,
+      int statusCode = 0)
       : time(time), isError(isError), statusCode(statusCode) {
     strncpy(this->message, message, sizeof(this->message));
   }
-  time_t time;
+  unsigned long long time;
   char message[256];
   bool isError;
   int statusCode;

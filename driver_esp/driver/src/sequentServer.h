@@ -22,6 +22,7 @@ class SequentServer {
   WebSocketsServer webSocket;
   JsonDocument msg;
   bool newMsg = false;
+  int msgClient;
   Sequence sequence;
   Logger logger;
 

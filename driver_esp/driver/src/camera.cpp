@@ -7,10 +7,12 @@ CameraState Camera::stateFromAction(int layer, const JsonObject& actionData) {
   if (actionId == "photo") {
     state.mode = actionData["states"]["mode"].as<String>();
 
+    // Only take photo if the new state will be on top
     if (layer >= getTopIndex()) {
       state.takePhoto = true;
     }
 
+    // Start by setting all properties, unless auto
     if (state.mode != "auto") {
       state.tv = actionData["states"]["tv"].as<String>();
       state.av = actionData["states"]["av"].as<String>();
@@ -18,12 +20,14 @@ CameraState Camera::stateFromAction(int layer, const JsonObject& actionData) {
       state.ev = actionData["states"]["ev"].as<String>();
     }
 
+    // Unset properties as appropriate
     if (state.mode == "m")
       state.ev.reset();
     if (state.mode == "av" || state.mode == "p")
       state.tv.reset();
     if (state.mode == "tv" || state.mode == "p")
       state.av.reset();
+
   } else if (actionId == "video") {
     state.mode = "movie";
     state.isRecording = true;
@@ -89,7 +93,7 @@ void Camera::actOnDiff(CameraState& oldState,
   if (!newState.ev.has_value())
     newState.ev = oldState.ev;
   if (newState.ev != oldState.ev) {
-    // Implement EV setting
+    // TODO: Implement EV setting
   }
   if (fromDefault && newState.ev.has_value())
     oldState.ev = newState.ev;

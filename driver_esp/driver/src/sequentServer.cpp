@@ -3,6 +3,7 @@
 #include <WiFi.h>
 #include "cameraCCAPI.h"
 #include "resources.h"
+#include "timeMillis.h"
 
 void SequentServer::initAP(const char* ssid, const char* password) {
   logger.log("Starting soft-AP... ");
@@ -12,6 +13,7 @@ void SequentServer::initAP(const char* ssid, const char* password) {
 }
 
 void SequentServer::initWebServer() {
+  // Driver web client
   server.on("/", HTTP_GET, [](AsyncWebServerRequest* req) {
     req->send_P(200, "text/html", indexHtml);
   });
@@ -20,6 +22,7 @@ void SequentServer::initWebServer() {
     req->send_P(200, "image/svg+xml", iconSvg);
   });
 
+  // List of .seq files in root directory of SD card
   server.on("/seq-files", HTTP_GET, [](AsyncWebServerRequest* req) {
     JsonDocument seqFiles;
     JsonArray filenames = seqFiles["files"].to<JsonArray>();
@@ -72,6 +75,8 @@ void SequentServer::initWebSocketServer() {
   logger.log("Started WebSocket server.");
 }
 
+// Construct JsonDocument for represent state, then serialize and broadcast it
+// to WebSocket clients
 void SequentServer::sendStatus() {
   JsonDocument status;
   JsonArray states = status["states"].to<JsonArray>();
@@ -113,6 +118,7 @@ void SequentServer::webSocketEvent(uint8_t num,
     } break;
     case WStype_TEXT:
       newMsg = true;
+      msgClient = num;
       deserializeJson(msg, (const char*)payload);
       break;
     default:
@@ -135,6 +141,11 @@ void SequentServer::loop() {
     sequence.start(msg["filename"]);
   } else if (command == "stop") {
     sequence.stop();
+  } else if (command == "setTime") {
+    unsigned long long timeMs = msg["time"];
+    setTime(timeMs / 1000);
+    msOffset = millis() - timeMs % 1000;
+    logger.log("Synced time from client %d @ %lu ms.", msgClient, millis());
   } else {
     logger.error("Unknown command: %s.", command);
   }

@@ -236,12 +236,12 @@ export class Component extends Repeat implements Serializable {
 
     // TODO: This breaks when (if?) we allow infinite durations
     if (this.layerMode === LayerMode.Override) {
-      render.children.push({
-        start: validation.solved.start!,
-        end: validation.solved.end!,
-        layer: render.baseLayer,
-        data: null,
-      });
+      render.addChild(
+        validation.solved.start!,
+        validation.solved.end!,
+        render.baseLayer,
+        null
+      );
       render.baseLayer++;
     }
 
