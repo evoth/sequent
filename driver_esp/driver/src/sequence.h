@@ -23,7 +23,6 @@ class Sequence {
   char filePath[64];
   Logger logger;
   unsigned long long nextTime = 0;
-  bool useGpsTime = true;
 
   unsigned long long timeUntil(unsigned long long testTime);
   void readAction();

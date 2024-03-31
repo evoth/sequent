@@ -6,7 +6,7 @@ bool CameraPTPIP::readResponse(WiFiClient& client, char* buffer, size_t size) {
   while (client.available() == 0) {
     if (elapsed > 5000) {
       logger.error("Client timeout...");
-      client.stop();
+      // cameraConnected = false;
       return false;
     }
   }
@@ -122,7 +122,7 @@ void CameraPTPIP::connect() {
     uint32_t packetType = 0x06;
     uint32_t dataPhase = 0x01;
     uint16_t operation;
-    uint32_t transactionId = 0;
+    uint32_t transactionId;
     uint32_t param = 0x01;
   } operationRequest;
   using OperationRequestBuffer = char[22];
@@ -131,6 +131,7 @@ void CameraPTPIP::connect() {
       reinterpret_cast<OperationRequestBuffer*>(&operationRequest);
 
   operationRequest.operation = 0x1002;
+  operationRequest.transactionId = getTransactionId();
   commandClient.write(*operationRequestBuffer, sizeof(*operationRequestBuffer));
 
   struct OperationResponse {
@@ -154,10 +155,29 @@ void CameraPTPIP::connect() {
     return;
   }
 
+  // // (Unknown operation; recreated from Wireshark capture)
+
+  // operationRequest.length = 18;
+  // operationRequest.operation = 0x902f;
+  // operationRequest.transactionId++;
+  // commandClient.write(*operationRequestBuffer, 18);
+  // operationRequest.length = 22;
+
+  // if (!readResponse(commandClient, *operationResponseBuffer,
+  //                   sizeof(*operationResponseBuffer)))
+  //   return;
+
+  // if (operationResponse.response != 0x2001) {
+  //   logger.error("Bad Operation Response Code (%04x) for transaction ID %d",
+  //                operationResponse.response,
+  //                operationResponse.transactionId);
+  //   return;
+  // }
+
   // 2. Activate RemoteMode
 
   operationRequest.operation = 0x9114;
-  operationRequest.transactionId++;
+  operationRequest.transactionId = getTransactionId();
   commandClient.write(*operationRequestBuffer, sizeof(*operationRequestBuffer));
 
   if (!readResponse(commandClient, *operationResponseBuffer,
@@ -173,7 +193,7 @@ void CameraPTPIP::connect() {
   // 3. Activate EventMode
 
   operationRequest.operation = 0x9115;
-  operationRequest.transactionId++;
+  operationRequest.transactionId = getTransactionId();
   commandClient.write(*operationRequestBuffer, sizeof(*operationRequestBuffer));
 
   if (!readResponse(commandClient, *operationResponseBuffer,
@@ -188,5 +208,34 @@ void CameraPTPIP::connect() {
 
   logger.log("Connected to camera at %s.", cameraIP);
   cameraConnected = true;
+#pragma pack(pop)
+}
+
+// https://julianschroden.com/post/2023-05-28-controlling-properties-using-ptp-ip-on-canon-eos-cameras/#geteventdata-operation
+// Here we're imitating the phone app, which regularly polls camera events. At
+// the moment, we discard the data since we're only trying to keep the
+// connection alive.
+void CameraPTPIP::keepAlive() {
+#pragma pack(push, 1)
+
+  struct GetEventDataRequest {
+    uint32_t length = 18;
+    uint32_t packetType = 0x06;
+    uint32_t dataPhase = 0x01;
+    uint16_t operation = 0x9116;
+    uint32_t transactionId;
+  } getEventDataRequest;
+  using GetEventDataRequestBuffer = char[18];
+
+  auto getEventDataRequestBuffer =
+      reinterpret_cast<GetEventDataRequestBuffer*>(&getEventDataRequest);
+
+  getEventDataRequest.transactionId = getTransactionId();
+  commandClient.write(*getEventDataRequestBuffer,
+                      sizeof(*getEventDataRequestBuffer));
+
+  if (!readResponse(commandClient, NULL, 0))
+    return;
+
 #pragma pack(pop)
 }

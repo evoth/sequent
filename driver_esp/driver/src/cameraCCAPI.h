@@ -13,6 +13,8 @@ class CameraCCAPI : public Camera {
   }
 
   void connect();
+
+ protected:
   void triggerShutter();
   void setIso(const char* iso) {
     setValueAPI("/ver100/shooting/settings/iso", iso, "ISO");

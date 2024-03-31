@@ -2,6 +2,7 @@
 #define SEQUENT_CAMERA_PTPIP_H
 
 #include <WiFi.h>
+#include <elapsedMillis.h>
 #include "camera.h"
 #include "logger.h"
 
@@ -12,7 +13,16 @@ class CameraPTPIP : public Camera {
   }
 
   void connect();
-  void triggerShutter(){};
+  bool loop() {
+    if (cameraConnected && keepAliveElapsed > keepAliveInterval) {
+      keepAlive();
+      keepAliveElapsed = 0;
+    }
+    return false;
+  }
+
+ protected:
+  void triggerShutter() {}
   void setIso(const char* iso) {}
   void setAv(const char* av) {}
   void setTv(const char* tv) {}
@@ -20,12 +30,17 @@ class CameraPTPIP : public Camera {
   void stopRecording() {}
   void movieModeOn() {}
   void movieModeOff() {}
+  void keepAlive();
 
  private:
   WiFiClient commandClient;
   WiFiClient eventClient;
+  uint32_t transactionId = 0;
+  const unsigned long long keepAliveInterval = 1000;
+  elapsedMillis keepAliveElapsed;
 
   bool readResponse(WiFiClient& client, char* buffer, size_t size);
+  uint32_t getTransactionId() { return transactionId++; }
 };
 
 #endif

@@ -19,3 +19,12 @@ void GPS::syncTime() {
     logger.error("Invalid date/time; time not updated.");
   }
 }
+
+void GPS::read() {
+  while (Serial2.available() > 0)
+    gps.encode(Serial2.read());
+  // If we have newly acquired time data, sync immediately
+  if (hasTime() && !prevHasTime)
+    syncElapsed = syncInterval + 1;
+  prevHasTime = hasTime();
+}

@@ -93,10 +93,10 @@ void Sequence::stop() {
 bool Sequence::loop() {
   bool shouldSendState = false;
 
-  gps.read();
-  if (useGpsTime && gps.shouldSync()) {
-    gps.syncTime();
-    shouldSendState = true;
+  // TODO: Implement changes from notebook
+  shouldSendState = shouldSendState || gps.loop();
+  for (auto& [ip, camera] : cameras) {
+    shouldSendState = shouldSendState || camera->loop();
   }
 
   // Sequence is done (only after all actions have finished)

@@ -23,6 +23,7 @@ class Camera : public StateManager<CameraState> {
 
   // TODO: Retrieve camera name/model so it can be used in status/log messages
   virtual void connect() = 0;
+  virtual bool loop() { return false; }
 
  protected:
   char cameraIP[32];
@@ -41,6 +42,7 @@ class Camera : public StateManager<CameraState> {
   virtual void stopRecording() = 0;
   virtual void movieModeOn() = 0;
   virtual void movieModeOff() = 0;
+  virtual void keepAlive() {}
 };
 
 #endif
