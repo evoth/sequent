@@ -7,12 +7,11 @@
 #include <vector>
 #include "deviceManager.h"
 #include "state.h"
-using namespace std;
 
 // TODO: make logger private
 class Sequence {
  public:
-  Sequence(shared_ptr<DeviceManager> devices)
+  Sequence(std::shared_ptr<DeviceManager> devices)
       : logger("Sequence"), devices(devices) {}
 
   int actionIndex = 0;
@@ -31,12 +30,14 @@ class Sequence {
  private:
   unsigned long long sequenceStartTime = 0;
   unsigned long long endTime = 0;
-  vector<tuple<unsigned long long, shared_ptr<StateManagerInterface>, int>>
+  std::vector<std::tuple<unsigned long long,
+                         std::shared_ptr<StateManagerInterface>,
+                         int>>
       endQueue;
   JsonDocument action;
   unsigned long filePos;
   bool isAbsolute;
-  shared_ptr<DeviceManager> devices;
+  std::shared_ptr<DeviceManager> devices;
 };
 
 #endif

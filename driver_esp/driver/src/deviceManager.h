@@ -4,6 +4,7 @@
 #include "camera.h"
 #include "device.h"
 #include "gps.h"
+#include "servo.h"
 #include "state.h"
 
 class DeviceManager {
@@ -16,13 +17,14 @@ class DeviceManager {
     }
     return shouldSendState;
   }
-  shared_ptr<StateManagerInterface> processAction(Logger& logger,
-                                                  JsonDocument& action);
+  std::shared_ptr<StateManagerInterface> processAction(Logger& logger,
+                                                       JsonDocument& action);
   void getStatus(const JsonArray& statesArray);
 
  private:
-  std::map<String, shared_ptr<Camera>> cameras;
+  std::map<String, std::shared_ptr<Camera>> cameras;
   GPS gps;
+  std::map<int, std::shared_ptr<SequentServo>> servos;
 };
 
 #endif

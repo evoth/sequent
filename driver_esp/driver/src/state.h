@@ -6,7 +6,6 @@
 #include <optional>
 #include <vector>
 #include "logger.h"
-using namespace std;
 
 class StateManagerInterface {
  public:
@@ -35,8 +34,8 @@ class StateManager : public StateManagerInterface {
 
  private:
   T defaultState;
-  vector<T> stateLayers;
-  vector<bool> used;
+  std::vector<T> stateLayers;
+  std::vector<bool> used;
 
   void addState(int layer, T state) {
     int topIndex = getTopIndex();

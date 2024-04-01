@@ -6,12 +6,12 @@
 #include "state.h"
 
 struct CameraState {
-  optional<String> mode;
+  std::optional<String> mode;
   bool takePhoto = false;
-  optional<String> tv;
-  optional<String> av;
-  optional<String> iso;
-  optional<String> ev;
+  std::optional<String> tv;
+  std::optional<String> av;
+  std::optional<String> iso;
+  std::optional<String> ev;
   bool isRecording = false;
 };
 

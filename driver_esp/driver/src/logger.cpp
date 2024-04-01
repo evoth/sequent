@@ -3,7 +3,6 @@
 #include <TimeLib.h>
 #include <tuple>
 #include "timeMillis.h"
-using namespace std;
 
 const char* Logger::LOG_FILE = "/logs.txt";
 const char* Logger::ERROR_FILE = "/errors.txt";
@@ -12,7 +11,7 @@ void Logger::generalLog(int statusCode,
                         const char* format,
                         va_list args,
                         const char* filename,
-                        vector<shared_ptr<Log>>& logs,
+                        std::vector<std::shared_ptr<Log>>& logs,
                         bool isError) {
   // Make format string based on va_list args captured from caller function
   char msgBuffer[256];
@@ -20,8 +19,8 @@ void Logger::generalLog(int statusCode,
 
   // We keep a vector of recent logs with max length of NUM_RECENT
   unsigned long long currentTime = fullTimeMs();
-  logs.push_back(
-      shared_ptr<Log>(new Log(currentTime, msgBuffer, isError, statusCode)));
+  logs.push_back(std::shared_ptr<Log>(
+      new Log(currentTime, msgBuffer, isError, statusCode)));
   if (logs.size() > NUM_RECENT) {
     logs.erase(logs.begin());
   }
@@ -42,7 +41,7 @@ void Logger::generalLog(int statusCode,
   logFile.close();
 }
 
-void Logger::getRecent(const vector<shared_ptr<Log>>& logs,
+void Logger::getRecent(const std::vector<std::shared_ptr<Log>>& logs,
                        const JsonObject& logsObject) {
   logsObject["name"] = name;
   JsonArray logsArray = logsObject["logs"].to<JsonArray>();

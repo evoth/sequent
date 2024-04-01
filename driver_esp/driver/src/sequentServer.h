@@ -14,7 +14,7 @@ class SequentServer {
       : server(80),
         webSocket(81),
         logger("Server"),
-        sequence(shared_ptr<DeviceManager>(&devices)) {}
+        sequence(std::shared_ptr<DeviceManager>(&devices)) {}
 
   void init(const char* ssid, const char* password) {
     initAP(ssid, password);

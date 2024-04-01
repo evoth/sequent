@@ -79,10 +79,11 @@ void Sequence::start(const char* sequenceFilePath) {
 }
 
 void Sequence::stop() {
-  vector<tuple<unsigned long long, shared_ptr<StateManagerInterface>,
-               int>>::iterator it;
+  std::vector<std::tuple<unsigned long long,
+                         std::shared_ptr<StateManagerInterface>, int>>::iterator
+      it;
   for (it = endQueue.begin(); it != endQueue.end(); it = endQueue.erase(it)) {
-    get<1>(*it)->removeState(get<2>(*it));
+    std::get<1>(*it)->removeState(std::get<2>(*it));
   }
   isRunning = false;
   logger.log("Sequence '%s' stopped.", filePath);
@@ -102,13 +103,14 @@ bool Sequence::loop() {
 
   // Removes states that have ended, which triggers any necessary actions
   if (isRunning) {
-    vector<tuple<unsigned long long, shared_ptr<StateManagerInterface>,
-                 int>>::iterator it;
+    std::vector<
+        std::tuple<unsigned long long, std::shared_ptr<StateManagerInterface>,
+                   int>>::iterator it;
     for (it = endQueue.begin(); it != endQueue.end();) {
-      if (timeUntil(get<0>(*it)) > 0) {
+      if (timeUntil(std::get<0>(*it)) > 0) {
         it++;
       } else {
-        get<1>(*it)->removeState(get<2>(*it));
+        std::get<1>(*it)->removeState(std::get<2>(*it));
         it = endQueue.erase(it);
       }
     }
@@ -127,11 +129,11 @@ bool Sequence::loop() {
   logger.log("Starting action %d", actionIndex);
   // logger.log("Min free heap size: %d", esp_get_minimum_free_heap_size());
 
-  shared_ptr<StateManagerInterface> actionDevice =
+  std::shared_ptr<StateManagerInterface> actionDevice =
       devices->processAction(logger, action);
   if (actionDevice != nullptr)
     endQueue.push_back(
-        make_tuple(action["end"], actionDevice, action["layer"]));
+        std::make_tuple(action["end"], actionDevice, action["layer"]));
 
   readAction();
   return true;

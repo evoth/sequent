@@ -332,5 +332,73 @@ export function getEsp32ActionSet(
     263
   );
 
+  const servoPinParam = new NumberParameter<number>(
+    actionSet.parameterManager,
+    "GPIO pin",
+    "",
+    13,
+    1,
+    40,
+    1,
+    undefined,
+    undefined,
+    undefined,
+    "servoPin"
+  );
+
+  const servoAngleParam = new NumberParameter<number>(
+    actionSet.parameterManager,
+    "Angle",
+    "",
+    0,
+    0,
+    180,
+    1,
+    "degrees",
+    undefined,
+    undefined,
+    "servoAngle"
+  );
+
+  const servoSpeedParam = new NumberParameter<number>(
+    actionSet.parameterManager,
+    "Speed",
+    "",
+    60,
+    5,
+    450,
+    1,
+    "deg/sec",
+    undefined,
+    undefined,
+    "servoSpeed"
+  );
+
+  new Action(
+    actionSet.actionManager,
+    "Attach Servo",
+    "",
+    {
+      defaultDuration: 3,
+      durationParams: [],
+    },
+    [servoPinParam, servoAngleParam],
+    "servoAttach",
+    15
+  );
+
+  new Action(
+    actionSet.actionManager,
+    "Move Servo",
+    "",
+    {
+      defaultDuration: 3,
+      durationParams: [],
+    },
+    [servoPinParam, servoAngleParam, servoSpeedParam],
+    "servoMove",
+    30
+  );
+
   return actionSet;
 }

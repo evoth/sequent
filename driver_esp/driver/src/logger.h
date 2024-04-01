@@ -7,8 +7,6 @@
 #include <tuple>
 #include <vector>
 
-using namespace std;
-
 struct Log {
   Log(unsigned long long time,
       const char* message,
@@ -67,16 +65,16 @@ class Logger {
 
  private:
   static const int NUM_RECENT = 1;
-  vector<shared_ptr<Log>> recentLogs;
-  vector<shared_ptr<Log>> recentErrors;
+  std::vector<std::shared_ptr<Log>> recentLogs;
+  std::vector<std::shared_ptr<Log>> recentErrors;
 
   void generalLog(int statusCode,
                   const char* format,
                   va_list args,
                   const char* filename,
-                  vector<shared_ptr<Log>>& logs,
+                  std::vector<std::shared_ptr<Log>>& logs,
                   bool isError);
-  void getRecent(const vector<shared_ptr<Log>>& logs,
+  void getRecent(const std::vector<std::shared_ptr<Log>>& logs,
                  const JsonObject& logsObject);
 };
 

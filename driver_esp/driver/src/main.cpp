@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <SD.h>
+#include <ServoEasing.hpp>
 #include "sequence.h"
 #include "sequentServer.h"
 
