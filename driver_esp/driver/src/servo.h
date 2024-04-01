@@ -6,7 +6,7 @@
 #include "state.h"
 
 struct ServoState {
-  int angle = 0;
+  int angle = -1;
   int speed = 0;
 };
 

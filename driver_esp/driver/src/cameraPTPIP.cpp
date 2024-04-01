@@ -164,6 +164,34 @@ void CameraPTPIP::connect() {
     return;
   }
 
+  // Unknown purpose (the elusive 0x902f operation, as seen in Wireshark)
+
+  struct Operation902F {
+    uint32_t length = 18;
+    uint32_t packetType = 0x06;
+    uint32_t dataPhase = 0x01;
+    uint16_t operation = 0x902f;
+    uint32_t transactionId;
+  } operation902F;
+  using Operation902FBuffer = char[18];
+
+  auto operation902FBuffer =
+      reinterpret_cast<Operation902FBuffer*>(&operation902F);
+
+  operation902F.transactionId = getTransactionId();
+  commandClient.write(*operation902FBuffer, sizeof(*operation902FBuffer));
+
+  if (!readResponse(commandClient, *operationResponseBuffer,
+                    sizeof(*operationResponseBuffer)))
+    return;
+
+  if (operationResponse.response != 0x2001) {
+    logger.error(operationResponse.response,
+                 "Bad Operation Response Code (0x%04x) for transaction ID %d",
+                 operationResponse.response, operationResponse.transactionId);
+    return;
+  }
+
   // 2. Activate RemoteMode
 
   operationRequest.operation = 0x9114;
@@ -227,12 +255,18 @@ void CameraPTPIP::pollEvents() {
   readResponse(commandClient, NULL, 0);
 }
 
+// Adapted from
 // https://julianschroden.com/post/2023-06-15-capturing-images-using-ptp-ip-on-canon-eos-cameras/#image-capture-sequence
+// https://github.com/laheller/ptplibrary/blob/master/library/src/main/java/com/rupiapps/ptp/constants/PtpOc.java
+// From looking at Wireshark, it seems like my camera uses a capture phase of
+// 0x03 instead of 0x01 and 0x02
 void CameraPTPIP::triggerShutter() {
 #pragma pack(push, 1)
-  /* ===== IMAGE CAPTURE SEQUENCE ===== */
+  // Get rid of any unexpected data
+  while (commandClient.available())
+    commandClient.read();
 
-  // 1. Start Autofocus
+  // Start Remote Release
 
   struct StartImageCapture {
     uint32_t length = 26;
@@ -240,7 +274,7 @@ void CameraPTPIP::triggerShutter() {
     uint32_t dataPhase = 0x01;
     uint16_t operation = 0x9128;
     uint32_t transactionId;
-    uint32_t capturePhase;
+    uint32_t capturePhase = 0x03;
     uint32_t unknownParameter = 0x0;
   } startImageCapture;
   using StartImageCaptureBuffer = char[26];
@@ -248,7 +282,6 @@ void CameraPTPIP::triggerShutter() {
   auto startImageCaptureBuffer =
       reinterpret_cast<StartImageCaptureBuffer*>(&startImageCapture);
 
-  startImageCapture.capturePhase = 0x01;
   startImageCapture.transactionId = getTransactionId();
   commandClient.write(*startImageCaptureBuffer,
                       sizeof(*startImageCaptureBuffer));
@@ -275,12 +308,22 @@ void CameraPTPIP::triggerShutter() {
     return;
   }
 
-  // 2. Start Image Release
+  // Unknown purpose (the elusive 0x902f operation, as seen in Wireshark)
 
-  startImageCapture.capturePhase = 0x02;
-  startImageCapture.transactionId = getTransactionId();
-  commandClient.write(*startImageCaptureBuffer,
-                      sizeof(*startImageCaptureBuffer));
+  struct Operation902F {
+    uint32_t length = 18;
+    uint32_t packetType = 0x06;
+    uint32_t dataPhase = 0x01;
+    uint16_t operation = 0x902f;
+    uint32_t transactionId;
+  } operation902F;
+  using Operation902FBuffer = char[18];
+
+  auto operation902FBuffer =
+      reinterpret_cast<Operation902FBuffer*>(&operation902F);
+
+  operation902F.transactionId = getTransactionId();
+  commandClient.write(*operation902FBuffer, sizeof(*operation902FBuffer));
 
   if (!readResponse(commandClient, *operationResponseBuffer,
                     sizeof(*operationResponseBuffer)))
@@ -293,7 +336,7 @@ void CameraPTPIP::triggerShutter() {
     return;
   }
 
-  // 3. Stop Image Release
+  // Stop Remote Release
 
   struct StopImageCapture {
     uint32_t length = 22;
@@ -301,23 +344,15 @@ void CameraPTPIP::triggerShutter() {
     uint32_t dataPhase = 0x01;
     uint16_t operation = 0x9129;
     uint32_t transactionId;
-    uint32_t capturePhase;
+    uint32_t capturePhase = 0x03;
   } stopImageCapture;
   using StopImageCaptureBuffer = char[22];
 
   auto stopImageCaptureBuffer =
       reinterpret_cast<StopImageCaptureBuffer*>(&stopImageCapture);
 
-  stopImageCapture.capturePhase = 0x02;
   stopImageCapture.transactionId = getTransactionId();
   commandClient.write(*stopImageCaptureBuffer, sizeof(*stopImageCaptureBuffer));
-
-  // 4. Stop Autofocus
-
-  startImageCapture.capturePhase = 0x01;
-  startImageCapture.transactionId = getTransactionId();
-  commandClient.write(*startImageCaptureBuffer,
-                      sizeof(*startImageCaptureBuffer));
 
   if (!readResponse(commandClient, *operationResponseBuffer,
                     sizeof(*operationResponseBuffer)))
@@ -339,6 +374,10 @@ void CameraPTPIP::triggerShutter() {
 bool CameraPTPIP::setPropertyValue(uint32_t propertyCode,
                                    uint32_t propertyValue) {
 #pragma pack(push, 1)
+  // Get rid of any unexpected data
+  while (commandClient.available())
+    commandClient.read();
+
   /* ===== SET PROPERTY VALUE ===== */
 
   // 1. Send Operation Request
@@ -409,14 +448,14 @@ bool CameraPTPIP::setPropertyValue(uint32_t propertyCode,
                     sizeof(*operationResponseBuffer)))
     return false;
 
+  pollEvents();
+
   if (operationResponse.response != 0x2001) {
     logger.error(operationResponse.response,
                  "Bad Operation Response Code (0x%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return false;
   }
-
-  pollEvents();
 
   return true;
 
