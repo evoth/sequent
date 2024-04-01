@@ -30,12 +30,19 @@ class CameraPTPIP : public Camera {
   void stopRecording() {}
   void movieModeOn() {}
   void movieModeOff() {}
+  bool loop() {
+    if (pollElapsed > pollInterval) {
+      pollEvents();
+      pollElapsed = 0;
+    }
+    return false;
+  }
 
  private:
   WiFiClient commandClient;
   WiFiClient eventClient;
   uint32_t transactionId = 0;
-  const unsigned long long pollInterval = 200;
+  const unsigned long long pollInterval = 1000;
   elapsedMillis pollElapsed;
 
   const uint32_t AV_CODE = 0xd101;
