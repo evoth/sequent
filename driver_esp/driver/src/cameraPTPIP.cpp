@@ -159,7 +159,7 @@ void CameraPTPIP::connect() {
 
   if (operationResponse.response != 0x2001) {
     logger.error(operationResponse.response,
-                 "Bad Operation Response Code (%04x) for transaction ID %d",
+                 "Bad Operation Response Code (0x%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return;
   }
@@ -176,7 +176,7 @@ void CameraPTPIP::connect() {
 
   if (operationResponse.response != 0x2001) {
     logger.error(operationResponse.response,
-                 "Bad Operation Response Code (%04x) for transaction ID %d",
+                 "Bad Operation Response Code (0x%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return;
   }
@@ -193,7 +193,7 @@ void CameraPTPIP::connect() {
 
   if (operationResponse.response != 0x2001) {
     logger.error(operationResponse.response,
-                 "Bad Operation Response Code (%04x) for transaction ID %d",
+                 "Bad Operation Response Code (0x%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return;
   }
@@ -266,7 +266,7 @@ void CameraPTPIP::triggerShutter() {
 
   if (operationResponse.response != 0x2001) {
     logger.error(operationResponse.response,
-                 "Bad Operation Response Code (%04x) for transaction ID %d",
+                 "Bad Operation Response Code (0x%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return;
   }
@@ -284,7 +284,7 @@ void CameraPTPIP::triggerShutter() {
 
   if (operationResponse.response != 0x2001) {
     logger.error(operationResponse.response,
-                 "Bad Operation Response Code (%04x) for transaction ID %d",
+                 "Bad Operation Response Code (0x%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return;
   }
@@ -321,12 +321,98 @@ void CameraPTPIP::triggerShutter() {
 
   if (operationResponse.response != 0x2001) {
     logger.error(operationResponse.response,
-                 "Bad Operation Response Code (%04x) for transaction ID %d",
+                 "Bad Operation Response Code (0x%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return;
   }
 
   logger.log("Triggered shutter.");
+
+#pragma pack(pop)
+}
+
+// https://julianschroden.com/post/2023-05-28-controlling-properties-using-ptp-ip-on-canon-eos-cameras/#set-property-value
+bool CameraPTPIP::setPropertyValue(uint32_t propertyCode,
+                                   uint32_t propertyValue) {
+#pragma pack(push, 1)
+  /* ===== SET PROPERTY VALUE ===== */
+
+  // 1. Send Operation Request
+
+  struct SetPropValue {
+    uint32_t length = 18;
+    uint32_t packetType = 0x06;
+    uint32_t dataPhase = 0x02;
+    uint16_t operation = 0x9110;
+    uint32_t transactionId;
+  } setPropValue;
+  using SetPropValueBuffer = char[18];
+
+  auto setPropValueBuffer =
+      reinterpret_cast<SetPropValueBuffer*>(&setPropValue);
+
+  setPropValue.transactionId = getTransactionId();
+  commandClient.write(*setPropValueBuffer, sizeof(*setPropValueBuffer));
+
+  // 2. Send Start Data Packet
+
+  struct StartDataPacket {
+    uint32_t length = 20;
+    uint32_t packetType = 0x09;
+    uint32_t transactionId;
+    uint64_t totalDataLength = 12;
+  } startDataPacket;
+  using StartDataPacketBuffer = char[20];
+
+  auto startDataPacketBuffer =
+      reinterpret_cast<StartDataPacketBuffer*>(&startDataPacket);
+
+  startDataPacket.transactionId = setPropValue.transactionId;
+  commandClient.write(*startDataPacketBuffer, sizeof(*startDataPacketBuffer));
+
+  // 3. Send End Data Packet
+
+  struct EndDataPacket {
+    uint32_t length = 24;
+    uint32_t packetType = 0x0c;
+    uint32_t transactionId;
+    uint32_t payloadLength = 12;
+    uint32_t propertyCode;
+    uint32_t propertyValue;
+  } endDataPacket;
+  using EndDataPacketBuffer = char[24];
+
+  auto endDataPacketBuffer =
+      reinterpret_cast<EndDataPacketBuffer*>(&endDataPacket);
+
+  endDataPacket.propertyCode = propertyCode;
+  endDataPacket.propertyValue = propertyValue;
+  endDataPacket.transactionId = setPropValue.transactionId;
+  commandClient.write(*endDataPacketBuffer, sizeof(*endDataPacketBuffer));
+
+  struct OperationResponse {
+    uint32_t length;
+    uint32_t packetType;
+    uint16_t response;
+    uint32_t transactionId;
+  } operationResponse;
+  using OperationResponseBuffer = char[14];
+
+  auto operationResponseBuffer =
+      reinterpret_cast<OperationResponseBuffer*>(&operationResponse);
+
+  if (!readResponse(commandClient, *operationResponseBuffer,
+                    sizeof(*operationResponseBuffer)))
+    return false;
+
+  if (operationResponse.response != 0x2001) {
+    logger.error(operationResponse.response,
+                 "Bad Operation Response Code (0x%04x) for transaction ID %d",
+                 operationResponse.response, operationResponse.transactionId);
+    return false;
+  }
+
+  return true;
 
 #pragma pack(pop)
 }
