@@ -36,7 +36,8 @@ shared_ptr<StateManagerInterface> DeviceManager::processAction(
       }
     }
     cameras[ipString]->connect();
-  } else if (actionId == "photo" || actionId == "video") {
+  } else if (actionId == "photo" || actionId == "video" ||
+             actionId == "exposure") {
     String ipString = action["data"]["states"]["ip"];
     if (cameras.count(ipString) == 0) {
       logger.error("Camera with IP address %s has not been connected.",
@@ -44,7 +45,6 @@ shared_ptr<StateManagerInterface> DeviceManager::processAction(
     } else {
       shared_ptr<Camera> camera = cameras[ipString];
       camera->startAction(action["layer"], action["data"]);
-      // TODO: Do this for all actions by using a StateManager smart pointer
       actionDevice = shared_ptr<StateManagerInterface>(camera);
     }
   }

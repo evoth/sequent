@@ -292,6 +292,19 @@ export function getEsp32ActionSet(
     220
   );
 
+  new Action(
+    actionSet.actionManager,
+    "Exposure settings",
+    "Change exposure settings without taking a photo.",
+    {
+      defaultDuration: 0.5,
+      durationParams: [],
+    },
+    [ipParam, modeParam],
+    "exposure",
+    220
+  );
+
   const durationParam = new NumberParameter<number>(
     actionSet.parameterManager,
     "Duration",

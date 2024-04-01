@@ -4,11 +4,12 @@ CameraState Camera::stateFromAction(int layer, const JsonObject& actionData) {
   CameraState state;
 
   String actionId = actionData["action"];
-  if (actionId == "photo") {
+  if (actionId == "photo" || actionId == "exposure") {
     state.mode = actionData["states"]["mode"].as<String>();
 
-    // Only take photo if the new state will be on top
-    if (layer >= getTopIndex()) {
+    // Only take photo if the new state will be on top (and if it's a photo
+    // action)
+    if (actionId == "photo" && layer >= getTopIndex()) {
       state.takePhoto = true;
     }
 

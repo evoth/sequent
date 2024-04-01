@@ -35,8 +35,8 @@ class CameraPTPIP : public Camera {
   WiFiClient commandClient;
   WiFiClient eventClient;
   uint32_t transactionId = 0;
-  const unsigned long long keepAliveInterval = 1000;
-  elapsedMillis keepAliveElapsed;
+  const unsigned long long pollInterval = 200;
+  elapsedMillis pollElapsed;
 
   const uint32_t AV_CODE = 0xd101;
   const uint32_t TV_CODE = 0xd102;
@@ -91,6 +91,7 @@ class CameraPTPIP : public Camera {
     if (setPropertyValue(propCode, valMap[valString]))
       logger.log("Set %s to %s", name, val);
   }
+  void pollEvents();
 };
 
 #endif

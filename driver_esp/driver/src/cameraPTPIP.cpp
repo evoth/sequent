@@ -198,7 +198,15 @@ void CameraPTPIP::connect() {
     return;
   }
 
-  // https://julianschroden.com/post/2023-05-28-controlling-properties-using-ptp-ip-on-canon-eos-cameras/#geteventdata-operation
+  pollEvents();
+
+  logger.log("Connected to camera at %s.", cameraIP);
+  cameraConnected = true;
+#pragma pack(pop)
+}
+
+// https://julianschroden.com/post/2023-05-28-controlling-properties-using-ptp-ip-on-canon-eos-cameras/#geteventdata-operation
+void CameraPTPIP::pollEvents() {
   struct GetEventDataRequest {
     uint32_t length = 18;
     uint32_t packetType = 0x06;
@@ -217,10 +225,6 @@ void CameraPTPIP::connect() {
 
   // Discard event data
   readResponse(commandClient, NULL, 0);
-
-  logger.log("Connected to camera at %s.", cameraIP);
-  cameraConnected = true;
-#pragma pack(pop)
 }
 
 // https://julianschroden.com/post/2023-06-15-capturing-images-using-ptp-ip-on-canon-eos-cameras/#image-capture-sequence
@@ -411,6 +415,8 @@ bool CameraPTPIP::setPropertyValue(uint32_t propertyCode,
                  operationResponse.response, operationResponse.transactionId);
     return false;
   }
+
+  pollEvents();
 
   return true;
 
