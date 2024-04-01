@@ -234,8 +234,8 @@ void CameraPTPIP::keepAlive() {
   commandClient.write(*getEventDataRequestBuffer,
                       sizeof(*getEventDataRequestBuffer));
 
-  if (!readResponse(commandClient, NULL, 0))
-    return;
+  // Discard event data
+  readResponse(commandClient, NULL, 0);
 
 #pragma pack(pop)
 }

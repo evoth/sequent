@@ -2,6 +2,7 @@
 #define SEQUENT_CAMERA_H
 
 #include <ArduinoJson.h>
+#include "device.h"
 #include "state.h"
 
 struct CameraState {
@@ -14,7 +15,7 @@ struct CameraState {
   bool isRecording = false;
 };
 
-class Camera : public StateManager<CameraState> {
+class Camera : public StateManager<CameraState>, public Device {
  public:
   Camera(const char* ipAddress) {
     strncpy(cameraIP, ipAddress, sizeof(cameraIP));
@@ -23,7 +24,6 @@ class Camera : public StateManager<CameraState> {
 
   // TODO: Retrieve camera name/model so it can be used in status/log messages
   virtual void connect() = 0;
-  virtual bool loop() { return false; }
 
  protected:
   char cameraIP[32];

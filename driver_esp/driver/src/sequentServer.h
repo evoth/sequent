@@ -4,11 +4,17 @@
 #include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
 #include <WebSocketsServer.h>
+#include <memory>
+#include "deviceManager.h"
 #include "sequence.h"
 
 class SequentServer {
  public:
-  SequentServer() : server(80), webSocket(81), logger("Server") {}
+  SequentServer()
+      : server(80),
+        webSocket(81),
+        logger("Server"),
+        sequence(shared_ptr<DeviceManager>(&devices)) {}
 
   void init(const char* ssid, const char* password) {
     initAP(ssid, password);
@@ -25,6 +31,7 @@ class SequentServer {
   int msgClient;
   Sequence sequence;
   Logger logger;
+  DeviceManager devices;
 
   void initAP(const char* ssid, const char* password);
   void initWebServer();

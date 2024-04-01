@@ -4,17 +4,19 @@
 #include <ArduinoJson.h>
 #include <TinyGPSPlus.h>
 #include <elapsedMillis.h>
+#include "device.h"
 #include "logger.h"
 
-class GPS {
+class GPS : public Device {
  public:
-  GPS() : logger("GPS") {
+  GPS() {
+    strncpy(logger.name, "GPS @ Serial2", sizeof(logger.name));
     // Hardcoded as Serial2 for now (GPIO 16 and 17)
     Serial2.begin(9600);
     logger.log("Begin Serial2 at 9600 baud.");
   }
 
-  void getState(JsonObject& stateObject) { logger.getRecentLogs(stateObject); }
+  void getStatus(JsonObject& stateObject) { logger.getRecentLogs(stateObject); }
   bool loop() {
     read();
     if (syncElapsed > syncInterval) {
@@ -25,7 +27,6 @@ class GPS {
   }
 
  private:
-  Logger logger;
   TinyGPSPlus gps;
   const unsigned long long syncInterval = 300000;
   elapsedMillis syncElapsed;

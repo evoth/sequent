@@ -89,7 +89,7 @@ void SequentServer::sendStatus() {
   JsonObject sequenceState = sequenceDoc.to<JsonObject>();
   sequence.logger.getRecentLogs(sequenceState);
   states.add(sequenceState);
-  sequence.getStates(states);
+  devices.getStatus(states);
   status["isRunning"] = sequence.isRunning;
   status["sequenceFilename"] = sequence.filePath;
   status["actionIndex"] = sequence.actionIndex;

@@ -20,10 +20,8 @@ class StateManager : public StateManagerInterface {
     addState(layer, stateFromAction(layer, actionData));
   };
   void endAction(int layer) { removeState(layer); }
-  void getState(JsonObject& stateObject) { logger.getRecentLogs(stateObject); }
 
  protected:
-  Logger logger;
   virtual void actOnDiff(T& oldState,
                          T& newState,
                          bool fromDefault = false) = 0;

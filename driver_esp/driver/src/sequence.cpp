@@ -91,13 +91,7 @@ void Sequence::stop() {
 // Run in main loop
 // TODO: Clean this up... I'm in a hurry :)
 bool Sequence::loop() {
-  bool shouldSendState = false;
-
-  // TODO: Implement changes from notebook
-  shouldSendState = shouldSendState || gps.loop();
-  for (auto& [ip, camera] : cameras) {
-    shouldSendState = shouldSendState || camera->loop();
-  }
+  bool shouldSendState = devices->loop();
 
   // Sequence is done (only after all actions have finished)
   if (isRunning && endQueue.empty() && actionIndex >= totalActions) {
@@ -133,48 +127,12 @@ bool Sequence::loop() {
   logger.log("Starting action %d", actionIndex);
   // logger.log("Min free heap size: %d", esp_get_minimum_free_heap_size());
 
-  String actionId = action["data"]["action"];
-
-  // Dispatch actions to relevant objects
-  if (actionId == "connect") {
-    String ipString = action["data"]["states"]["ip"];
-    if (cameras.count(ipString) == 0) {
-      String method = action["data"]["states"]["method"];
-      if (method == "CCAPI") {
-        cameras[ipString] =
-            shared_ptr<Camera>(new CameraCCAPI(ipString.c_str()));
-      } else if (method == "PTP/IP") {
-        cameras[ipString] =
-            shared_ptr<Camera>(new CameraPTPIP(ipString.c_str()));
-      }
-    }
-    cameras[ipString]->connect();
-  } else if (actionId == "photo" || actionId == "video") {
-    String ipString = action["data"]["states"]["ip"];
-    if (cameras.count(ipString) == 0) {
-      logger.error("Camera with IP address %s has not been connected.",
-                   ipString.c_str());
-    } else {
-      shared_ptr<Camera> camera = cameras[ipString];
-      camera->startAction(action["layer"], action["data"]);
-      // TODO: Do this for all actions by using a StateManager smart pointer
-      endQueue.push_back(make_tuple(action["end"], camera, action["layer"]));
-    }
-  }
+  shared_ptr<StateManagerInterface> actionDevice =
+      devices->processAction(logger, action);
+  if (actionDevice != nullptr)
+    endQueue.push_back(
+        make_tuple(action["end"], actionDevice, action["layer"]));
 
   readAction();
   return true;
-}
-
-void Sequence::getStates(const JsonArray& statesArray) {
-  JsonDocument doc;
-  JsonObject gpsStatus = doc.to<JsonObject>();
-  gps.getState(gpsStatus);
-  statesArray.add(gpsStatus);
-  for (auto& [ip, camera] : cameras) {
-    JsonDocument doc;
-    JsonObject cameraStatus = doc.to<JsonObject>();
-    camera->getState(cameraStatus);
-    statesArray.add(cameraStatus);
-  }
 }
