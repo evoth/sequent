@@ -1,6 +1,8 @@
 #include "cameraPTPIP.h"
 #include <elapsedMillis.h>
 
+// TODO: Reduce repeated structs and code
+
 bool CameraPTPIP::readResponse(WiFiClient& client, char* buffer, size_t size) {
   elapsedMillis elapsed;
   while (client.available() == 0) {
@@ -30,6 +32,7 @@ void CameraPTPIP::connect() {
   /* ===== CONNECTION SEQUENCE ===== */
 
   // 1. Open Command Socket Connection
+
   if (!commandClient.connect(cameraIP, 15740)) {
     logger.error("Command client could not connect to %s at port 15740.",
                  cameraIP);
@@ -37,6 +40,7 @@ void CameraPTPIP::connect() {
   }
 
   // 2. Send Init Command Request
+
   struct InitCommandRequest {
     uint32_t length = 40;
     uint32_t packetType = 0x01;
@@ -54,6 +58,7 @@ void CameraPTPIP::connect() {
                       sizeof(*initCommandRequestBuffer));
 
   // 3. Process Init Command Acknowledgement Response
+
   struct InitCommandAck {
     uint32_t length;
     uint32_t packetType;
@@ -74,6 +79,7 @@ void CameraPTPIP::connect() {
   }
 
   // 4. Open Event Socket Connection
+
   if (!eventClient.connect(cameraIP, 15740)) {
     logger.error("Event client could not connect to %s at port 15740.",
                  cameraIP);
@@ -81,6 +87,7 @@ void CameraPTPIP::connect() {
   }
 
   // 5. Send Init Event Request
+
   struct InitEventRequest {
     uint32_t length = 12;
     uint32_t packetType = 0x03;
@@ -95,6 +102,7 @@ void CameraPTPIP::connect() {
   eventClient.write(*initEventRequestBuffer, sizeof(*initEventRequestBuffer));
 
   // 6. Process Init Event Acknowledgement Response
+
   struct InitEventAck {
     uint32_t length;
     uint32_t packetType;
@@ -150,29 +158,11 @@ void CameraPTPIP::connect() {
     return;
 
   if (operationResponse.response != 0x2001) {
-    logger.error("Bad Operation Response Code (%04x) for transaction ID %d",
+    logger.error(operationResponse.response,
+                 "Bad Operation Response Code (%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return;
   }
-
-  // // (Unknown operation; recreated from Wireshark capture)
-
-  // operationRequest.length = 18;
-  // operationRequest.operation = 0x902f;
-  // operationRequest.transactionId++;
-  // commandClient.write(*operationRequestBuffer, 18);
-  // operationRequest.length = 22;
-
-  // if (!readResponse(commandClient, *operationResponseBuffer,
-  //                   sizeof(*operationResponseBuffer)))
-  //   return;
-
-  // if (operationResponse.response != 0x2001) {
-  //   logger.error("Bad Operation Response Code (%04x) for transaction ID %d",
-  //                operationResponse.response,
-  //                operationResponse.transactionId);
-  //   return;
-  // }
 
   // 2. Activate RemoteMode
 
@@ -185,7 +175,8 @@ void CameraPTPIP::connect() {
     return;
 
   if (operationResponse.response != 0x2001) {
-    logger.error("Bad Operation Response Code (%04x) for transaction ID %d",
+    logger.error(operationResponse.response,
+                 "Bad Operation Response Code (%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return;
   }
@@ -201,23 +192,13 @@ void CameraPTPIP::connect() {
     return;
 
   if (operationResponse.response != 0x2001) {
-    logger.error("Bad Operation Response Code (%04x) for transaction ID %d",
+    logger.error(operationResponse.response,
+                 "Bad Operation Response Code (%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return;
   }
 
-  logger.log("Connected to camera at %s.", cameraIP);
-  cameraConnected = true;
-#pragma pack(pop)
-}
-
-// https://julianschroden.com/post/2023-05-28-controlling-properties-using-ptp-ip-on-canon-eos-cameras/#geteventdata-operation
-// Here we're imitating the phone app, which regularly polls camera events. At
-// the moment, we discard the data since we're only trying to keep the
-// connection alive.
-void CameraPTPIP::keepAlive() {
-#pragma pack(push, 1)
-
+  // https://julianschroden.com/post/2023-05-28-controlling-properties-using-ptp-ip-on-canon-eos-cameras/#geteventdata-operation
   struct GetEventDataRequest {
     uint32_t length = 18;
     uint32_t packetType = 0x06;
@@ -236,6 +217,116 @@ void CameraPTPIP::keepAlive() {
 
   // Discard event data
   readResponse(commandClient, NULL, 0);
+
+  logger.log("Connected to camera at %s.", cameraIP);
+  cameraConnected = true;
+#pragma pack(pop)
+}
+
+// https://julianschroden.com/post/2023-06-15-capturing-images-using-ptp-ip-on-canon-eos-cameras/#image-capture-sequence
+void CameraPTPIP::triggerShutter() {
+#pragma pack(push, 1)
+  /* ===== IMAGE CAPTURE SEQUENCE ===== */
+
+  // 1. Start Autofocus
+
+  struct StartImageCapture {
+    uint32_t length = 26;
+    uint32_t packetType = 0x06;
+    uint32_t dataPhase = 0x01;
+    uint16_t operation = 0x9128;
+    uint32_t transactionId;
+    uint32_t capturePhase;
+    uint32_t unknownParameter = 0x0;
+  } startImageCapture;
+  using StartImageCaptureBuffer = char[26];
+
+  auto startImageCaptureBuffer =
+      reinterpret_cast<StartImageCaptureBuffer*>(&startImageCapture);
+
+  startImageCapture.capturePhase = 0x01;
+  startImageCapture.transactionId = getTransactionId();
+  commandClient.write(*startImageCaptureBuffer,
+                      sizeof(*startImageCaptureBuffer));
+
+  struct OperationResponse {
+    uint32_t length;
+    uint32_t packetType;
+    uint16_t response;
+    uint32_t transactionId;
+  } operationResponse;
+  using OperationResponseBuffer = char[14];
+
+  auto operationResponseBuffer =
+      reinterpret_cast<OperationResponseBuffer*>(&operationResponse);
+
+  if (!readResponse(commandClient, *operationResponseBuffer,
+                    sizeof(*operationResponseBuffer)))
+    return;
+
+  if (operationResponse.response != 0x2001) {
+    logger.error(operationResponse.response,
+                 "Bad Operation Response Code (%04x) for transaction ID %d",
+                 operationResponse.response, operationResponse.transactionId);
+    return;
+  }
+
+  // 2. Start Image Release
+
+  startImageCapture.capturePhase = 0x02;
+  startImageCapture.transactionId = getTransactionId();
+  commandClient.write(*startImageCaptureBuffer,
+                      sizeof(*startImageCaptureBuffer));
+
+  if (!readResponse(commandClient, *operationResponseBuffer,
+                    sizeof(*operationResponseBuffer)))
+    return;
+
+  if (operationResponse.response != 0x2001) {
+    logger.error(operationResponse.response,
+                 "Bad Operation Response Code (%04x) for transaction ID %d",
+                 operationResponse.response, operationResponse.transactionId);
+    return;
+  }
+
+  // 3. Stop Image Release
+
+  struct StopImageCapture {
+    uint32_t length = 22;
+    uint32_t packetType = 0x06;
+    uint32_t dataPhase = 0x01;
+    uint16_t operation = 0x9129;
+    uint32_t transactionId;
+    uint32_t capturePhase;
+  } stopImageCapture;
+  using StopImageCaptureBuffer = char[22];
+
+  auto stopImageCaptureBuffer =
+      reinterpret_cast<StopImageCaptureBuffer*>(&stopImageCapture);
+
+  stopImageCapture.capturePhase = 0x02;
+  stopImageCapture.transactionId = getTransactionId();
+  commandClient.write(*stopImageCaptureBuffer, sizeof(*stopImageCaptureBuffer));
+
+  // 4. Stop Autofocus
+
+  startImageCapture.capturePhase = 0x01;
+  startImageCapture.transactionId = getTransactionId();
+  commandClient.write(*startImageCaptureBuffer,
+                      sizeof(*startImageCaptureBuffer));
+
+  if (!readResponse(commandClient, *operationResponseBuffer,
+                    sizeof(*operationResponseBuffer)))
+    return;
+
+  if (operationResponse.response != 0x2001) {
+    logger.error(operationResponse.response,
+                 "Bad Operation Response Code (%04x) for transaction ID %d",
+                 operationResponse.response, operationResponse.transactionId);
+    return;
+  }
+
+  logger.log("Triggered shutter.");
 
 #pragma pack(pop)
 }

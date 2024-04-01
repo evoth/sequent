@@ -42,7 +42,6 @@ class Camera : public StateManager<CameraState>, public Device {
   virtual void stopRecording() = 0;
   virtual void movieModeOn() = 0;
   virtual void movieModeOff() = 0;
-  virtual void keepAlive() {}
 };
 
 #endif

@@ -13,16 +13,9 @@ class CameraPTPIP : public Camera {
   }
 
   void connect();
-  bool loop() {
-    if (cameraConnected && keepAliveElapsed > keepAliveInterval) {
-      keepAlive();
-      keepAliveElapsed = 0;
-    }
-    return false;
-  }
 
  protected:
-  void triggerShutter() {}
+  void triggerShutter();
   void setIso(const char* iso) {}
   void setAv(const char* av) {}
   void setTv(const char* tv) {}
@@ -30,7 +23,6 @@ class CameraPTPIP : public Camera {
   void stopRecording() {}
   void movieModeOn() {}
   void movieModeOff() {}
-  void keepAlive();
 
  private:
   WiFiClient commandClient;
