@@ -1,11 +1,9 @@
 #ifndef SEQUENT_GPS_H
 #define SEQUENT_GPS_H
 
-#include <ArduinoJson.h>
 #include <TinyGPSPlus.h>
 #include <elapsedMillis.h>
 #include "device.h"
-#include "logger.h"
 
 class GPS : public Device {
  public:
@@ -16,7 +14,6 @@ class GPS : public Device {
     logger.log("Begin Serial2 at 9600 baud.");
   }
 
-  void getStatus(JsonObject& stateObject) { logger.getRecentLogs(stateObject); }
   bool loop() {
     read();
     if (syncElapsed > syncInterval) {

@@ -144,7 +144,8 @@ void SequentServer::loop() {
   } else if (command == "setTime") {
     unsigned long long timeMs = msg["time"];
     setTime(timeMs / 1000);
-    msOffset = millis() - timeMs % 1000;
+    msReset = millis() - timeMs % 1000;
+    msDelay = 0;
     logger.log("Synced time from client %d @ %lu ms.", msgClient, millis());
   } else {
     logger.error("Unknown command: %s.", command);

@@ -4,9 +4,8 @@
 #include <Arduino.h>
 #include <TimeLib.h>
 
-extern unsigned long msOffset;
-
-extern unsigned long millisecond();
+extern unsigned long msReset;
+extern unsigned long msDelay;
 
 extern unsigned long long fullTimeMs(bool useFull = true);
 

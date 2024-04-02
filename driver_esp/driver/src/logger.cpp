@@ -10,7 +10,7 @@ const char* Logger::ERROR_FILE = "/errors.txt";
 void Logger::generalLog(int statusCode,
                         const char* format,
                         va_list args,
-                        const char* filename,
+                        const char* logFilePath,
                         std::vector<std::shared_ptr<Log>>& logs,
                         bool isError) {
   // Make format string based on va_list args captured from caller function
@@ -25,9 +25,9 @@ void Logger::generalLog(int statusCode,
     logs.erase(logs.begin());
   }
 
-  File logFile = SD.open(filename, FILE_APPEND);
+  File logFile = SD.open(logFilePath, FILE_APPEND);
   if (!logFile) {
-    Serial.printf("Failed to open file '%s' for writing.\n", filename);
+    Serial.printf("Failed to open file '%s' for writing.\n", logFilePath);
     return;
   }
 

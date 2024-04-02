@@ -71,7 +71,7 @@ class Logger {
   void generalLog(int statusCode,
                   const char* format,
                   va_list args,
-                  const char* filename,
+                  const char* logFilePath,
                   std::vector<std::shared_ptr<Log>>& logs,
                   bool isError);
   void getRecent(const std::vector<std::shared_ptr<Log>>& logs,
