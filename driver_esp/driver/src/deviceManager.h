@@ -1,6 +1,7 @@
 #ifndef SEQUENT_DEVICE_MANAGER_H
 #define SEQUENT_DEVICE_MANAGER_H
 
+#include "bmeSensor.h"
 #include "camera.h"
 #include "device.h"
 #include "gps.h"
@@ -25,6 +26,7 @@ class DeviceManager {
   std::map<String, std::shared_ptr<Camera>> cameras;
   GPS gps;
   std::map<int, std::shared_ptr<SequentServo>> servos;
+  BMESensor bme;
 };
 
 #endif

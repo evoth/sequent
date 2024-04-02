@@ -400,5 +400,30 @@ export function getEsp32ActionSet(
     30
   );
 
+  new Action(
+    actionSet.actionManager,
+    "Record BME280 Data",
+    "",
+    {
+      defaultDuration: 0.5,
+      durationParams: [],
+    },
+    [
+      new StringParameter<string>(
+        actionSet.parameterManager,
+        "CSV data file",
+        "",
+        "/bme280.csv",
+        5,
+        undefined,
+        undefined,
+        undefined,
+        "csvFile"
+      ),
+    ],
+    "bmeRecord",
+    300
+  );
+
   return actionSet;
 }

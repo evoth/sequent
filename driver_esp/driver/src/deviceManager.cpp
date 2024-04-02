@@ -8,6 +8,11 @@ void DeviceManager::getStatus(const JsonArray& statesArray) {
   gps.getStatus(gpsStatus);
   statesArray.add(gpsStatus);
 
+  JsonDocument bmeDoc;
+  JsonObject bmeStatus = bmeDoc.to<JsonObject>();
+  bme.getStatus(bmeStatus);
+  statesArray.add(bmeStatus);
+
   for (auto& [ip, camera] : cameras) {
     JsonDocument doc;
     JsonObject cameraStatus = doc.to<JsonObject>();
@@ -71,6 +76,8 @@ std::shared_ptr<StateManagerInterface> DeviceManager::processAction(
       servo->startAction(action["layer"], action["data"]);
       actionDevice = std::shared_ptr<StateManagerInterface>(servo);
     }
+  } else if (actionId == "bmeRecord") {
+    bme.recordSensorData(action["data"]["states"]["csvFile"]);
   }
 
   return actionDevice;
