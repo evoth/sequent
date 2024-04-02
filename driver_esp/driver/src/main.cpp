@@ -14,7 +14,7 @@ void setup() {
     Serial.println("SD card mount failed!");
     return;
   }
-  server.init("ESP32_AP", "defgecd7");
+  server.init("ESP32_AP_%s", "defgecd7");
 }
 
 void loop() {
