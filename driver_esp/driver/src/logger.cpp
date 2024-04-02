@@ -18,7 +18,7 @@ void Logger::generalLog(int statusCode,
   vsnprintf(msgBuffer, sizeof(msgBuffer), format, args);
 
   // We keep a vector of recent logs with max length of NUM_RECENT
-  unsigned long long currentTime = fullTimeMs();
+  unsigned long long currentTime = fullTimeMs(true);
   logs.push_back(std::shared_ptr<Log>(
       new Log(currentTime, msgBuffer, isError, statusCode)));
   if (logs.size() > NUM_RECENT) {

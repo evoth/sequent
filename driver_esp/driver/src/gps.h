@@ -23,6 +23,8 @@ class GPS : public Device {
     return false;
   }
 
+  void recordGpsData(const char* gpsCsvFilePath);
+
  private:
   TinyGPSPlus gps;
   const unsigned long long syncInterval = 300000;

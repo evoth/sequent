@@ -34,7 +34,7 @@ void BMESensor::recordSensorData(const char* sensorCsvFilePath) {
   float pressure = bme.readPressure() / 100.0F;
   float humidity = bme.readHumidity();
 
-  sensorCsvFile.printf("%llu,%.2f,%.2f,%.2f\n", fullTimeMs(), temperature,
+  sensorCsvFile.printf("%llu,%.2f,%.2f,%.2f\n", fullTimeMs(true), temperature,
                        pressure, humidity);
 
   sensorCsvFile.close();

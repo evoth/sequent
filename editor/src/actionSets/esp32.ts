@@ -418,11 +418,36 @@ export function getEsp32ActionSet(
         undefined,
         undefined,
         undefined,
-        "csvFile"
+        "bmeFile"
       ),
     ],
     "bmeRecord",
     300
+  );
+
+  new Action(
+    actionSet.actionManager,
+    "Record GPS Data",
+    "",
+    {
+      defaultDuration: 0.5,
+      durationParams: [],
+    },
+    [
+      new StringParameter<string>(
+        actionSet.parameterManager,
+        "CSV data file",
+        "",
+        "/gps.csv",
+        5,
+        undefined,
+        undefined,
+        undefined,
+        "gpsFile"
+      ),
+    ],
+    "gpsRecord",
+    190
   );
 
   return actionSet;

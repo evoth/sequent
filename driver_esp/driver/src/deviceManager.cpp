@@ -77,7 +77,9 @@ std::shared_ptr<StateManagerInterface> DeviceManager::processAction(
       actionDevice = std::shared_ptr<StateManagerInterface>(servo);
     }
   } else if (actionId == "bmeRecord") {
-    bme.recordSensorData(action["data"]["states"]["csvFile"]);
+    bme.recordSensorData(action["data"]["states"]["bmeFile"]);
+  } else if (actionId == "gpsRecord") {
+    gps.recordGpsData(action["data"]["states"]["gpsFile"]);
   }
 
   return actionDevice;
