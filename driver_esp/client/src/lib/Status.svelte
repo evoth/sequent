@@ -7,6 +7,6 @@
 <Section name="status">
   <h2 slot="heading">Status</h2>
   {#each $state.states as stateData}
-  <StatusHelper title={stateData.name} logs={stateData.logs} />
+    <StatusHelper title={stateData.name} logs={stateData.logs} />
   {/each}
 </Section>

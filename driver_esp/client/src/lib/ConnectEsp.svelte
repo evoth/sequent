@@ -1,5 +1,5 @@
 <script>
-  import { state, socket, isLoading, espIP, isConnected } from "../stores.js";
+  import { espIP, isConnected, isLoading, socket, state } from "../stores.js";
   import Section from "./Section.svelte";
   let espIPInput = $espIP,
     isConnecting;
@@ -21,11 +21,11 @@
       isConnecting = false;
     });
     isConnecting = true;
-  };
+  }
 
   function disconnect() {
     $socket?.close();
-  };
+  }
 
   connect();
 </script>

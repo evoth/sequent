@@ -1,8 +1,9 @@
 <script>
-  import ThemeToggle from "./lib/ThemeToggle.svelte";
   import ConnectEsp from "./lib/ConnectEsp.svelte";
-  import Intervalometer from "./lib/Sequence.svelte";
+  import Sequence from "./lib/Sequence.svelte";
+  import Server from "./lib/Server.svelte";
   import Status from "./lib/Status.svelte";
+  import ThemeToggle from "./lib/ThemeToggle.svelte";
   import { isConnected } from "./stores.js";
 </script>
 
@@ -14,7 +15,8 @@
   <Status />
   <ConnectEsp />
   {#if $isConnected}
-    <Intervalometer />
+    <Server />
+    <Sequence />
   {/if}
 </main>
 

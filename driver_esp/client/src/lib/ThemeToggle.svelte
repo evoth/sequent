@@ -12,13 +12,13 @@
     } else {
       classList.remove("dark");
     }
-  };
+  }
 
   function toggle() {
     theme = theme == "light" ? "dark" : "light";
     localStorage.setItem("theme", theme);
     update();
-  };
+  }
 
   update();
 </script>

@@ -73,6 +73,11 @@ void SequentServer::initWebServer() {
         }
       });
 
+  server.on("/reboot", HTTP_POST, [this](AsyncWebServerRequest* req) {
+    logger.log("Rebooting...");
+    ESP.restart();
+  });
+
   server.onNotFound([](AsyncWebServerRequest* req) {
     if (req->method() == HTTP_OPTIONS) {
       // CORS OPTIONS request

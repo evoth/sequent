@@ -15,7 +15,7 @@
     if (name) {
       localStorage.setItem(storageKey, String(isExpanded));
     }
-  };
+  }
 </script>
 
 <div class="section">
