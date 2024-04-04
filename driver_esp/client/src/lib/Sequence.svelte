@@ -52,6 +52,10 @@ state.subscribe((value) => {
   
   <button on:click={setTime}> Set time </button>
   <button on:click={refreshList}> Refresh </button>
+  <form action={`http://${$espIP}/upload`} method=post enctype=multipart/form-data>
+    <input type=file name=file accept=".seq">
+    <input type=submit value="Upload sequence file">
+</form>
 
   {#each seqFiles as filename}
   <button on:click={() => $state.isRunning && $state.sequenceFilename === filename ? stop() : start(filename)}>{filename}</button>

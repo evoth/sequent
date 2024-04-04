@@ -39,6 +39,6 @@ void BMESensor::recordSensorData(const char* sensorCsvFilePath) {
 
   sensorCsvFile.close();
 
-  logger.log("Recorded data to %s (%.2f C, %.2f hPa, %.2f%)", sensorCsvFilePath,
-             temperature, pressure, humidity);
+  logger.log("Recorded data to %s (%.2f C, %.2f hPa, %.2f%%)",
+             sensorCsvFilePath, temperature, pressure, humidity);
 }

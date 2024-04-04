@@ -3,6 +3,7 @@
 
 #include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
+#include <SD.h>
 #include <WebSocketsServer.h>
 #include <WiFi.h>
 #include <memory>
@@ -41,6 +42,7 @@ class SequentServer {
   Logger logger;
   DeviceManager devices;
   char serverId[7];
+  File uploadFile;
 
   void initAP(const char* ssid, const char* password);
   void initWebServer();

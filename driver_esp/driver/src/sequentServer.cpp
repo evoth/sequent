@@ -41,6 +41,38 @@ void SequentServer::initWebServer() {
     req->send(200, "application/json", filenamesTxt);
   });
 
+  // Upload new sequence file
+  server.on(
+      "/upload", HTTP_POST,
+      [this](AsyncWebServerRequest* request) {
+        uploadFile.close();
+        request->send(200);
+      },
+      [this](AsyncWebServerRequest* request, String filename, size_t index,
+             uint8_t* data, size_t len, bool final) {
+        String filePath = "/" + filename;
+        if (!index) {
+          logger.log("Starting upload of file '%s'", filePath.c_str());
+          uploadFile = SD.open(filePath, FILE_WRITE);
+          if (!uploadFile) {
+            logger.error("Failed to open file '%s' for writing.",
+                         filePath.c_str());
+            return;
+          }
+        }
+        if (uploadFile) {
+          if (uploadFile.write(data, len) != len) {
+            uploadFile.close();
+            logger.error("Failed to write to file '%s'.", filePath.c_str());
+          }
+        }
+        if (final) {
+          uploadFile.close();
+          logger.log("Completed upload of %u bytes to file '%s'.", index + len,
+                     filePath.c_str());
+        }
+      });
+
   server.onNotFound([](AsyncWebServerRequest* req) {
     if (req->method() == HTTP_OPTIONS) {
       // CORS OPTIONS request
