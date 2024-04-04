@@ -43,6 +43,7 @@ class SequentServer {
   DeviceManager devices;
   char serverId[7];
   File uploadFile;
+  bool shouldSendStatus = false;
 
   void initAP(const char* ssid, const char* password);
   void initWebServer();

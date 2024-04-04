@@ -14,16 +14,16 @@ void SequentServer::initAP(const char* ssid, const char* password) {
 
 void SequentServer::initWebServer() {
   // Driver web client
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest* req) {
-    req->send_P(200, "text/html", indexHtml);
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
+    request->send_P(200, "text/html", indexHtml);
   });
 
-  server.on("/icon.svg", HTTP_GET, [](AsyncWebServerRequest* req) {
-    req->send_P(200, "image/svg+xml", iconSvg);
+  server.on("/icon.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
+    request->send_P(200, "image/svg+xml", iconSvg);
   });
 
   // List of .seq files in root directory of SD card
-  server.on("/seq-files", HTTP_GET, [](AsyncWebServerRequest* req) {
+  server.on("/seq-files", HTTP_GET, [](AsyncWebServerRequest* request) {
     JsonDocument seqFiles;
     JsonArray filenames = seqFiles["files"].to<JsonArray>();
     File root = SD.open("/");
@@ -38,7 +38,7 @@ void SequentServer::initWebServer() {
     }
     char filenamesTxt[4096];
     serializeJson(seqFiles, filenamesTxt);
-    req->send(200, "application/json", filenamesTxt);
+    request->send(200, "application/json", filenamesTxt);
   });
 
   // Upload new sequence file
@@ -73,17 +73,48 @@ void SequentServer::initWebServer() {
         }
       });
 
-  server.on("/reboot", HTTP_POST, [this](AsyncWebServerRequest* req) {
+  // Restart ESP
+  server.on("/reboot", HTTP_POST, [this](AsyncWebServerRequest* request) {
     logger.log("Rebooting...");
     ESP.restart();
   });
 
-  server.onNotFound([](AsyncWebServerRequest* req) {
-    if (req->method() == HTTP_OPTIONS) {
+  // Delete sequence file
+  server.on("/delete", HTTP_DELETE, [this](AsyncWebServerRequest* request) {
+    shouldSendStatus = true;
+
+    if (!request->hasArg("file")) {
+      logger.error("Request to /delete without required parameter 'file'.");
+      request->send(400, "text/plain",
+                    "Request to /delete without required parameter 'file'.");
+      return;
+    }
+
+    const char* filePath = request->arg("file").c_str();
+    logger.log("Deleting file '%s'.", filePath);
+
+    if (!SD.exists(filePath)) {
+      logger.error("File '%s' doesn't exist.", filePath);
+      request->send(200, "File doesn't exist.");
+      return;
+    }
+
+    if (!SD.remove(filePath)) {
+      logger.error("Failed to delete '%s'.", filePath);
+      request->send(200, "Failed to delete file.");
+      return;
+    }
+
+    logger.log("Deleted '%s'.", filePath);
+    request->send(200);
+  });
+
+  server.onNotFound([](AsyncWebServerRequest* request) {
+    if (request->method() == HTTP_OPTIONS) {
       // CORS OPTIONS request
-      req->send(200);
+      request->send(200);
     } else {
-      req->send(404, "text/plain", "Not found");
+      request->send(404, "text/plain", "Not found");
     }
   });
 
@@ -92,7 +123,7 @@ void SequentServer::initWebServer() {
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Credentials",
                                        "true");
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods",
-                                       "GET,HEAD,OPTIONS,POST,PUT");
+                                       "GET,HEAD,OPTIONS,POST,PUT,DELETE");
   DefaultHeaders::Instance().addHeader(
       "Access-Control-Allow-Headers",
       "Access-Control-Allow-Headers, Origin, Accept, X-Requested-With, "
@@ -165,8 +196,10 @@ void SequentServer::webSocketEvent(uint8_t num,
 
 // Execute command based on most recent WebSocket message
 void SequentServer::loop() {
-  if (sequence.loop())
+  if (sequence.loop() || shouldSendStatus) {
     sendStatus();
+    shouldSendStatus = false;
+  }
 
   webSocket.loop();
   if (!newMsg)
