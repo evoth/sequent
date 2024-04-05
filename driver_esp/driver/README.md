@@ -8,3 +8,8 @@
   - Or have an isConnected member of Device class
 - Concurrent sequences
 - Ability to enable/disable live view for M200 (overheating prevention)
+- Add way to see/request more logs
+  - Logs can be accumulated on client when connected
+  - Can just request last N logsin readAction() instead of having to open and close the file literally hundreds of times
+- Implement keep alive (or just async WebSockets) to prevent network blocking timeout bug thing?
+- Improve GPS time sync

@@ -9,7 +9,7 @@
     <p
       class={log.statusCode == 200 || log.statusCode == 0 ? "success" : "error"}
     >
-      ({log.statusCode}) {log.message}
+      {log.message}
     </p>
   {/each}
 </div>

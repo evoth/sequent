@@ -27,14 +27,13 @@
           },
         ],
       };
-      try {
-        // TODO: try persisting across sessions using IndexedDB (see https://stackoverflow.com/a/65326027)
-        [$fileHandle] = await (window as any).showOpenFilePicker(opts);
-        if (!$fileHandle) return;
-        const file = await $fileHandle.getFile();
-        const text = await file.text();
-        $project = Project.fromJSON(JSON.parse(text));
-      } catch {}
+      // TODO: try persisting across sessions using IndexedDB (see https://stackoverflow.com/a/65326027)
+      [$fileHandle] = await (window as any).showOpenFilePicker(opts);
+      if (!$fileHandle) return;
+      const file = await $fileHandle.getFile();
+      const text = await file.text();
+      console.log(JSON.parse(text));
+      $project = Project.fromJSON(JSON.parse(text));
       modalOpen = false;
     } else {
       fileInput.click();

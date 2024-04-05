@@ -26,24 +26,29 @@ void Sequence::readAction() {
     logger.error("Failed to open file '%s' for reading.", filePath);
     return;
   }
+
   // Seek to previous file position (closed between function calls)
   file.seek(filePos);
 
-  // Check for start of next JSON object
-  // TODO: make this robust against whitespace
-  if (file.peek() == ',')
-    file.find(",");
-  // Check for end of JSON array
-  if (file.peek() == ']' || actionIndex >= totalActions - 1) {
-    actionIndex++;
-    return;
-  };
+  do {
+    // Check for start of next JSON object
+    // TODO: make this robust against whitespace
+    if (file.peek() == ',')
+      file.find(",");
+    // Check for end of JSON array
+    if (file.peek() == ']' || actionIndex >= totalActions - 1) {
+      actionIndex++;
+      return;
+    };
 
-  // We're always one action "ahead" after deserializing and action.
-  // We set start time, then wait until it's time to execute it.
-  deserializeJson(action, file);
-  nextTime = action["start"];
-  actionIndex++;
+    // We're always one action "ahead" after deserializing and action.
+    // We set start time, then wait until it's time to execute it.
+    deserializeJson(action, file);
+    nextTime = action["start"];
+    actionIndex++;
+
+    // Keep reading until action end time is after current time
+  } while (timeUntil(action["end"]) == 0);
 
   filePos = file.position();
   file.close();
@@ -70,11 +75,11 @@ void Sequence::start(const char* sequenceFilePath) {
   filePos = file.position();
   file.close();
 
-  // Read first action
+  // Read first action(s) (seek to current time if needed)
   actionIndex = -1;
-  readAction();
   isRunning = true;
   sequenceStartTime = fullTimeMs(isAbsolute);
+  readAction();
   logger.log("Sequence '%s' started.", filePath);
 }
 
@@ -119,12 +124,6 @@ bool Sequence::loop() {
   // Nothing to do
   if (!isRunning || timeUntil(nextTime) > 0 || actionIndex >= totalActions)
     return shouldSendState;
-
-  // Skip action because we're already past the end
-  if (timeUntil(action["end"]) == 0) {
-    readAction();
-    return shouldSendState;
-  }
 
   logger.log("Starting action %d", actionIndex);
   // logger.log("Min free heap size: %d", esp_get_minimum_free_heap_size());
