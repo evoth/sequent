@@ -2,9 +2,9 @@
 #define SEQUENT_CAMERA_H
 
 #include <ArduinoJson.h>
+#include <optional>
 #include "device.h"
 #include "state.h"
-#include <optional>
 
 struct CameraState {
   std::optional<String> mode;
@@ -14,6 +14,7 @@ struct CameraState {
   std::optional<String> iso;
   std::optional<String> ev;
   bool isRecording = false;
+  std::optional<bool> isDisplayOn;
 };
 
 class Camera : public StateManager<CameraState>, public Device {
@@ -43,6 +44,8 @@ class Camera : public StateManager<CameraState>, public Device {
   virtual void stopRecording() = 0;
   virtual void movieModeOn() = 0;
   virtual void movieModeOff() = 0;
+  virtual void displayOn() = 0;
+  virtual void displayOff() = 0;
 };
 
 #endif

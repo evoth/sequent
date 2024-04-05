@@ -332,6 +332,34 @@ export function getEsp32ActionSet(
     263
   );
 
+  new Action(
+    actionSet.actionManager,
+    "Display On/Off",
+    "",
+    {
+      defaultDuration: 0.5,
+      durationParams: [],
+    },
+    [
+      ipParam,
+      new NestedParameter<string>(
+        actionSet.parameterManager,
+        "Action",
+        "",
+        "on",
+        new Map([
+          ["on", []],
+          ["off", []],
+        ]),
+        undefined,
+        undefined,
+        "action"
+      ),
+    ],
+    "displayOnOff",
+    80
+  );
+
   const servoPinParam = new NumberParameter<number>(
     actionSet.parameterManager,
     "GPIO pin",

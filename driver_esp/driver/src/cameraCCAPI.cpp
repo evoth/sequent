@@ -128,3 +128,29 @@ void CameraCCAPI::actionAPI(const char* path,
         }
       });
 }
+
+// Sends a POST request to turn on the display on or off (action should be "on"
+// or "off")
+void CameraCCAPI::displayOnOff(const char* action) {
+  char endpointUrl[128];
+  snprintf(endpointUrl, sizeof(endpointUrl), "%s/ver100/shooting/liveview",
+           apiUrl);
+
+  request(
+      endpointUrl,
+      [this, action]() {
+        char body[64];
+        snprintf(body, sizeof(body),
+                 "{\"liveviewsize\": \"small\", \"cameradisplay\": \"%s\"}",
+                 action);
+        return http.POST(body);
+      },
+      [this, action](int statusCode) {
+        logger.log(statusCode, "Turned %s display.", action);
+      },
+      [this](int statusCode) {
+        if (statusCode < 0) {
+          cameraConnected = false;
+        }
+      });
+}

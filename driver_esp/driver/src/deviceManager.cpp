@@ -50,7 +50,7 @@ std::shared_ptr<StateManagerInterface> DeviceManager::processAction(
     }
     cameras[ipString]->connect();
   } else if (actionId == "photo" || actionId == "video" ||
-             actionId == "exposure") {
+             actionId == "exposure" || actionId == "displayOnOff") {
     String ipString = action["data"]["states"]["ip"];
     if (cameras.count(ipString) == 0) {
       logger.error("Camera with IP address %s has not been connected.",

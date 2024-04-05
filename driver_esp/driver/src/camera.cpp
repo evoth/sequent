@@ -32,6 +32,8 @@ CameraState Camera::stateFromAction(int layer, const JsonObject& actionData) {
   } else if (actionId == "video") {
     state.mode = "movie";
     state.isRecording = true;
+  } else if (actionId == "displayOnOff") {
+    state.isDisplayOn = actionData["states"]["action"].as<String>() == "on";
   }
 
   return state;
@@ -43,6 +45,17 @@ void Camera::actOnDiff(CameraState& oldState,
                        bool fromDefault) {
   // TODO: Turn this repeated code into a function which takes a lambda for what
   // to do with changed value
+
+  if (!newState.isDisplayOn.has_value())
+    newState.isDisplayOn = oldState.isDisplayOn;
+  if (newState.isDisplayOn != oldState.isDisplayOn) {
+    if (newState.isDisplayOn.value())
+      displayOn();
+    else
+      displayOff();
+  }
+  if (newState.isDisplayOn.has_value())
+    oldState.isDisplayOn = newState.isDisplayOn;
 
   if (newState.isRecording != oldState.isRecording) {
     if (newState.isRecording) {

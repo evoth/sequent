@@ -11,7 +11,6 @@
   refreshList();
 
   state.subscribe((value) => {
-    console.log(value);
     seqStates = getStates(seqFiles);
     for (const [sequencePath, sequenceState] of Object.entries(seqStates)) {
       timeReceived[sequencePath] = Date.now();
@@ -50,7 +49,6 @@
     const response = await fetch(`http://${$espIP}/seq-files`);
     seqFiles = (await response.json()).files;
     seqStates = getStates(seqFiles);
-    console.log(seqStates);
   }
 
   async function deleteSequence(filename) {
@@ -71,8 +69,8 @@
   }
 </script>
 
-<Section name="sequence">
-  <h2 slot="heading">Sequence</h2>
+<Section name="sequences">
+  <h2 slot="heading">Sequences</h2>
 
   <button on:click={refreshList} title="Refresh sequence list">
     <svg

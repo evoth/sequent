@@ -41,6 +41,8 @@ class CameraCCAPI : public Camera {
     actionAPI("/ver100/shooting/control/moviemode", "off",
               "Exited movie mode.");
   }
+  void displayOn() { displayOnOff("on"); }
+  void displayOff() { displayOnOff("off"); }
 
  private:
   char apiUrl[64];
@@ -55,6 +57,7 @@ class CameraCCAPI : public Camera {
                std::function<void(int statusCode)> failure);
   void setValueAPI(const char* path, const char* val, const char* name);
   void actionAPI(const char* path, const char* val, const char* message);
+  void displayOnOff(const char* action);
 };
 
 #endif

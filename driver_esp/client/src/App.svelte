@@ -1,6 +1,6 @@
 <script>
   import ConnectEsp from "./lib/ConnectEsp.svelte";
-  import Sequence from "./lib/Sequence.svelte";
+  import Sequences from "./lib/Sequences.svelte";
   import Server from "./lib/Server.svelte";
   import Status from "./lib/Status.svelte";
   import ThemeToggle from "./lib/ThemeToggle.svelte";
@@ -16,7 +16,7 @@
   <ConnectEsp />
   {#if $isConnected}
     <Server />
-    <Sequence />
+    <Sequences />
   {/if}
 </main>
 

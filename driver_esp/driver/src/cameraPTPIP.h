@@ -30,6 +30,9 @@ class CameraPTPIP : public Camera {
   void stopRecording() {}
   void movieModeOn() {}
   void movieModeOff() {}
+  void displayOn(){};
+  void displayOff(){};
+
   bool loop() {
     if (pollElapsed > pollInterval) {
       pollEvents();
