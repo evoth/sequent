@@ -9,7 +9,7 @@
 
 <main>
   <div>
-    <h1>ESP32 Sequent Driver</h1>
+    <h1>ESP Sequent Driver</h1>
     <ThemeToggle />
   </div>
   <Status />

@@ -4,17 +4,23 @@
 #include "sequence.h"
 #include "sequentServer.h"
 
+#if defined(ESP32)
+#define PIN_SPI_CS 5U
+#elif defined(ESP8266)
+#define PIN_SPI_CS 15U
+#endif
+
 SequentServer server;
 
 void setup() {
   Serial.begin(115200);
   Serial.println();
 
-  if (!SD.begin()) {
+  if (!SD.begin(PIN_SPI_CS)) {
     Serial.println("SD card mount failed!");
     return;
   }
-  server.init("ESP32_AP_%s", "defgecd7");
+  server.init();
 }
 
 void loop() {

@@ -3,6 +3,9 @@
 #include <TimeLib.h>
 #include <tuple>
 #include "timeMillis.h"
+#ifndef FILE_APPEND
+#define FILE_APPEND FILE_WRITE
+#endif
 
 const char* Logger::LOG_FILE = "/logs.txt";
 const char* Logger::ERROR_FILE = "/errors.txt";

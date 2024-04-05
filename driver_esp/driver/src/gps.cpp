@@ -2,6 +2,7 @@
 #include <SD.h>
 #include "timeMillis.h"
 
+#if defined(ESP32)
 void GPS::syncTime() {
   read();
   syncElapsed = 0;
@@ -84,3 +85,5 @@ void GPS::recordGpsData(const char* gpsCsvFilePath) {
     logger.log("Recorded data to %s (invalid location)", gpsCsvFilePath);
   }
 }
+
+#endif

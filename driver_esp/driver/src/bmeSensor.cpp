@@ -1,6 +1,9 @@
 #include "bmeSensor.h"
 #include <SD.h>
 #include "timeMillis.h"
+#ifndef FILE_APPEND
+#define FILE_APPEND FILE_WRITE
+#endif
 
 bool BMESensor::begin() {
   // Hardcoded as I2C for now (GPIO 21 and 22)

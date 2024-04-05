@@ -23,7 +23,7 @@
   <h2 slot="heading">Server</h2>
 
   <button on:click={setTime}> Set time from client </button>
-  <button on:click={reboot}> Reboot ESP32 </button>
+  <button on:click={reboot}> Reboot ESP </button>
   <form
     class="file-form"
     action={`http://${$espIP}/upload`}

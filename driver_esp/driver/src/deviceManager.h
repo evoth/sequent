@@ -7,7 +7,7 @@
 #include "camera.h"
 #include "device.h"
 #include "gps.h"
-#include "servo.h"
+#include "sequentServo.h"
 #include "state.h"
 
 class DeviceManager {

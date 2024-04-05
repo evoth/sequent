@@ -7,7 +7,7 @@
   function connect() {
     $espIP = espIPInput;
     $socket?.close();
-    $socket = new WebSocket(`ws://${$espIP}:81`);
+    $socket = new WebSocket(`ws://${$espIP}/ws`);
     $socket.addEventListener("message", (event) => {
       $state = JSON.parse(event.data);
       $isLoading = false;
@@ -31,10 +31,10 @@
 </script>
 
 <Section name="connect-esp">
-  <h2 slot="heading">Connect to ESP32</h2>
+  <h2 slot="heading">Connect to ESP</h2>
   <label>
     <span>IP address:</span>
-    <input bind:value={espIPInput} placeholder="ESP32 IP address" />
+    <input bind:value={espIPInput} placeholder="ESP IP address" />
   </label>
   {#if !$isConnected || espIPInput != $espIP}
     <button on:click={connect}> Connect </button>

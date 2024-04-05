@@ -1,4 +1,4 @@
-#include "servo.h"
+#include "sequentServo.h"
 
 ServoState SequentServo::stateFromAction(int layer,
                                          const JsonObject& actionData) {

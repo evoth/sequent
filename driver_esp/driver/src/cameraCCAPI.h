@@ -1,8 +1,14 @@
 #ifndef SEQUENT_CAMERA_CCAPI_H
 #define SEQUENT_CAMERA_CCAPI_H
 
+#if defined(ESP32)
 #include <HTTPClient.h>
 #include <WiFi.h>
+#elif defined(ESP8266)
+#include <ESP8266HTTPClient.h>
+#include <ESP8266WiFi.h>
+#endif
+
 #include "camera.h"
 #include "logger.h"
 

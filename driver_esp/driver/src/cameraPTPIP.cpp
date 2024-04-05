@@ -42,14 +42,14 @@ void CameraPTPIP::connect() {
   // 2. Send Init Command Request
 
   struct InitCommandRequest {
-    uint32_t length = 40;
+    uint32_t length = 46;
     uint32_t packetType = 0x01;
     uint8_t clientGuid[16] = {0x77, 0x77, 0x77, 0x77, 0x77, 0x77, 0x77, 0x77,
                               0x77, 0x77, 0x77, 0x77, 0x77, 0x77, 0x77, 0x77};
-    char16_t clientName[6] = u"ESP32";
+    char16_t clientName[12] = u"ESP Sequent";
     uint32_t ptpVersion = 0x010000;
   } initCommandRequest;
-  using InitCommandRequestBuffer = char[40];
+  using InitCommandRequestBuffer = char[46];
 
   auto initCommandRequestBuffer =
       reinterpret_cast<InitCommandRequestBuffer*>(&initCommandRequest);

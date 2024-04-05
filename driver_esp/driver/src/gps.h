@@ -7,6 +7,7 @@
 
 class GPS : public Device {
  public:
+#if defined(ESP32)
   GPS() {
     strncpy(logger.name, "GPS @ Serial2", sizeof(logger.name));
     // Hardcoded as Serial2 for now (GPIO 16 and 17)
@@ -24,6 +25,18 @@ class GPS : public Device {
   }
 
   void recordGpsData(const char* gpsCsvFilePath);
+#elif defined(ESP8266)
+  GPS() {
+    strncpy(logger.name, "GPS (not supported)", sizeof(logger.name));
+    logger.log("GPS not supported on ESP8266.");
+  }
+
+  bool loop() { return false; }
+
+  void recordGpsData(const char* gpsCsvFilePath) {
+    logger.error("GPS not supported on ESP8266.");
+  };
+#endif
 
  private:
   TinyGPSPlus gps;
@@ -31,9 +44,15 @@ class GPS : public Device {
   elapsedMillis syncElapsed;
   bool prevHasTime = false;
 
+#if defined(ESP32)
   void read();
   void syncTime();
   bool hasTime() { return gps.date.isValid() && gps.time.isValid(); }
+#elif defined(ESP8266)
+  void read() {}
+  void syncTime() { logger.error("GPS not supported on ESP8266."); }
+  bool hasTime() { return false; }
+#endif
 };
 
 #endif
