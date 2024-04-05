@@ -1,6 +1,8 @@
 #ifndef SEQUENT_DEVICE_MANAGER_H
 #define SEQUENT_DEVICE_MANAGER_H
 
+#include <map>
+#include <memory>
 #include "bmeSensor.h"
 #include "camera.h"
 #include "device.h"
@@ -11,12 +13,12 @@
 class DeviceManager {
  public:
   bool loop() {
-    bool shouldSendState = false;
-    shouldSendState = shouldSendState || gps.loop();
+    bool shouldSendStatus = false;
+    shouldSendStatus = shouldSendStatus || gps.loop();
     for (auto& [ip, camera] : cameras) {
-      shouldSendState = shouldSendState || camera->loop();
+      shouldSendStatus = shouldSendStatus || camera->loop();
     }
-    return shouldSendState;
+    return shouldSendStatus;
   }
   std::shared_ptr<StateManagerInterface> processAction(Logger& logger,
                                                        JsonDocument& action);

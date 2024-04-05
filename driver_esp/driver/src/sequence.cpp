@@ -54,11 +54,10 @@ void Sequence::readAction() {
   file.close();
 }
 
-void Sequence::start(const char* sequenceFilePath) {
+void Sequence::start() {
   if (isRunning)
     stop();
 
-  strncpy(filePath, sequenceFilePath, sizeof(filePath));
   File file = SD.open(filePath, FILE_READ);
   if (!file) {
     logger.error("Failed to open file '%s' for reading.", filePath);
@@ -97,7 +96,7 @@ void Sequence::stop() {
 // Run in main loop
 // TODO: Clean this up... I'm in a hurry :)
 bool Sequence::loop() {
-  bool shouldSendState = devices->loop();
+  bool shouldSendStatus = devices->loop();
 
   // Sequence is done (only after all actions have finished)
   if (isRunning && endQueue.empty() && actionIndex >= totalActions) {
@@ -123,7 +122,7 @@ bool Sequence::loop() {
 
   // Nothing to do
   if (!isRunning || timeUntil(nextTime) > 0 || actionIndex >= totalActions)
-    return shouldSendState;
+    return shouldSendStatus;
 
   logger.log("Starting action %d", actionIndex);
   // logger.log("Min free heap size: %d", esp_get_minimum_free_heap_size());

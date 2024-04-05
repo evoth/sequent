@@ -2,10 +2,6 @@
 #define SEQUENT_DEVICE_H
 
 #include <ArduinoJson.h>
-#include <map>
-#include <memory>
-#include <optional>
-#include "device.h"
 #include "logger.h"
 
 // TODO: Make further generalizations by taking advantage of this class

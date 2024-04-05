@@ -11,21 +11,29 @@
 // TODO: make logger private
 class Sequence {
  public:
-  Sequence(std::shared_ptr<DeviceManager> devices)
-      : logger("Sequence"), devices(devices) {}
+  Sequence(std::shared_ptr<DeviceManager> devices, const char* sequenceFilePath)
+      : devices(devices) {
+    snprintf(logger.name, sizeof(logger.name), "Sequence @ %s",
+             sequenceFilePath);
+    strncpy(filePath, sequenceFilePath, sizeof(filePath));
+  }
 
-  int actionIndex = 0;
-  int totalActions = 0;
-  bool isRunning = false;
   char filePath[64];
   Logger logger;
-  unsigned long long nextTime = 0;
 
   unsigned long long timeUntil(unsigned long long testTime);
   void readAction();
-  void start(const char* sequenceFilePath);
+  void start();
   void stop();
   bool loop();
+  void getStatus(JsonObject& stateObject) {
+    logger.getRecentLogs(stateObject);
+    stateObject["isRunning"] = isRunning;
+    stateObject["filePath"] = filePath;
+    stateObject["actionIndex"] = actionIndex;
+    stateObject["totalActions"] = totalActions;
+    stateObject["timeUntilNext"] = timeUntil(nextTime);
+  }
 
  private:
   unsigned long long sequenceStartTime = 0;
@@ -38,6 +46,10 @@ class Sequence {
   unsigned long filePos;
   bool isAbsolute;
   std::shared_ptr<DeviceManager> devices;
+  unsigned long long nextTime = 0;
+  bool isRunning = false;
+  int actionIndex = 0;
+  int totalActions = 0;
 };
 
 #endif

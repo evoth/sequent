@@ -4,6 +4,7 @@
 #include <ArduinoJson.h>
 #include "device.h"
 #include "state.h"
+#include <optional>
 
 struct CameraState {
   std::optional<String> mode;

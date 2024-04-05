@@ -153,18 +153,13 @@ void SequentServer::sendStatus() {
   JsonObject serverState = stateDoc.to<JsonObject>();
   logger.getRecentLogs(serverState);
   states.add(serverState);
-  JsonDocument sequenceDoc;
-  JsonObject sequenceState = sequenceDoc.to<JsonObject>();
-  sequence.logger.getRecentLogs(sequenceState);
-  states.add(sequenceState);
-  devices.getStatus(states);
-  status["isRunning"] = sequence.isRunning;
-  status["sequenceFilename"] = sequence.filePath;
-  status["actionIndex"] = sequence.actionIndex;
-  status["totalActions"] = sequence.totalActions;
-  // TODO: Make nextTime private again, add data for endTime, put those in
-  // method in sequence
-  status["timeUntilNext"] = sequence.timeUntil(sequence.nextTime);
+  devices->getStatus(states);
+  for (auto& [filePath, sequence] : sequences) {
+    JsonDocument doc;
+    JsonObject sequenceStatus = doc.to<JsonObject>();
+    sequence->getStatus(sequenceStatus);
+    states.add(sequenceStatus);
+  }
   char statusText[4096];
   serializeJson(status, statusText);
   webSocket.broadcastTXT(statusText);
@@ -196,7 +191,11 @@ void SequentServer::webSocketEvent(uint8_t num,
 
 // Execute command based on most recent WebSocket message
 void SequentServer::loop() {
-  if (sequence.loop() || shouldSendStatus) {
+  for (auto& [filePath, sequence] : sequences) {
+    shouldSendStatus = shouldSendStatus || sequence->loop();
+  }
+
+  if (shouldSendStatus) {
     sendStatus();
     shouldSendStatus = false;
   }
@@ -208,9 +207,20 @@ void SequentServer::loop() {
   String command = msg["command"];
 
   if (command == "start") {
-    sequence.start(msg["filename"]);
+    String sequenceFilePath = msg["filename"];
+    if (sequences.count(sequenceFilePath) == 0) {
+      sequences[sequenceFilePath] = std::shared_ptr<Sequence>(
+          new Sequence(devices, sequenceFilePath.c_str()));
+    }
+    sequences[sequenceFilePath]->start();
   } else if (command == "stop") {
-    sequence.stop();
+    String sequenceFilePath = msg["filename"];
+    if (sequences.count(sequenceFilePath) == 0) {
+      logger.error("No sequence named '%s' is running.", sequenceFilePath);
+    } else {
+      std::shared_ptr<Sequence> sequence = sequences[sequenceFilePath];
+      sequence->stop();
+    }
   } else if (command == "setTime") {
     unsigned long long timeMs = msg["time"];
     setTime(timeMs / 1000);
