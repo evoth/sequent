@@ -32,9 +32,10 @@ void CameraCCAPI::request(const char* url,
   if (httpCode != HTTP_CODE_OK) {
     if (http.getSize() > 0) {
       String payload = http.getString();
-      logger.error(httpCode, "Error payload from %s: %s", url, payload.c_str());
+      logger.error("%d error. Payload from %s: %s", httpCode, url,
+                   payload.c_str());
     } else {
-      logger.error(httpCode, "Error %d at %s", httpCode, url);
+      logger.error("Error %d at %s", httpCode, url);
     }
     http.end();
     failure(httpCode);
@@ -53,7 +54,7 @@ void CameraCCAPI::connect() {
   request(
       apiUrl, [this]() { return http.GET(); },
       [this](int statusCode) {
-        logger.log(statusCode, "Connected to camera at %s.", cameraIP);
+        logger.log("Connected to camera at %s.", cameraIP);
         cameraConnected = true;
       },
       [this](int statusCode) { cameraConnected = false; });
@@ -71,7 +72,7 @@ void CameraCCAPI::triggerShutter() {
         char body[] = "{\"af\": false}";
         return http.POST(body);
       },
-      [this](int statusCode) { logger.log(statusCode, "Triggered shutter."); },
+      [this](int statusCode) { logger.log("Triggered shutter."); },
       [this](int statusCode) {
         if (statusCode < 0) {
           cameraConnected = false;
@@ -96,7 +97,7 @@ void CameraCCAPI::setValueAPI(const char* path,
         return http.PUT(bodyText);
       },
       [this, name, val](int statusCode) {
-        logger.log(statusCode, "Set %s to %s", name, val);
+        logger.log("Set %s to %s", name, val);
       },
       [this](int statusCode) {
         if (statusCode < 0) {
@@ -121,7 +122,7 @@ void CameraCCAPI::actionAPI(const char* path,
         serializeJson(body, bodyText);
         return http.POST(bodyText);
       },
-      [this, message, val](int statusCode) { logger.log(statusCode, message); },
+      [this, message, val](int statusCode) { logger.log(message); },
       [this](int statusCode) {
         if (statusCode < 0) {
           cameraConnected = false;
@@ -146,7 +147,7 @@ void CameraCCAPI::displayOnOff(const char* action) {
         return http.POST(body);
       },
       [this, action](int statusCode) {
-        logger.log(statusCode, "Turned %s display.", action);
+        logger.log("Turned %s display.", action);
       },
       [this](int statusCode) {
         if (statusCode < 0) {

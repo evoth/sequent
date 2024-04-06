@@ -125,7 +125,7 @@ bool Sequence::loop() {
     return shouldSendStatus;
 
   logger.log("Starting action %d", actionIndex);
-  // logger.log("Min free heap size: %d", esp_get_minimum_free_heap_size());
+  logger.log("Free heap size: %d", ESP.getFreeHeap());
 
   std::shared_ptr<StateManagerInterface> actionDevice =
       devices->processAction(logger, action);

@@ -158,8 +158,7 @@ void CameraPTPIP::connect() {
     return;
 
   if (operationResponse.response != 0x2001) {
-    logger.error(operationResponse.response,
-                 "Bad Operation Response Code (0x%04x) for transaction ID %d",
+    logger.error("Bad Operation Response Code (0x%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return;
   }
@@ -186,8 +185,7 @@ void CameraPTPIP::connect() {
     return;
 
   if (operationResponse.response != 0x2001) {
-    logger.error(operationResponse.response,
-                 "Bad Operation Response Code (0x%04x) for transaction ID %d",
+    logger.error("Bad Operation Response Code (0x%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return;
   }
@@ -203,8 +201,7 @@ void CameraPTPIP::connect() {
     return;
 
   if (operationResponse.response != 0x2001) {
-    logger.error(operationResponse.response,
-                 "Bad Operation Response Code (0x%04x) for transaction ID %d",
+    logger.error("Bad Operation Response Code (0x%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return;
   }
@@ -220,8 +217,7 @@ void CameraPTPIP::connect() {
     return;
 
   if (operationResponse.response != 0x2001) {
-    logger.error(operationResponse.response,
-                 "Bad Operation Response Code (0x%04x) for transaction ID %d",
+    logger.error("Bad Operation Response Code (0x%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return;
   }
@@ -302,8 +298,7 @@ void CameraPTPIP::triggerShutter() {
     return;
 
   if (operationResponse.response != 0x2001) {
-    logger.error(operationResponse.response,
-                 "Bad Operation Response Code (0x%04x) for transaction ID %d",
+    logger.error("Bad Operation Response Code (0x%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return;
   }
@@ -330,8 +325,7 @@ void CameraPTPIP::triggerShutter() {
     return;
 
   if (operationResponse.response != 0x2001) {
-    logger.error(operationResponse.response,
-                 "Bad Operation Response Code (0x%04x) for transaction ID %d",
+    logger.error("Bad Operation Response Code (0x%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return;
   }
@@ -359,8 +353,7 @@ void CameraPTPIP::triggerShutter() {
     return;
 
   if (operationResponse.response != 0x2001) {
-    logger.error(operationResponse.response,
-                 "Bad Operation Response Code (0x%04x) for transaction ID %d",
+    logger.error("Bad Operation Response Code (0x%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return;
   }
@@ -451,8 +444,7 @@ bool CameraPTPIP::setPropertyValue(uint32_t propertyCode,
   pollEvents();
 
   if (operationResponse.response != 0x2001) {
-    logger.error(operationResponse.response,
-                 "Bad Operation Response Code (0x%04x) for transaction ID %d",
+    logger.error("Bad Operation Response Code (0x%04x) for transaction ID %d",
                  operationResponse.response, operationResponse.transactionId);
     return false;
   }

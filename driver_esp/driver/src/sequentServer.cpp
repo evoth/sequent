@@ -21,7 +21,7 @@ void SequentServer::initWebServer() {
   });
 
   // List of .seq files in root directory of SD card
-  server.on("/seq-files", HTTP_GET, [](AsyncWebServerRequest* request) {
+  server.on("/seq-files", HTTP_GET, [this](AsyncWebServerRequest* request) {
     JsonDocument seqFiles;
     JsonArray filenames = seqFiles["files"].to<JsonArray>();
     File root = SD.open("/");
@@ -35,9 +35,8 @@ void SequentServer::initWebServer() {
       file.close();
     }
     root.close();
-    char filenamesTxt[4096];
-    serializeJson(seqFiles, filenamesTxt);
-    request->send(200, "application/json", filenamesTxt);
+    serializeJson(seqFiles, jsonBuffer);
+    request->send(200, "application/json", jsonBuffer);
   });
 
   // Upload new sequence file
@@ -155,16 +154,15 @@ void SequentServer::sendStatus() {
   JsonObject serverState = stateDoc.to<JsonObject>();
   logger.getRecentLogs(serverState);
   states.add(serverState);
-  devices->getStatus(states);
+  // devices->getStatus(states);
   for (auto& [filePath, sequence] : sequences) {
     JsonDocument doc;
     JsonObject sequenceStatus = doc.to<JsonObject>();
     sequence->getStatus(sequenceStatus);
     states.add(sequenceStatus);
   }
-  char statusText[4096];
-  serializeJson(status, statusText);
-  webSocket.textAll(statusText);
+  serializeJson(status, jsonBuffer);
+  webSocket.textAll(jsonBuffer);
 }
 
 void SequentServer::webSocketEvent(AsyncWebSocket* server,

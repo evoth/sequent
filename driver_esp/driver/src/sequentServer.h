@@ -47,6 +47,7 @@ class SequentServer {
   char serverId[7];
   File uploadFile;
   bool shouldSendStatus = false;
+  char jsonBuffer[2048];
 
   void initAP(const char* ssid, const char* password);
   void initWebServer();

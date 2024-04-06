@@ -10,6 +10,7 @@
     $socket = new WebSocket(`ws://${$espIP}/ws`);
     $socket.addEventListener("message", (event) => {
       $state = JSON.parse(event.data);
+      console.log($state);
       $isLoading = false;
     });
     $socket.addEventListener("open", (event) => {

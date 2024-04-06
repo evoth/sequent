@@ -6,9 +6,7 @@
 <div>
   <strong>{title}:</strong>
   {#each logs as log}
-    <p
-      class={log.statusCode == 200 || log.statusCode == 0 ? "success" : "error"}
-    >
+    <p class={log.isError ? "error" : "success"}>
       {log.message}
     </p>
   {/each}
