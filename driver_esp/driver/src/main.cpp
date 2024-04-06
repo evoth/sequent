@@ -24,6 +24,5 @@ void setup() {
 }
 
 void loop() {
-  delay(1);
   server.loop();
 }

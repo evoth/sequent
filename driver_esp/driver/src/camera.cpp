@@ -34,6 +34,8 @@ CameraState Camera::stateFromAction(int layer, const JsonObject& actionData) {
     state.isRecording = true;
   } else if (actionId == "displayOnOff") {
     state.isDisplayOn = actionData["states"]["action"].as<String>() == "on";
+  } else if (actionId == "shutterRelease") {
+    state.shutterPressed = true;
   }
 
   return state;
@@ -116,5 +118,12 @@ void Camera::actOnDiff(CameraState& oldState,
   if (newState.takePhoto) {
     triggerShutter();
     newState.takePhoto = false;
+  }
+
+  if (newState.shutterPressed != oldState.shutterPressed) {
+    if (newState.shutterPressed)
+      shutterDown();
+    else
+      shutterUp();
   }
 }

@@ -154,7 +154,7 @@ void SequentServer::sendStatus() {
   JsonObject serverState = stateDoc.to<JsonObject>();
   logger.getRecentLogs(serverState);
   states.add(serverState);
-  // devices->getStatus(states);
+  devices->getStatus(states);
   for (auto& [filePath, sequence] : sequences) {
     JsonDocument doc;
     JsonObject sequenceStatus = doc.to<JsonObject>();
@@ -199,7 +199,7 @@ void SequentServer::loop() {
     shouldSendStatus = false;
   }
 
-  // webSocket.cleanupClients();
+  webSocket.cleanupClients();
   if (!newMsg)
     return;
 

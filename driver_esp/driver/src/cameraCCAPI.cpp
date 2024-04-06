@@ -155,3 +155,28 @@ void CameraCCAPI::displayOnOff(const char* action) {
         }
       });
 }
+
+// Sends a POST request to manually press or release the shutter (action should
+// be "release", "half_press", or "full_press")
+void CameraCCAPI::manualShutter(const char* action, bool autoFocus) {
+  char endpointUrl[128];
+  snprintf(endpointUrl, sizeof(endpointUrl),
+           "%s/ver100/shooting/control/shutterbutton/manual", apiUrl);
+
+  request(
+      endpointUrl,
+      [this, action, autoFocus]() {
+        char body[64];
+        snprintf(body, sizeof(body), "{\"action\": \"%s\", \"af\": %s}", action,
+                 autoFocus ? "true" : "false");
+        return http.POST(body);
+      },
+      [this, action](int statusCode) {
+        logger.log("Executed shutter action '%s'", action);
+      },
+      [this](int statusCode) {
+        if (statusCode < 0) {
+          cameraConnected = false;
+        }
+      });
+}

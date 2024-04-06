@@ -8,7 +8,7 @@ bool CameraPTPIP::readResponse(WiFiClient& client, char* buffer, size_t size) {
   while (client.available() == 0) {
     if (elapsed > 5000) {
       logger.error("Client timeout...");
-      // cameraConnected = false;
+      cameraConnected = false;
       return false;
     }
   }
@@ -231,6 +231,9 @@ void CameraPTPIP::connect() {
 
 // https://julianschroden.com/post/2023-05-28-controlling-properties-using-ptp-ip-on-canon-eos-cameras/#geteventdata-operation
 void CameraPTPIP::pollEvents() {
+  if (!cameraConnected)
+    return;
+
   struct GetEventDataRequest {
     uint32_t length = 18;
     uint32_t packetType = 0x06;
@@ -258,6 +261,11 @@ void CameraPTPIP::pollEvents() {
 // 0x03 instead of 0x01 and 0x02
 void CameraPTPIP::triggerShutter() {
 #pragma pack(push, 1)
+  if (!cameraConnected) {
+    logger.error("Skipping shutter release because camera is disconnected.");
+    return;
+  }
+
   // Get rid of any unexpected data
   while (commandClient.available())
     commandClient.read();
@@ -367,6 +375,11 @@ void CameraPTPIP::triggerShutter() {
 bool CameraPTPIP::setPropertyValue(uint32_t propertyCode,
                                    uint32_t propertyValue) {
 #pragma pack(push, 1)
+  if (!cameraConnected) {
+    logger.error("Skipping property set because camera is disconnected.");
+    return false;
+  }
+
   // Get rid of any unexpected data
   while (commandClient.available())
     commandClient.read();

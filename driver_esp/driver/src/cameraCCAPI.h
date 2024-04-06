@@ -49,6 +49,8 @@ class CameraCCAPI : public Camera {
   }
   void displayOn() { displayOnOff("on"); }
   void displayOff() { displayOnOff("off"); }
+  void shutterDown() { manualShutter("full_press", false); }
+  void shutterUp() { manualShutter("release", false); }
 
  private:
   char apiUrl[64];
@@ -64,6 +66,7 @@ class CameraCCAPI : public Camera {
   void setValueAPI(const char* path, const char* val, const char* name);
   void actionAPI(const char* path, const char* val, const char* message);
   void displayOnOff(const char* action);
+  void manualShutter(const char* action, bool autoFocus);
 };
 
 #endif

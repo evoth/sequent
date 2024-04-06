@@ -255,6 +255,7 @@ export class Component extends Repeat implements Serializable {
     if (this.child instanceof Sequence && !this.props.keepLeading) {
       offsetAdjust = this.child.validate().start ?? 0;
     }
+    // TODO: fix this!! Right now this means that it can overflow bounds
     for (
       let offset = validation.solved.start!;
       offset < validation.solved.end!;

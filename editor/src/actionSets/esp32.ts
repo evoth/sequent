@@ -310,7 +310,7 @@ export function getEsp32ActionSet(
     "Duration",
     "",
     10,
-    3,
+    0,
     undefined,
     undefined,
     "seconds",
@@ -476,6 +476,48 @@ export function getEsp32ActionSet(
     ],
     "gpsRecord",
     190
+  );
+
+  const shutterPinParam = new NumberParameter<number>(
+    actionSet.parameterManager,
+    "GPIO pin",
+    "",
+    4,
+    1,
+    40,
+    1,
+    undefined,
+    undefined,
+    undefined,
+    "shutterPin"
+  );
+
+  new Action(
+    actionSet.actionManager,
+    "Shutter release",
+    "",
+    {
+      defaultDuration: 1,
+      durationParams: [{ param: durationParam }],
+    },
+    [
+      new NestedParameter<string>(
+        actionSet.parameterManager,
+        "Method",
+        "",
+        "cable",
+        new Map([
+          ["cable", [shutterPinParam]],
+          ["WiFi", [ipParam]],
+        ]),
+        undefined,
+        undefined,
+        "shutterMethod"
+      ),
+      durationParam,
+    ],
+    "shutterRelease",
+    160
   );
 
   return actionSet;

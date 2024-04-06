@@ -28,8 +28,9 @@ class SequentServer {
 
   void init() {
     char ssid[32];
-    snprintf(ssid, sizeof(ssid), "%s_AP_%s", ESP_NAME, serverId);
-    initAP(ssid, "defgecd7");
+    // snprintf(ssid, sizeof(ssid), "%s_AP_%s", ESP_NAME, serverId);
+    snprintf(ssid, sizeof(ssid), "%s_AP_4", ESP_NAME, serverId);
+    initAP(ssid, "aaaaaaaa");
     initWebServer();
     initWebSocketServer();
   }

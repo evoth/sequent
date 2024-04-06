@@ -19,9 +19,8 @@ void SequentServo::actOnDiff(ServoState& oldState,
   if (newState.angle != oldState.angle) {
     logger.log("Moving from %d to %d degrees.", oldState.angle, newState.angle);
     // pinMode(servoPin, OUTPUT);
-    servo.easeTo(newState.angle, newState.speed);
+    servo.startEaseTo(newState.angle, newState.speed);
     // pinMode(servoPin, INPUT);
-    logger.log("Done.");
   }
   if (fromDefault)
     oldState.angle = newState.angle;

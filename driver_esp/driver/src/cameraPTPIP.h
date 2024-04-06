@@ -31,12 +31,6 @@ class CameraPTPIP : public Camera {
   void setTv(const char* tv) {
     setPropertyValueWrapper(TV_CODE, TV_MAP, tv, "shutter speed");
   }
-  void startRecording() {}
-  void stopRecording() {}
-  void movieModeOn() {}
-  void movieModeOff() {}
-  void displayOn(){};
-  void displayOff(){};
 
   bool loop() {
     if (pollElapsed > pollInterval) {

@@ -13,7 +13,7 @@ class GPS : public Device {
     strncpy(logger.name, "GPS @ Serial2", sizeof(logger.name));
     // Hardcoded as Serial2 for now (GPIO 16 and 17)
     Serial2.begin(9600);
-    // logger.log("Begin Serial2 at 9600 baud.", false, true);
+    logger.log("Begin Serial2 at 9600 baud.", false, true);
   }
 
   bool loop() {
@@ -29,7 +29,7 @@ class GPS : public Device {
 #elif defined(ESP8266)
   GPS() {
     strncpy(logger.name, "GPS (not supported)", sizeof(logger.name));
-    // logger.error("GPS not supported on ESP8266.", false, true);
+    logger.error("GPS not supported on ESP8266.", false, true);
   }
 
   void recordGpsData(const char* gpsCsvFilePath) {

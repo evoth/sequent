@@ -15,6 +15,7 @@ struct CameraState {
   std::optional<String> ev;
   bool isRecording = false;
   std::optional<bool> isDisplayOn;
+  bool shutterPressed = false;
 };
 
 class Camera : public StateManager<CameraState>, public Device {
@@ -36,16 +37,21 @@ class Camera : public StateManager<CameraState>, public Device {
                  bool fromDefault = false);
   CameraState stateFromAction(int layer, const JsonObject& actionData);
 
-  virtual void triggerShutter() = 0;
-  virtual void setIso(const char* iso) = 0;
-  virtual void setAv(const char* av) = 0;
-  virtual void setTv(const char* tv) = 0;
-  virtual void startRecording() = 0;
-  virtual void stopRecording() = 0;
-  virtual void movieModeOn() = 0;
-  virtual void movieModeOff() = 0;
-  virtual void displayOn() = 0;
-  virtual void displayOff() = 0;
+  virtual void triggerShutter() { notImplemented(); }
+  virtual void setIso(const char* iso) { notImplemented(); }
+  virtual void setAv(const char* av) { notImplemented(); }
+  virtual void setTv(const char* tv) { notImplemented(); }
+  virtual void startRecording() { notImplemented(); }
+  virtual void stopRecording() { notImplemented(); }
+  virtual void movieModeOn() { notImplemented(); }
+  virtual void movieModeOff() { notImplemented(); }
+  virtual void displayOn() { notImplemented(); }
+  virtual void displayOff() { notImplemented(); }
+  virtual void shutterDown() { notImplemented(); }
+  virtual void shutterUp() { notImplemented(); }
+
+ private:
+  void notImplemented() { logger.error("Action not implemented."); }
 };
 
 #endif

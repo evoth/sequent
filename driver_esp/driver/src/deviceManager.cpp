@@ -26,6 +26,13 @@ void DeviceManager::getStatus(const JsonArray& statesArray) {
     servo->getStatus(servoStatus);
     statesArray.add(servoStatus);
   }
+
+  for (auto& [shutterPin, shutter] : shutters) {
+    JsonDocument doc;
+    JsonObject shutterStatus = doc.to<JsonObject>();
+    shutter->getStatus(shutterStatus);
+    statesArray.add(shutterStatus);
+  }
 }
 
 std::shared_ptr<StateManagerInterface> DeviceManager::processAction(
@@ -49,6 +56,7 @@ std::shared_ptr<StateManagerInterface> DeviceManager::processAction(
       }
     }
     cameras[ipString]->connect();
+
   } else if (actionId == "photo" || actionId == "video" ||
              actionId == "exposure" || actionId == "displayOnOff") {
     String ipString = action["data"]["states"]["ip"];
@@ -60,6 +68,7 @@ std::shared_ptr<StateManagerInterface> DeviceManager::processAction(
       camera->startAction(action["layer"], action["data"]);
       actionDevice = std::shared_ptr<StateManagerInterface>(camera);
     }
+
   } else if (actionId == "servoAttach") {
     int servoPin = action["data"]["states"]["servoPin"];
     if (servos.count(servoPin) == 0) {
@@ -67,6 +76,7 @@ std::shared_ptr<StateManagerInterface> DeviceManager::processAction(
           std::shared_ptr<SequentServo>(new SequentServo(servoPin));
     }
     servos[servoPin]->begin(action["data"]["states"]["servoAngle"].as<int>());
+
   } else if (actionId == "servoMove") {
     int servoPin = action["data"]["states"]["servoPin"];
     if (servos.count(servoPin) == 0) {
@@ -76,10 +86,36 @@ std::shared_ptr<StateManagerInterface> DeviceManager::processAction(
       servo->startAction(action["layer"], action["data"]);
       actionDevice = std::shared_ptr<StateManagerInterface>(servo);
     }
+
   } else if (actionId == "bmeRecord") {
     bme.recordSensorData(action["data"]["states"]["bmeFile"]);
+
   } else if (actionId == "gpsRecord") {
     gps.recordGpsData(action["data"]["states"]["gpsFile"]);
+
+  } else if (actionId == "shutterRelease") {
+    String method = action["data"]["states"]["shutterMethod"];
+    if (method == "WiFi") {
+      // TODO: deduplicate this code
+      String ipString = action["data"]["states"]["ip"];
+      if (cameras.count(ipString) == 0) {
+        logger.error("Camera with IP address %s has not been connected.",
+                     ipString.c_str());
+      } else {
+        std::shared_ptr<Camera> camera = cameras[ipString];
+        camera->startAction(action["layer"], action["data"]);
+        actionDevice = std::shared_ptr<StateManagerInterface>(camera);
+      }
+    } else if (method == "cable") {
+      int shutterPin = action["data"]["states"]["shutterPin"];
+      if (shutters.count(shutterPin) == 0) {
+        shutters[shutterPin] =
+            std::shared_ptr<ShutterRelease>(new ShutterRelease(shutterPin));
+      }
+      std::shared_ptr<ShutterRelease> shutter = shutters[shutterPin];
+      shutter->startAction(action["layer"], action["data"]);
+      actionDevice = std::shared_ptr<StateManagerInterface>(shutter);
+    }
   }
 
   return actionDevice;

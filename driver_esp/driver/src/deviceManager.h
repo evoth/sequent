@@ -8,6 +8,7 @@
 #include "device.h"
 #include "gps.h"
 #include "sequentServo.h"
+#include "shutterRelease.h"
 #include "state.h"
 
 class DeviceManager {
@@ -28,6 +29,7 @@ class DeviceManager {
   std::map<String, std::shared_ptr<Camera>> cameras;
   GPS gps;
   std::map<int, std::shared_ptr<SequentServo>> servos;
+  std::map<int, std::shared_ptr<ShutterRelease>> shutters;
   BMESensor bme;
 };
 
