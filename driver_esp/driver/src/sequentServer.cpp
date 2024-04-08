@@ -135,12 +135,11 @@ void SequentServer::initWebServer() {
 }
 
 void SequentServer::initWebSocketServer() {
-  webSocket.onEvent([this](AsyncWebSocket* server, AsyncWebSocketClient* client,
-                           AwsEventType type, void* arg, uint8_t* data,
-                           size_t len) {
-    webSocketEvent(server, client, type, arg, data, len);
-  });
-  server.addHandler(&webSocket);
+  webSocket.begin();
+  webSocket.onEvent(
+      [this](uint8_t num, WStype_t type, uint8_t* payload, size_t length) {
+        webSocketEvent(num, type, payload, length);
+      });
   logger.log("Started WebSocket server.");
 }
 
@@ -162,29 +161,30 @@ void SequentServer::sendStatus() {
     states.add(sequenceStatus);
   }
   serializeJson(status, jsonBuffer);
-  webSocket.textAll(jsonBuffer);
+  webSocket.broadcastTXT(jsonBuffer);
 }
 
-void SequentServer::webSocketEvent(AsyncWebSocket* server,
-                                   AsyncWebSocketClient* client,
-                                   AwsEventType type,
-                                   void* arg,
-                                   uint8_t* data,
-                                   size_t len) {
-  if (type == WS_EVT_DISCONNECT) {
-    logger.log("[%u] Disconnected!", client->id());
-  } else if (type == WS_EVT_CONNECT) {
-    IPAddress ip = client->remoteIP();
-    logger.log("[%u] Connected from %d.%d.%d.%d url: %s", client->id(), ip[0],
-               ip[1], ip[2], ip[3], server->url());
-    sendStatus();
-  } else if (type == WS_EVT_DATA) {
-    AwsFrameInfo* info = (AwsFrameInfo*)arg;
-    if (info->opcode != WS_TEXT)
-      return;
-    newMsg = true;
-    msgClient = client->id();
-    deserializeJson(msg, (const char*)data);
+void SequentServer::webSocketEvent(uint8_t num,
+                                   WStype_t type,
+                                   uint8_t* payload,
+                                   size_t length) {
+  switch (type) {
+    case WStype_DISCONNECTED:
+      logger.log("[%u] Disconnected!", num);
+      break;
+    case WStype_CONNECTED: {
+      IPAddress ip = webSocket.remoteIP(num);
+      logger.log("[%u] Connected from %d.%d.%d.%d url: %s", num, ip[0], ip[1],
+                 ip[2], ip[3], payload);
+      sendStatus();
+    } break;
+    case WStype_TEXT:
+      newMsg = true;
+      msgClient = num;
+      deserializeJson(msg, (const char*)payload);
+      break;
+    default:
+      break;
   }
 }
 
@@ -199,7 +199,7 @@ void SequentServer::loop() {
     shouldSendStatus = false;
   }
 
-  webSocket.cleanupClients();
+  webSocket.loop();
   if (!newMsg)
     return;
 

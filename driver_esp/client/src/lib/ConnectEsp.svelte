@@ -7,7 +7,7 @@
   function connect() {
     $espIP = espIPInput;
     $socket?.close();
-    $socket = new WebSocket(`ws://${$espIP}/ws`);
+    $socket = new WebSocket(`ws://${$espIP}:81`);
     $socket.addEventListener("message", (event) => {
       $state = JSON.parse(event.data);
       console.log($state);

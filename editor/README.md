@@ -48,3 +48,4 @@ Not going to try to make anything perfect, just need to get it functional before
 - Actions should be able to calculate their "real" duration and "display" duration. Right now, I've been treating it like the display duration. But, with something like a video or a bulb exposure, it would help to be able to both tell the driver exactly when to stop the action, but also build in some buffer time into its visual representation.
   - Of course, we're already telling the driver when to stop it, but having the driver implement its own delay kind of goes against the entire point.
 - Fix bug where component snaps even if you only click and don't drag
+- Make spacer action
