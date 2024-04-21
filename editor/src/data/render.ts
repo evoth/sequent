@@ -8,7 +8,7 @@ export type RenderChild = {
 export class Render {
   baseLayer: number = 0;
   maxLayer: number = 0;
-  children: RenderChild[] = [];
+  private children: RenderChild[] = [];
 
   add(newRender: Render, offset: number = 0) {
     for (const child of newRender.children) {

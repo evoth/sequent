@@ -1,7 +1,8 @@
 <script lang="ts">
   import Portal from "svelte-portal";
   import { Component, Layer, LayerError, Sequence } from "../../data/sequence";
-  import { selectedComponents, updateIndex } from "../../data/stores";
+  import { toFixedJSON } from "../../data/serialization";
+  import { project, selectedComponents, updateIndex } from "../../data/stores";
   import ComponentBody from "./ComponentBody.svelte";
   import {
     AbsoluteTimescales,
@@ -24,6 +25,7 @@
   let previewLayer: number;
   let previewOffset: number;
   let previewNoSnap: boolean;
+  let copyDrag: boolean;
 
   let snapPoints: [offset: number, pixels: number][];
   let snapLayer: number | undefined;
@@ -66,7 +68,9 @@
         .filter(([offset, pixels]) => offsetValid(offset));
     };
 
-    const layerValidation = sequence.layers[layerIndex].validate(dragging);
+    const layerValidation = sequence.layers[layerIndex].validate(
+      copyDrag ? undefined : dragging
+    );
     if (layerValidation.error === LayerError.Empty)
       return tickSnaps(
         Math.max(0, timelineStart - draggingDuration),
@@ -177,6 +181,7 @@
     dragOffset = [event.clientX - originalBox.x, event.clientY - originalBox.y];
     snapLayer = undefined;
     isDragging = false;
+    copyDrag = event.altKey;
     dragMove(event);
   }
 
@@ -274,12 +279,20 @@
     if (outsideBounds) {
       $selectedComponents.set(sequence, undefined);
     }
-    if (!previewNoSnap) {
+    if (!previewNoSnap && !copyDrag) {
       removeComponent();
     }
 
     // TODO: Should probably have error handling here
     if (!outsideBounds && !previewNoSnap) {
+      if (copyDrag) {
+        dragging = Component.fromJSON(toFixedJSON(dragging.toJSON()), {
+          actionManager: $project.actionSet.actionManager,
+          parameterManager: $project.actionSet.parameterManager,
+          sequenceManager: $project.sequenceManager,
+        });
+        $selectedComponents.set(sequence, dragging);
+      }
       if (dragging.props.selectedConstraints.includes("end")) {
         dragging.props.constraints.end! +=
           previewOffset - dragging.props.constraints.start!;
@@ -292,13 +305,14 @@
 
     dragging = undefined;
     isDragging = false;
+    copyDrag = false;
     addRemoveExtraLayer(isDragging);
   }
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="dragParent" on:mousedown={(event) => dragStart(event)}>
-  {#if !(hideChildOnDrag && isDragging)}
+  {#if !(hideChildOnDrag && isDragging) || copyDrag}
     <slot />
   {/if}
 </div>

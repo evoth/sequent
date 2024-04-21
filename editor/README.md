@@ -8,12 +8,7 @@ Not going to try to make anything perfect, just need to get it functional before
 
 ## TODO
 
-- The program should never save an invalid state. Make validation stricter and use default values to mitigate empty ones.
-  - Repeat should always have valid props and child... should always store a "solved" version which can be reverted back to
-    - RepeatProps props could be readonly, and Repeat props could use getters/setters to enforce stuff
-  - So unless we want a bad user experience, the program will have to deal with invalid states, mainly arising from invalid Repeat configurations (deep nested Repeat child going from finite to infinite duration, for instance)
 - Give errors IDs for easier error tracking?
-- Add methods to add/remove stuff (layers to sequences, repeats to layers, etc.)
 - Just learned that parameters properties exist, so I should probably convert constructors to use that as much as possible
 - Better keyboard controls
   - Modals (pressing enter should submit, escape should cancel)
@@ -49,3 +44,6 @@ Not going to try to make anything perfect, just need to get it functional before
   - Of course, we're already telling the driver when to stop it, but having the driver implement its own delay kind of goes against the entire point.
 - Fix bug where component snaps even if you only click and don't drag
 - Make spacer action
+- Ability to create/edit projects
+- Ability to create/edit/choose action sets
+- Visual representation of actions within components (think Logic Pro)

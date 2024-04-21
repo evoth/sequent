@@ -22,6 +22,9 @@
   let showError = false;
   // Resets showError when opened
   $: showError = !isOpen;
+
+  let nameInput: HTMLElement;
+  $: nameInput && isOpen && nameInput.focus();
 </script>
 
 <Modal bind:isOpen {title} {onSubmit} {onClose} canSubmit={data.name !== ""}>
@@ -29,6 +32,7 @@
     <label>
       Name:
       <input
+        bind:this={nameInput}
         bind:value={data.name}
         type="text"
         placeholder="Sequence name"
