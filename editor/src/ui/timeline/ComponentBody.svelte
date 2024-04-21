@@ -46,11 +46,12 @@
 <style>
   .container {
     position: absolute;
-    width: 100%;
+    left: 1px;
+    right: 1px;
     border-radius: 1rem;
     padding: 1rem 0.2rem;
     cursor: pointer;
-    height: 90%;
+    bottom: 5%;
     top: 5%;
     overflow: hidden;
     display: flex;
