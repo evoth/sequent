@@ -31,6 +31,11 @@ export class Action extends Manageable<Action> {
   readonly parameters: Parameter<any>[];
   readonly descendants: Set<Parameter<any>>;
   readonly durationProps: ActionDurationProps;
+  readonly displayParams: [
+    parameter: Parameter<any>,
+    name?: string,
+    valueTemplate?: string
+  ][];
 
   constructor(
     manager: Manager<Action>,
@@ -38,6 +43,11 @@ export class Action extends Manageable<Action> {
     description: string,
     durationProps: ActionDurationProps,
     parameters: Parameter<any>[] = [],
+    displayParams: [
+      parameter: Parameter<any>,
+      name?: string,
+      valueTemplate?: string
+    ][],
     id?: IdType,
     hue?: number
   ) {
@@ -53,6 +63,15 @@ export class Action extends Manageable<Action> {
       }
     }
     this.durationProps = durationProps;
+    for (const [displayParam, name, valueTemplate] of displayParams) {
+      if (!this.descendants.has(displayParam)) {
+        throw new Error(
+          `Parameter with ID ${displayParam.id} cannot be used as displayParam ` +
+            `for Action with ID ${this.id} because it is not a descendant parameter.`
+        );
+      }
+    }
+    this.displayParams = displayParams;
   }
 
   toJSON(): Omit<CustomJSON<Action>, "descendants"> {
@@ -71,6 +90,13 @@ export class Action extends Manageable<Action> {
           }
         ),
       },
+      displayParams: this.displayParams.map(
+        ([displayParam, name, valueTemplate]) => [
+          displayParam.id,
+          name,
+          valueTemplate,
+        ]
+      ),
     };
   }
 
@@ -98,6 +124,15 @@ export class Action extends Manageable<Action> {
         (id: IdType) => managers.parameterManager.children.get(id),
         json.id,
         json.hue
+      ),
+      json.displayParams.map(
+        ([displayParamId, name, valueTemplate]: [IdType, string, string]) => {
+          return [
+            managers.parameterManager.children.get(displayParamId),
+            name,
+            valueTemplate,
+          ];
+        }
       ),
       json.id,
       json.hue
@@ -151,6 +186,7 @@ export class ActionState implements Repeatable, Serializable {
     for (const paramState of parameterStates) {
       this.parameterStates.set(paramState.parameter.id, paramState);
     }
+    console.log(this.getActiveParameters());
   }
 
   toJSON(): CustomJSON<ActionState> {
@@ -196,6 +232,27 @@ export class ActionState implements Repeatable, Serializable {
 
   getManageableChild(): Manageable<Action> {
     return this.action;
+  }
+
+  getActiveParameters(): Set<Parameter<any>> {
+    const active = new Set<Parameter<any>>();
+
+    const bfsQueue = [...this.action.parameters];
+    while (bfsQueue.length > 0) {
+      const param = bfsQueue.shift();
+      if (param === undefined) continue;
+
+      active.add(param);
+      if (param instanceof NestedParameter) {
+        for (const nestedChild of param.nested.get(
+          this.parameterStates.get(param.id)?.value
+        ) ?? []) {
+          bfsQueue.push(nestedChild);
+        }
+      }
+    }
+
+    return active;
   }
 
   render(): Render {

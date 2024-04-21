@@ -28,23 +28,26 @@ export function getEsp32ActionSet(
     "ip"
   );
 
+  const methodParam = new EnumParameter<string>(
+    actionSet.parameterManager,
+    "Protocol",
+    "Method used to connect to camera",
+    "CCAPI",
+    ["CCAPI", "PTP/IP"],
+    undefined,
+    undefined,
+    "method"
+  );
+
   new Action(
     actionSet.actionManager,
     "Connect camera",
     "Connect to a Canon camera over WiFi",
     { defaultDuration: 5, durationParams: [] },
+    [ipParam, methodParam],
     [
-      ipParam,
-      new EnumParameter<string>(
-        actionSet.parameterManager,
-        "Protocol",
-        "Method used to connect to camera",
-        "CCAPI",
-        ["CCAPI", "PTP/IP"],
-        undefined,
-        undefined,
-        "method"
-      ),
+      [ipParam, ""],
+      [methodParam, ""],
     ],
     "connect",
     130
@@ -288,6 +291,7 @@ export function getEsp32ActionSet(
       ],
     },
     [ipParam, modeParam],
+    [[isoParam], [apertureParam, "Av"], [shutterParam, "Tv"], [evParam, "EV"]],
     "photo",
     220
   );
@@ -301,6 +305,7 @@ export function getEsp32ActionSet(
       durationParams: [],
     },
     [ipParam, modeParam],
+    [[isoParam], [apertureParam, "Av"], [shutterParam, "Tv"], [evParam, "EV"]],
     "exposure",
     220
   );
@@ -328,8 +333,23 @@ export function getEsp32ActionSet(
       durationParams: [{ param: durationParam }],
     },
     [ipParam, durationParam],
+    [
+      [ipParam, ""],
+      [durationParam, ""],
+    ],
     "video",
     263
+  );
+
+  const onOffParam = new EnumParameter<string>(
+    actionSet.parameterManager,
+    "Action",
+    "",
+    "on",
+    ["on", "off"],
+    undefined,
+    undefined,
+    "action"
   );
 
   new Action(
@@ -340,22 +360,8 @@ export function getEsp32ActionSet(
       defaultDuration: 0.5,
       durationParams: [],
     },
-    [
-      ipParam,
-      new NestedParameter<string>(
-        actionSet.parameterManager,
-        "Action",
-        "",
-        "on",
-        new Map([
-          ["on", []],
-          ["off", []],
-        ]),
-        undefined,
-        undefined,
-        "action"
-      ),
-    ],
+    [ipParam, onOffParam],
+    [[ipParam, ""], [onOffParam]],
     "displayOnOff",
     80
   );
@@ -411,6 +417,10 @@ export function getEsp32ActionSet(
       durationParams: [],
     },
     [servoPinParam, servoAngleParam],
+    [
+      [servoPinParam, "Pin"],
+      [servoAngleParam, "Angle", "%d°"],
+    ],
     "servoAttach",
     15
   );
@@ -424,8 +434,25 @@ export function getEsp32ActionSet(
       durationParams: [],
     },
     [servoPinParam, servoAngleParam, servoSpeedParam],
+    [
+      [servoPinParam, "Pin"],
+      [servoAngleParam, "Angle", "%d°"],
+      [servoSpeedParam, undefined, "%d°/s"],
+    ],
     "servoMove",
     30
+  );
+
+  const bmeFileParam = new StringParameter<string>(
+    actionSet.parameterManager,
+    "CSV data file",
+    "",
+    "/bme280.csv",
+    5,
+    undefined,
+    undefined,
+    undefined,
+    "bmeFile"
   );
 
   new Action(
@@ -436,21 +463,22 @@ export function getEsp32ActionSet(
       defaultDuration: 0.5,
       durationParams: [],
     },
-    [
-      new StringParameter<string>(
-        actionSet.parameterManager,
-        "CSV data file",
-        "",
-        "/bme280.csv",
-        5,
-        undefined,
-        undefined,
-        undefined,
-        "bmeFile"
-      ),
-    ],
+    [bmeFileParam],
+    [[bmeFileParam, ""]],
     "bmeRecord",
     300
+  );
+
+  const gpsFileParam = new StringParameter<string>(
+    actionSet.parameterManager,
+    "CSV data file",
+    "",
+    "/gps.csv",
+    5,
+    undefined,
+    undefined,
+    undefined,
+    "gpsFile"
   );
 
   new Action(
@@ -461,19 +489,8 @@ export function getEsp32ActionSet(
       defaultDuration: 0.5,
       durationParams: [],
     },
-    [
-      new StringParameter<string>(
-        actionSet.parameterManager,
-        "CSV data file",
-        "",
-        "/gps.csv",
-        5,
-        undefined,
-        undefined,
-        undefined,
-        "gpsFile"
-      ),
-    ],
+    [gpsFileParam],
+    [[gpsFileParam, ""]],
     "gpsRecord",
     190
   );
@@ -492,6 +509,20 @@ export function getEsp32ActionSet(
     "shutterPin"
   );
 
+  const shutterMethodParam = new NestedParameter<string>(
+    actionSet.parameterManager,
+    "Method",
+    "",
+    "cable",
+    new Map([
+      ["cable", [shutterPinParam]],
+      ["WiFi", [ipParam]],
+    ]),
+    undefined,
+    undefined,
+    "shutterMethod"
+  );
+
   new Action(
     actionSet.actionManager,
     "Shutter release",
@@ -500,21 +531,11 @@ export function getEsp32ActionSet(
       defaultDuration: 1,
       durationParams: [{ param: durationParam }],
     },
+    [shutterMethodParam, durationParam],
     [
-      new NestedParameter<string>(
-        actionSet.parameterManager,
-        "Method",
-        "",
-        "cable",
-        new Map([
-          ["cable", [shutterPinParam]],
-          ["WiFi", [ipParam]],
-        ]),
-        undefined,
-        undefined,
-        "shutterMethod"
-      ),
-      durationParam,
+      [shutterPinParam, "Pin"],
+      [ipParam, ""],
+      [durationParam, ""],
     ],
     "shutterRelease",
     160
