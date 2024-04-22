@@ -13,7 +13,7 @@ The Sequent system consists of 3 parts:
 - The [driver program](#driver-program)
 - The [hardware](#hardware) (cameras, sensors, etc.)
 
-## Sequence editor
+### Sequence editor
 
 [![Screenshot of Sequent web editor showing various actions on the timeline](/doc_assets/editor-1.png)](/doc_assets/editor-1_full.png)
 
@@ -21,7 +21,7 @@ The [Sequent web editor](https://sequent.ethanvoth.com) allows you to create seq
 
 When you're done creating a sequence, you can export it to your computer. This sequence file is what will be executed by the driver program, which is what connects to and controls the hardware.
 
-## Driver program
+### Driver program
 
 [<img src="doc_assets/driver-1.png" alt="Screenshot of the driver interface showing the status of various devices" width="400">](/doc_assets/driver-1.png)
 [<img src="doc_assets/driver-2.png" alt="Screenshot of the driver interface showing controls for various sequences" width="400">](/doc_assets/driver-2.png)
@@ -30,7 +30,7 @@ The driver program is what reads the sequence file from the web editor and execu
 
 In the case of the ESP32 driver (currently the only driver as a proof-of-concept), the ESP32 connects to various cameras, sensors, and even servo motors. The sequences are uploaded and controlled via a web interface which communicates with the C++ backend. Once a sequence is running, the web interface can be used to monitor the status of the sequence and connected devices, but the connection is not necessary to keep the sequence running since the ESP32 is doing all of the work.
 
-## Hardware
+### Hardware
 
 [<img src="doc_assets/hardware-1.jpg" alt="ESP32 board with a multitude of jumper cables connecting to different components on a breadboard" width="400">](/doc_assets/hardware-1.jpg)
 [<img src="doc_assets/hardware-2.jpg" alt="Two cameras, each with a motorized solar filter" width="400">](/doc_assets/hardware-2.jpg)
@@ -51,12 +51,12 @@ The hardware is what is ultimately being automated. Since the impetus for this p
 **Control devices:**
 - Any device with WiFi and a browser can control the ESP32 over the web interface
 
+## How can I use it?
+
+Right now, this project is still in the development stage, so it may be difficult to get the system up and running without having my same hardware. At the very least, you will need an ESP32 board with an SD card reader connected via SPI. Then, you can build and run the PlatformIO project in the `driver_esp/driver` folder.
+
 ## Future plans
 
 The system is built to be as flexible as possible, so that it can be generalized to a wide variety of use cases. Driver programs can be written for any device that can parse a JSON file (which is the format of the exported sequence files), which can then control just about anything! However, I suspect this system is most useful for controlling cameras, whether it's taking long-term time-lapses, performing exposure bracketing on a camera that doesn't support it (like I did during the 4/8/24 eclipse), or taking sub-exposures and calibration frames for astrophotography.
 
 I plan on improving the user interface and possibly developing generalized photography-focused driver programs for a variety of platforms. Additionally, because this system worked so well for the April 8th eclipse, I may develop eclipse-specific features in anticipation of upcoming total solar eclipses.
-
-## How can I use it?
-
-Right now, this project is still in the development stage, so it may be difficult to get the system up and running without having my same hardware. At the very least, you will need an ESP32 board with an SD card reader connected via SPI. Then, you can build and run the PlatformIO project in the `driver_esp/driver` folder.
