@@ -1,11 +1,3 @@
-# Sequent Editor
-
-This will be a web-based editor for composing sequences using actions and parameters that are specified depending on the intended target system (backend).
-
-## Plan: FOCUS ON MVP!!
-
-Not going to try to make anything perfect, just need to get it functional before I worry about any non-essential details
-
 ## TODO
 
 - Give errors IDs for easier error tracking?

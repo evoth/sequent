@@ -291,7 +291,13 @@ export function getEsp32ActionSet(
       ],
     },
     [ipParam, modeParam],
-    [[isoParam], [apertureParam, "Av"], [shutterParam, "Tv"], [evParam, "EV"]],
+    [
+      [ipParam, ""],
+      [isoParam],
+      [apertureParam, "Av"],
+      [shutterParam, "Tv"],
+      [evParam, "EV"],
+    ],
     "photo",
     220
   );
@@ -305,7 +311,13 @@ export function getEsp32ActionSet(
       durationParams: [],
     },
     [ipParam, modeParam],
-    [[isoParam], [apertureParam, "Av"], [shutterParam, "Tv"], [evParam, "EV"]],
+    [
+      [ipParam, ""],
+      [isoParam],
+      [apertureParam, "Av"],
+      [shutterParam, "Tv"],
+      [evParam, "EV"],
+    ],
     "exposure",
     220
   );
@@ -436,7 +448,7 @@ export function getEsp32ActionSet(
     [servoPinParam, servoAngleParam, servoSpeedParam],
     [
       [servoPinParam, "Pin"],
-      [servoAngleParam, "Angle", "%d°"],
+      [servoAngleParam, undefined, "%d°"],
       [servoSpeedParam, undefined, "%d°/s"],
     ],
     "servoMove",
