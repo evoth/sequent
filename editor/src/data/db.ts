@@ -16,7 +16,15 @@ export class DB {
       openRequest.onupgradeneeded = () => {
         const newDb = openRequest.result;
         newDb.createObjectStore(STORE_NAME);
-        resolve(newDb);
+
+        const transaction = openRequest.transaction;
+        if (transaction) {
+          transaction.oncomplete = () => {
+            resolve(newDb);
+          }
+        } else {
+          resolve(newDb);
+        }
       };
 
       openRequest.onsuccess = () => {

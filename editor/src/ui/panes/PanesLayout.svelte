@@ -20,12 +20,12 @@
         <ComponentsSection
           title="Actions"
           name="components-actions"
-          bind:manager={$project.actionSet.actionManager}
+          manager={$project.actionSet.actionManager}
         />
         <ComponentsSection
           title="Sequences"
           name="components-sequences"
-          bind:manager={$project.sequenceManager}
+          manager={$project.sequenceManager}
         />
         {#if width < BREAKPOINT_XL}
           <ParametersSection />
@@ -56,12 +56,12 @@
       <ComponentsSection
         title="Actions"
         name="components-actions"
-        bind:manager={$project.actionSet.actionManager}
+        manager={$project.actionSet.actionManager}
       />
       <ComponentsSection
         title="Sequences"
         name="components-sequences"
-        bind:manager={$project.sequenceManager}
+        manager={$project.sequenceManager}
       />
       <ParametersSection />
       <RepetitionSection />

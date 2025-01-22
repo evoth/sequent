@@ -186,7 +186,6 @@ export class ActionState implements Repeatable, Serializable {
     for (const paramState of parameterStates) {
       this.parameterStates.set(paramState.parameter.id, paramState);
     }
-    console.log(this.getActiveParameters());
   }
 
   toJSON(): CustomJSON<ActionState> {

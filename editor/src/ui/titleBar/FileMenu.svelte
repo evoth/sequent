@@ -32,7 +32,6 @@
       if (!$fileHandle) return;
       const file = await $fileHandle.getFile();
       const text = await file.text();
-      console.log(JSON.parse(text));
       $project = Project.fromJSON(JSON.parse(text));
       modalOpen = false;
     } else {
